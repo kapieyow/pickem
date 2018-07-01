@@ -1,67 +1,162 @@
 <div class="my-3">
   <tabset>
+
+    <!-- player tab -->
     <tab heading="Player" id="tab1">
-      <div class="float-right my-2">
-        <div class="btn-group mx-3" dropdown>
-          <button id="button-player" dropdownToggle type="button" class="btn btn-info dropdown-toggle" aria-controls="dropdown-player">
-            Kapieyow
-            <span class="caret"></span>
-          </button>
-          <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-info text-light" role="menu" aria-labelledby="button-player">
-            <li role="menuitem">
-              <a class="dropdown-item">Fred</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Wilma</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Barney</a>
-            </li>
-          </ul>
-        </div>
-        <div class="btn-group " dropdown>
-          <button id="button-week" dropdownToggle type="button" class="btn btn-info dropdown-toggle" aria-controls="dropdown-week">
-            Week 1
-            <span class="caret"></span>
-          </button>
-          <ul id="dropdown-week" *dropdownMenu class="dropdown-menu bg-info text-light" role="menu" aria-labelledby="button-week">
-            <li role="menuitem">
-              <a class="dropdown-item">Week 2</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Week 3</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Week 4</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Week 5</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Week 6</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Week 7</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Week 8</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Week 9</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Week 10</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Week 11</a>
-            </li>
-            <li role="menuitem">
-              <a class="dropdown-item">Week 12</a>
-            </li>
-          </ul>
+
+      <!-- row for filter drops -->
+      <div class="row mx-0 my-2">
+        <div class="col-sm-12 px-0">
+          <div class="float-right">
+            <div class="btn-group mx-2" dropdown>
+              <button id="button-player" dropdownToggle type="button" class="btn btn-info dropdown-toggle" aria-controls="dropdown-player">
+                Kapieyow
+                <span class="caret"></span>
+              </button>
+              <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-info text-light" role="menu" aria-labelledby="button-player">
+                <li role="menuitem">
+                  <a class="dropdown-item">Fred</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Wilma</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Barney</a>
+                </li>
+              </ul>
+            </div>
+            <div class="btn-group" dropdown>
+              <button id="button-week" dropdownToggle type="button" class="btn btn-info dropdown-toggle" aria-controls="dropdown-week">
+                Week 1
+                <span class="caret"></span>
+              </button>
+              <ul id="dropdown-week" *dropdownMenu class="dropdown-menu bg-info text-light" role="menu" aria-labelledby="button-week">
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 2</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 3</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 4</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 5</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 6</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 7</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 8</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 9</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 10</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 11</a>
+                </li>
+                <li role="menuitem">
+                  <a class="dropdown-item">Week 12</a>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- row for "no games yet" message -->
+      <div class="row mx-0 my-1">
+        <div class="col-sm-12 px-0">
+          <div class="card text-white border-warning mb-3  my-2">
+            <div class="card-body">
+              <h4 class="card-title">Games aren't ready for the week yet!</h4>
+              <p class="card-text">The games have not been selected for this week yet. They *should* be set by the Monday of this week ... ish.
+                Contact stoopideriest-soft support desk if you have concerns.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- picks -->
+      <div *ngFor="let pick of Picks" class="row my-1">
+        <div class="col-sm-12">
+          <div class="card text-white border-light">
+            <div class="card-header px-2 py-1">
+              <div class="row">
+                <div class="col-sm-5 d-flex flex-column">
+                  {{ pick.GameStatus }}
+                </div>
+                <div class="col-sm-5 d-flex flex-column">
+                  {{ pick.GameLocation }}
+                </div>
+                <div class="col-sm-2 d-flex flex-column">
+                  {{ pick.GameChannel }}
+                </div>
+              </div>
+            </div>
+            <div class="row px-2 py-2">
+              <div class="col-sm-4  d-flex flex-column">
+                <div class="row">
+                  <div class="col-sm-12">
+                    <img src="assets/team_icons/{{ pick.AwayTeamIconImage }}" width="24" class="mx-1" />
+                    <span *ngIf="pick.AwayTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.AwayTeamRank }}</span>
+                    {{ pick.AwayTeamName }}
+                    <span class="font-weight-light text-light px-1">({{ pick.AwayTeamWins }}-{{ pick.AwayTeamLosses }})</span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-12 px-1 py-2">
+                    <div class="custom-control custom-radio">
+                      <input type="radio" id="customRadio1" name="customRadio" class="custom-control-input" checked="">
+                      <label class="custom-control-label" for="customRadio1">Pick Away</label>
+                    </div>
+                    Pick pickstatus
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-1  d-flex flex-column font-weight-bold">
+                {{ pick.AwayTeamScore }}
+              </div>
+              <div class="col-sm-2 d-flex flex-column">
+                {{ pick.SpreadToAwayTeam }}
+              </div>
+              <div class="col-sm-4 d-flex flex-column">
+                <div class="row">
+                  <div class="col-sm-12">
+                    <img src="assets/team_icons/{{ pick.HomeTeamIconImage }}" width="24" class="mx-1" />
+                    <span *ngIf="pick.HomeTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.HomeTeamRank }}</span>
+                    {{ pick.HomeTeamName }}
+                    <span class="font-weight-light text-light px-1">({{ pick.HomeTeamWins }}-{{ pick.HomeTeamLosses }})</span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-12 px-1 py-2">
+                    <div class="custom-control custom-radio">
+                      <input type="radio" id="customRadio2" name="customRadio" class="custom-control-input" checked="">
+                      <label class="custom-control-label" for="customRadio2">Pick Home</label>
+                    </div>
+                    Pick pickstatus
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-1  d-flex flex-column font-weight-bold">
+                {{ pick.HomeTeamScore }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </tab>
+
+
+    <!-- week tab -->
     <tab heading="Week">
       <div class="btn-group my-2 float-right" dropdown>
         <button id="button-week" dropdownToggle type="button" class="btn btn-info dropdown-toggle" aria-controls="dropdown-week">
@@ -108,7 +203,7 @@
       <table class="table table-hover">
         <thead>
           <tr>
-            <th scope="col">Player</th>
+            <th scope="col"></th>
             <th scope="col">Team A
               <br>Team B</th>
             <th scope="col">Team C
@@ -198,7 +293,7 @@
       <table class="table table-hover">
         <thead>
           <tr>
-            <th scope="col">Player</th>
+            <th scope="col"></th>
             <th scope="col">1</th>
             <th scope="col">2</th>
             <th scope="col">3</th>
