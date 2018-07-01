@@ -1,3 +1,26 @@
-<p>
-  login works!
-</p>
+<br>
+<div class="card border-primary mb-3">
+  <div class="card-header">Login</div>
+  <div class="card-body">
+    <form>
+      <fieldset>
+        <div class="form-group">
+          <label for="emailInput">Email</label>
+          <input type="text" #emailInput id="emailInput" placeholder="Enter email" [ngClass]="{'form-control': true, 'is-invalid': inputsInvalid}">
+          <div class="invalid-feedback">
+            Please enter your email
+          </div>
+        </div>  
+        <div class="form-group">
+          <label for="nameInput">Password</label>
+          <input type="password" #passwordInput id="passwordInput" placeholder="Enter password" [ngClass]="{'form-control': true, 'is-invalid': inputsInvalid}">
+          <div class="invalid-feedback">
+            Please enter your password
+          </div>
+        </div>
+        <br>
+        <button type="button" class="btn btn-info float-right" (click)="tryLogin(emailInput.value, passwordInput.value)">Go!</button>
+      </fieldset>
+    </form>
+  </div>
+</div>

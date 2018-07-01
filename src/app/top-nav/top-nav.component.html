@@ -1,3 +1,48 @@
-<p>
-  top-nav works!
-</p>
+<!-- top nav -->
+<div class="bs-docs-section clearfix">
+  <div class="row">
+      <div class="col-lg-12">
+
+          <div class="bs-component">
+              <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+                  <a class="navbar-brand" href="javascript:return null;" (click)="statusDialog.show();">NCAAM - Pickem'</a>
+                  <button class="navbar-toggler" type="button" (click)="isCollapsed = !isCollapsed" aria-expanded="false" aria-label="Toggle navigation">
+                      <span class="navbar-toggler-icon"></span>
+                  </button>
+
+                  <!--
+                  <div class="collapse navbar-collapse" [collapse]=isCollapsed>
+                      <form class="form-inline my-2 my-lg-0 ml-auto" *ngIf="statusService.userInitialized">
+                          <button class="btn btn-warning my-2 my-sm-0 mr-sm-3 rounded-circle" *ngIf="statusService.updatesCount > 0" (click)="reloadList()">{{ statusService.updatesCount }}</button>
+                          <input #searchInput class="form-control mr-sm-3" type="text" placeholder="Search" (keyup)="search(searchInput.value)">
+
+                          <div class="btn-group" dropdown>
+                              <button id="button-basic" dropdownToggle type="button" class="btn btn-info dropdown-toggle" aria-controls="dropdown-basic">
+                                  {{ SortMenuTitle }}
+                                  <span class="caret"></span>
+                              </button>
+                              <ul id="dropdown-basic" *dropdownMenu class="dropdown-menu bg-info text-light" role="menu" aria-labelledby="button-basic">
+                                  <li role="menuitem" *ngIf="menuState!=MENU_STATE_ENTRY_ASC" (click)="updateMenuState(MENU_STATE_ENTRY_ASC)">
+                                      <a class="dropdown-item">Sort by Entry</a>
+                                  </li>
+                                  <li role="menuitem" *ngIf="menuState!=MENU_STATE_AUTHOR_ASC" (click)="updateMenuState(MENU_STATE_AUTHOR_ASC)">
+                                      <a class="dropdown-item">Sort by Author</a>
+                                  </li>
+                                  <li role="menuitem" *ngIf="menuState!=MENU_STATE_CREATED_ASC" (click)="updateMenuState(MENU_STATE_CREATED_ASC)">
+                                      <a class="dropdown-item">Newest first</a>
+                                  </li>
+                                  <li role="menuitem" *ngIf="menuState!=MENU_STATE_CREATED_DESC" (click)="updateMenuState(MENU_STATE_CREATED_DESC)">
+                                      <a class="dropdown-item">Oldest first</a>
+                                  </li>
+                              </ul>
+                          </div>
+
+                          <button type="submit" class="btn btn-success my-2 my-sm-0 ml-sm-4" (click)="entryNameInput.value='';definitionTextarea.value='';addEntryDialog.show();">Add Entry</button>
+                      </form>
+                  </div>
+                  -->
+              </nav>
+          </div>
+      </div>
+  </div>
+</div>
