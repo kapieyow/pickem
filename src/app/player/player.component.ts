@@ -69,7 +69,7 @@ export class PlayerComponent implements OnInit {
 
   loadFakePicks() {
 
-    
+
 
     // spread not set (none at all yet)
     this.Picks.push(
@@ -146,8 +146,8 @@ export class PlayerComponent implements OnInit {
         SpreadDirection: SpreadDirections.ToAway
       });
 
-     // spread set:  no pick (home spread)
-     this.Picks.push(
+    // spread set:  no pick (home spread)
+    this.Picks.push(
       {
         AwayTeamIconImage: "clemson.24.png",
         AwayTeamLosses: 2,
@@ -221,30 +221,30 @@ export class PlayerComponent implements OnInit {
         SpreadDirection: SpreadDirections.ToHome
       });
 
-      // in game - picked away, losing
-      this.Picks.push(
-        {
-          AwayTeamIconImage: "clemson.24.png",
-          AwayTeamLosses: 2,
-          AwayTeamName: "In Game Away Team",
-          AwayTeamRank: 0,
-          AwayTeamScore: 15,
-          AwayTeamWins: 3,
-          GameStatus: "5:18 in 3rd Quarter",
-          GameStatusCode: GameStatus.InGame,
-          HomeTeamIconImage: "clemson.24.png",
-          HomeTeamLosses: 1,
-          HomeTeamName: "In Game Home Team",
-          HomeTeamRank: 15,
-          HomeTeamScore: 28,
-          HomeTeamWins: 4,
-          Id: 11,
-          PickCode: PickCodes.Away,
-          PickState: PickStatus.Losing,
-          PickToSpreadNeatral: -20.5,
-          Spread: 7.5,
-          SpreadDirection: SpreadDirections.ToHome
-        });
+    // in game - picked away, losing
+    this.Picks.push(
+      {
+        AwayTeamIconImage: "clemson.24.png",
+        AwayTeamLosses: 2,
+        AwayTeamName: "In Game Away Team",
+        AwayTeamRank: 0,
+        AwayTeamScore: 15,
+        AwayTeamWins: 3,
+        GameStatus: "5:18 in 3rd Quarter",
+        GameStatusCode: GameStatus.InGame,
+        HomeTeamIconImage: "clemson.24.png",
+        HomeTeamLosses: 1,
+        HomeTeamName: "In Game Home Team",
+        HomeTeamRank: 15,
+        HomeTeamScore: 28,
+        HomeTeamWins: 4,
+        Id: 11,
+        PickCode: PickCodes.Away,
+        PickState: PickStatus.Losing,
+        PickToSpreadNeatral: -20.5,
+        Spread: 7.5,
+        SpreadDirection: SpreadDirections.ToHome
+      });
 
     // in game: push, winning, losing X away and home  
     // in game: no pick
@@ -322,32 +322,6 @@ export class PlayerComponent implements OnInit {
         Spread: 4.5,
         SpreadDirection: SpreadDirections.ToAway
       });
-
-    this.Picks.push(
-      {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 3,
-        AwayTeamName: "Away hasn't started",
-        AwayTeamRank: 0,
-        AwayTeamScore: null,
-        AwayTeamWins: 2,
-        GameStatus: "Saturday 9/27 - 8:00PM EDT",
-        GameStatusCode: GameStatus.SpreadSet,
-        HomeTeamIconImage: "clemson.24.png",
-        HomeTeamLosses: 2,
-        HomeTeamName: "Home hasn't started",
-        HomeTeamRank: 25,
-        HomeTeamScore: null,
-        HomeTeamWins: 3,
-        Id: 8,
-        PickCode: PickCodes.None,
-        PickState: PickStatus.None,
-        PickToSpreadNeatral: null,
-        Spread: 11,
-        SpreadDirection: SpreadDirections.ToAway
-      });
-
-      
 
   }
 
