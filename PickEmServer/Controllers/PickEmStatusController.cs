@@ -8,7 +8,7 @@ using System.Reflection;
 namespace PickEmServer.Controllers
 {
     [Produces("application/json")]
-    [Route("api/Status")]
+    [Route("api/status")]
     public class PickEmStatusController : Controller
     {
         private string _runtimeEnvironment = null;
