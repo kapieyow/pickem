@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace PickEmServer.ApiModels.Validators
+namespace PickEmServer.Api.Models.Validators
 {
     public class UserRegistrationValidator : AbstractValidator<UserRegistration>
     {

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using FluentValidation.AspNetCore;
+using Marten;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -36,6 +37,12 @@ namespace PickEmServer
             {
                 c.SwaggerDoc("v1", new Info { Title = "Pickem API", Version = "v1" });
             });
+
+
+            // TODO: do this the right way. Should this be here?
+            // Marten document store
+            services.AddScoped<IDocumentStore>(provider =>
+                DocumentStore.For(Configuration.GetSection("PostgresConnection:ConnectionString").Value));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
