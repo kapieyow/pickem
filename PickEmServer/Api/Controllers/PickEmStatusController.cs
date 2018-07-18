@@ -12,8 +12,8 @@ namespace PickEmServer.Api.Controllers
     [Route("api/status")]
     public class PickEmStatusController : Controller
     {
-        private IDocumentStore _documentStore;
-        private string _runtimeEnvironment = null;
+        private readonly IDocumentStore _documentStore;
+        private readonly string _runtimeEnvironment = null;
 
         public PickEmStatusController(IHostingEnvironment env, IDocumentStore documentStore)
         {

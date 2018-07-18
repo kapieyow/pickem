@@ -12,8 +12,8 @@ namespace PickEmServer.Api.Controllers
     [Route("api/logs")]
     public class LogController : Controller
     {
-        private IDocumentStore _documentStore;
-        private ILogger<LogController> _logger;
+        private readonly IDocumentStore _documentStore;
+        private readonly ILogger<LogController> _logger;
 
         public LogController(ILogger<LogController> logger, IDocumentStore documentStore)
         {

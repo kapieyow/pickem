@@ -3,11 +3,14 @@ using System.Diagnostics;
 using System.Reflection;
 using FluentValidation.AspNetCore;
 using Marten;
+using Marten.AspNetIdentity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using PickEmServer.App.Models;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace PickEmServer
@@ -33,16 +36,26 @@ namespace PickEmServer
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>());
 
             services.AddCors();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Info { Title = "Pickem API", Version = "v1" });
-            });
+            services.AddSwaggerGen(c => c.SwaggerDoc("v1", new Info { Title = "Pickem API", Version = "v1" }) );
 
+            string postgresConnectionString = Configuration.GetSection("PostgresConnection:ConnectionString").Value;
 
-            // TODO: do this the right way. Should this be here?
+            // Wire in ASP.NET identity using Marten->postgress
+            services
+                .AddIdentity<PickEmUser, IdentityRole>(i =>
+                    {
+                        i.Password.RequireDigit = false;
+                        i.Password.RequireLowercase = false;
+                        i.Password.RequireUppercase = false;
+                        i.Password.RequireNonAlphanumeric = false;
+                        i.Password.RequiredLength = 6;
+                    }
+                )
+                .AddMartenStores<PickEmUser, IdentityRole>(postgresConnectionString)
+                .AddDefaultTokenProviders();
+
             // Marten document store
-            services.AddScoped<IDocumentStore>(provider =>
-                DocumentStore.For(Configuration.GetSection("PostgresConnection:ConnectionString").Value));
+            services.AddScoped<IDocumentStore>(provider => DocumentStore.For(postgresConnectionString));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,6 +79,7 @@ namespace PickEmServer
                 builder.AllowAnyHeader();
             });
 
+            app.UseAuthentication();
             app.UseMvc();
 
             app.UseSwagger();

@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
+using PickEmServer.App.Models;
 
 namespace PickEmServer.Api.Controllers
 {
@@ -13,35 +16,49 @@ namespace PickEmServer.Api.Controllers
     [Route("api/useraccounts")]
     public class UserAccountController : Controller
     {
-        private ILogger<UserAccountController> _logger;
+        private readonly ILogger<UserAccountController> _logger;
+        private readonly UserManager<PickEmUser> _userManager;
 
-        public UserAccountController(ILogger<UserAccountController> logger)
+        public UserAccountController(ILogger<UserAccountController> logger, UserManager<PickEmUser> userManager)
         {
             _logger = logger;
+            _userManager = userManager;
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> Post([FromBody] UserRegistration userRegistration)
-        //{
-        //    if ( !ModelState.IsValid )
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] UserRegistration userRegistration)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        //    //var userIdentity = _mapper.Map<AppUser>(model);
+            var newPickEmUser = new PickEmUser
+            {
+                Email = userRegistration.Email,
+                UserName = userRegistration.UserName
+            };
 
-        //    //var result = await _userManager.CreateAsync(userIdentity, model.Password);
+            var result = await _userManager.CreateAsync(newPickEmUser, userRegistration.Password);
 
-        //    //if (!result.Succeeded) return new BadRequestObjectResult(Errors.AddErrorsToModelState(result, ModelState));
+            if (!result.Succeeded)
+                return new BadRequestObjectResult(AddIdentityResultErrorsToModelState(result, ModelState));
 
-        //    //await _appDbContext.Customers.AddAsync(new Customer { IdentityId = userIdentity.Id, Location = model.Location });
-        //    //await _appDbContext.SaveChangesAsync();
+            // TODO, should this save a pickem account also (not in ASP identity, in local store?)
 
-        //    string resultMessage = string.Format("User Account ({0}) created", userRegistration.AccountName);
+            string resultMessage = string.Format("User ({0}) created", userRegistration.UserName);
 
-        //    _logger.LogInformation(resultMessage);
+            _logger.LogInformation(resultMessage);
 
-        //    return new OkObjectResult(resultMessage);
-        //}
+            return new OkObjectResult(resultMessage);
+        }
+
+        private ModelStateDictionary AddIdentityResultErrorsToModelState(IdentityResult identityResult, ModelStateDictionary modelState)
+        {
+            foreach (var e in identityResult.Errors)
+            {
+                modelState.TryAddModelError(e.Code, e.Description);
+            }
+
+            return modelState;
+        }
     }
 }
