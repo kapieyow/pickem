@@ -1,5 +1,6 @@
 ﻿
 using Marten;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace PickEmServer.Api.Controllers
 {
+    [Authorize(Policy = "ApiUser")]
     [Produces("application/json")]
     [Route("api/logs")]
     public class LogController : Controller

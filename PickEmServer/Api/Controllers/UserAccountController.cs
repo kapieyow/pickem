@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
+using PickEmServer.App;
 using PickEmServer.App.Models;
 
 namespace PickEmServer.Api.Controllers
@@ -40,7 +41,7 @@ namespace PickEmServer.Api.Controllers
             var result = await _userManager.CreateAsync(newPickEmUser, userRegistration.Password);
 
             if (!result.Succeeded)
-                return new BadRequestObjectResult(AddIdentityResultErrorsToModelState(result, ModelState));
+                return new BadRequestObjectResult(AuthHelpers.AddErrorsToModelState(result, ModelState));
 
             // TODO, should this save a pickem account also (not in ASP identity, in local store?)
 
@@ -51,14 +52,5 @@ namespace PickEmServer.Api.Controllers
             return new OkObjectResult(resultMessage);
         }
 
-        private ModelStateDictionary AddIdentityResultErrorsToModelState(IdentityResult identityResult, ModelStateDictionary modelState)
-        {
-            foreach (var e in identityResult.Errors)
-            {
-                modelState.TryAddModelError(e.Code, e.Description);
-            }
-
-            return modelState;
-        }
     }
 }
