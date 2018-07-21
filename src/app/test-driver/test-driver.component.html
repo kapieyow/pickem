@@ -1,0 +1,12 @@
+<p>
+  test-driver works!
+</p>
+<div>
+  <input #messageInput type="text" class="form-control" id="messageInput" placeholder="Enter log message">
+  <br>
+  <button class="btn btn-outline-secondary my-2 my-sm-0 ml-sm-3" (click)="debug(messageInput.value)">Log Debug</button>
+  <button class="btn btn-outline-info my-2 my-sm-0 ml-sm-3" (click)="info(messageInput.value)">Log Info</button>
+  <button class="btn btn-outline-warning my-2 my-sm-0 ml-sm-3" (click)="warn(messageInput.value)">Log Warn</button>
+  <button class="btn btn-outline-danger my-2 my-sm-0 ml-sm-3" (click)="error(messageInput.value)">Log Error</button>
+  <button class="btn btn-danger my-2 my-sm-0 ml-sm-3" (click)="wtf(messageInput.value)">Log WTF</button>
+</div>

@@ -15,6 +15,11 @@ import { TopNavComponent } from './top-nav/top-nav.component';
 import { PlayerComponent } from './player/player.component';
 import { WeekComponent } from './week/week.component';
 import { SeasonComponent } from './season/season.component';
+import { TestDriverComponent } from './test-driver/test-driver.component';
+
+import { LoggerService } from './sub-system/services/logger.service';
+import { UserService } from './sub-system/services/user.service';
+import { HttpClientModule } from '../../node_modules/@angular/common/http';
 
 
 @NgModule({
@@ -24,7 +29,8 @@ import { SeasonComponent } from './season/season.component';
     TopNavComponent,
     PlayerComponent,
     WeekComponent,
-    SeasonComponent
+    SeasonComponent,
+    TestDriverComponent
   ],
   imports: [
     BrowserModule,
@@ -32,10 +38,11 @@ import { SeasonComponent } from './season/season.component';
     BsDropdownModule.forRoot(),
     ButtonsModule.forRoot(),
     CollapseModule.forRoot(),
+    HttpClientModule,
     ModalModule.forRoot(),
     TabsModule.forRoot(),
   ],
-  providers: [],
+  providers: [ LoggerService, UserService ],
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }
