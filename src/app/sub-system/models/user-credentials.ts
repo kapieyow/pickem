@@ -1,4 +1,4 @@
-export class Credentials 
+export class UserCredentials 
 {
     userName: string;
     password: string;

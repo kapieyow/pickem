@@ -19,7 +19,7 @@ import { TestDriverComponent } from './test-driver/test-driver.component';
 
 import { LoggerService } from './sub-system/services/logger.service';
 import { UserService } from './sub-system/services/user.service';
-import { HttpClientModule } from '../../node_modules/@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 
 
 @NgModule({

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 import { LoggerService } from './logger.service';
-import { HttpErrorResponse } from '../../../../node_modules/@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable()
 export abstract class BaseService {

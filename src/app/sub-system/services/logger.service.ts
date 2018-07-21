@@ -53,7 +53,8 @@ export class LoggerService {
     else {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong,
-      return `[server] code: ${error.status}, body: ${error.error}`;
+      var errorBodyJson = JSON.stringify(error.error);
+      return `${error.message}: ${errorBodyJson}`;
     }
   };
 
