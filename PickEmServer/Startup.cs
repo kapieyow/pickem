@@ -1,6 +1,4 @@
-﻿
-using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using FluentValidation.AspNetCore;
@@ -9,14 +7,13 @@ using Marten.AspNetIdentity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using PickEmServer.App;
 using PickEmServer.App.Models;
-using PickEmServer.Jwt;
 using PickEmServer.Jwt.Models;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -28,9 +25,6 @@ namespace PickEmServer
         private ILogger _logger;
         private string _runningSignature;
 
-        private const string SecretKey = "iNivDmHLpUA223sqsfhqGbMRdRj1PVkH"; // TODO: get this from somewhere secure
-        private readonly SymmetricSecurityKey _signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(SecretKey));
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -41,21 +35,7 @@ namespace PickEmServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddLogging();
-
-            services
-                .AddMvc()
-                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>());
-
-            services.AddCors();
-            services.AddSwaggerGen(c => c.SwaggerDoc("v1", new Info { Title = "PickEm API", Version = "v1" }) );
-
-            string postgresConnectionString = Configuration.GetSection("PostgresConnection:ConnectionString").Value;
-
-            services.AddSingleton<IJwtFactory, JwtFactory>();
-
-            // jwt wire up
-            // Get options from app settings
+            // Get JWT options from app settings
             var jwtAppSettingOptions = Configuration.GetSection(nameof(JwtIssuerOptions));
 
             // Configure JwtIssuerOptions
@@ -63,59 +43,55 @@ namespace PickEmServer
             {
                 options.Issuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
                 options.Audience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)];
-                options.SigningCredentials = new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256);
             });
 
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)],
+            // Jawt auth
+            services
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
 
-                ValidateAudience = true,
-                ValidAudience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)],
+                        ValidIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)],
+                        ValidAudience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Consts.SECRET_KEY))
+                    };
+                });
 
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = _signingKey,
+            // MVC
+            services
+                .AddMvc()
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>());
 
-                RequireExpirationTime = false,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
-            };
+            // CORS
+            services.AddCors();
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            // Swagga
+            services.AddSwaggerGen(c => c.SwaggerDoc("v1", new Info { Title = "PickEm API", Version = "v1" }));
 
-            }).AddJwtBearer(configureOptions =>
-            {
-                configureOptions.ClaimsIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
-                configureOptions.TokenValidationParameters = tokenValidationParameters;
-                configureOptions.SaveToken = true;
-            });
-
-            // api user claim policy
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("ApiUser", policy => policy.RequireClaim(JwtClaimIdentifiers.Rol, JwtClaims.ApiAccess));
-            });
+            // Marten document store -> postgres
+            string postgresConnectionString = Configuration.GetSection("PostgresConnection:ConnectionString").Value;
+            services.AddScoped<IDocumentStore>(provider => DocumentStore.For(postgresConnectionString));
 
             // Wire in ASP.NET identity using Marten->postgress
-            services
-                .AddIdentity<PickEmUser, IdentityRole>(i =>
-                    {
-                        i.Password.RequireDigit = false;
-                        i.Password.RequireLowercase = false;
-                        i.Password.RequireUppercase = false;
-                        i.Password.RequireNonAlphanumeric = false;
-                        i.Password.RequiredLength = 6;
-                    }
-                )
-                .AddMartenStores<PickEmUser, IdentityRole>(postgresConnectionString)
-                .AddDefaultTokenProviders();
+            var identBuilder = services
+                .AddIdentityCore<PickEmUser>(options =>
+                {
+                    options.Password.RequireDigit = false;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequireUppercase = false;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequiredLength = 6;
+                });
 
-            // Marten document store
-            services.AddScoped<IDocumentStore>(provider => DocumentStore.For(postgresConnectionString));
+            identBuilder = new IdentityBuilder(identBuilder.UserType, typeof(IdentityRole), identBuilder.Services);
+            identBuilder.AddMartenStores<PickEmUser, IdentityRole>(postgresConnectionString);
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -124,10 +100,14 @@ namespace PickEmServer
             _logger = logger;
             _logger.LogInformation("Running in ({0}) environment", env.EnvironmentName);
 
+            app.UseAuthentication();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            // TODO: figure out how to use this >> app.UseExceptionHandler()
 
             app.UseStaticFiles();
 
@@ -139,7 +119,6 @@ namespace PickEmServer
                 builder.AllowAnyHeader();
             });
 
-            app.UseAuthentication();
             app.UseMvc();
 
             app.UseSwagger();

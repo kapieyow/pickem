@@ -1,13 +1,17 @@
-﻿using System.Security.Claims;
+﻿using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using Microsoft.IdentityModel.Tokens;
 using PickEmServer.Api.Models;
 using PickEmServer.App;
 using PickEmServer.App.Models;
-using PickEmServer.Jwt;
 using PickEmServer.Jwt.Models;
 
 namespace PickEmServer.Api.Controllers
@@ -16,14 +20,14 @@ namespace PickEmServer.Api.Controllers
     [Route("api/auth")]
     public class AuthController : Controller
     {
-        private readonly UserManager<PickEmUser> _userManager;
-        private readonly IJwtFactory _jwtFactory;
+        private readonly ILogger<AuthController> _logger;
         private readonly JwtIssuerOptions _jwtOptions;
+        private readonly UserManager<PickEmUser> _userManager;
 
-        public AuthController(UserManager<PickEmUser> userManager, IJwtFactory jwtFactory, IOptions<JwtIssuerOptions> jwtOptions)
+        public AuthController(UserManager<PickEmUser> userManager, IOptions<JwtIssuerOptions> jwtOptions, ILogger<AuthController> logger)
         {
             _userManager = userManager;
-            _jwtFactory = jwtFactory;
+            _logger = logger;
             _jwtOptions = jwtOptions.Value;
         }
 
@@ -32,42 +36,42 @@ namespace PickEmServer.Api.Controllers
         public async Task<IActionResult> Post([FromBody] UserCredentials credentials)
         {
             if (!ModelState.IsValid)
+            { 
                 return BadRequest(ModelState);
-
-
-            var identity = await GetClaimsIdentity(credentials.UserName, credentials.Password);
-
-            if (identity == null)
-            {
-                return BadRequest(AuthHelpers.AddErrorToModelState("login_failure", "Invalid username or password.", ModelState));
             }
-
-            var jwt = await Tokens.GenerateJwt(identity, _jwtFactory, credentials.UserName, _jwtOptions, new JsonSerializerSettings { Formatting = Formatting.None });
-            return new OkObjectResult(jwt);
-        }
-
-
-        /// <summary>
-        /// TODO : Can't this be better? Add logs
-        /// </summary>
-        private async Task<ClaimsIdentity> GetClaimsIdentity(string userName, string password)
-        {
-            if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
-                return await Task.FromResult<ClaimsIdentity>(null);
 
             // get the user to verifty
-            var userToVerify = await _userManager.FindByNameAsync(userName);
+            var userToVerify = await _userManager.FindByNameAsync(credentials.UserName);
 
-            if (userToVerify == null) return await Task.FromResult<ClaimsIdentity>(null);
-
-            // check the credentials
-            if (await _userManager.CheckPasswordAsync(userToVerify, password))
+            if (userToVerify == null)
             {
-                return await Task.FromResult(_jwtFactory.GenerateClaimsIdentity(userName, userToVerify.Id));
+                _logger.LogWarning("Login attempt from invalid user ({0})", credentials.UserName);
+                return Unauthorized();
             }
 
-            // Credentials are invalid, or account doesn't exist
-            return await Task.FromResult<ClaimsIdentity>(null);
+
+            // check the credentials
+            if (await _userManager.CheckPasswordAsync(userToVerify, credentials.Password))
+            {
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Consts.SECRET_KEY));
+                var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+                var token = new JwtSecurityToken(
+                    issuer: _jwtOptions.Issuer,
+                    audience: _jwtOptions.Audience,
+                    claims: new List<Claim>(),
+                    expires: DateTime.Now.AddMinutes(5),
+                    signingCredentials: signinCredentials
+                );
+
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                return Ok(new { Token = tokenString });
+            }
+            else
+            {
+                _logger.LogWarning("Login attempt failure from user ({0})", credentials.UserName);
+                return Unauthorized();
+            }
         }
     }
 }

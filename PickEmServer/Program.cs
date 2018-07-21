@@ -19,6 +19,10 @@ namespace PickEmServer
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureLogging((hostingContext, logging) =>
+                {
+                    logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+                })
                 .UseStartup<Startup>()
                 .Build();
     }

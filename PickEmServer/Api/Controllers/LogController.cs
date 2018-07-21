@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
 using PickEmServer.Data.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PickEmServer.Api.Controllers
 {
-    [Authorize(Policy = "ApiUser")]
     [Produces("application/json")]
     [Route("api/logs")]
     public class LogController : Controller
@@ -53,6 +53,17 @@ namespace PickEmServer.Api.Controllers
                 return new OkObjectResult(newLog);
             }
 
+        }
+
+        // GET: api/logs
+        [Authorize]
+        [HttpGet]
+        public async Task<List<Log>> Get()
+        {
+            var logs = new List<Log>();
+            logs.Add(new Log { Id = -1, Component = "I is fake", LogLevel = "um", LogMessage = "I is test data" });
+
+            return logs;
         }
     }
 }
