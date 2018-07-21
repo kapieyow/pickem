@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using PickEmServer.App;
 using PickEmServer.App.Models;
 using PickEmServer.Jwt.Models;
+using PickEmServer.Middleware;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace PickEmServer
@@ -104,10 +105,9 @@ namespace PickEmServer
 
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                // JSON output exception output
+                app.UseMiddleware(typeof(JsonOutputErrorHandlingMiddleware));
             }
-
-            // TODO: figure out how to use this >> app.UseExceptionHandler()
 
             app.UseStaticFiles();
 

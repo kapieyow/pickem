@@ -64,6 +64,8 @@ namespace PickEmServer.Api.Controllers
             var logs = new List<Log>();
             logs.Add(new Log { Id = -1, Component = "I is fake", LogLevel = "um", LogMessage = "I is test data" });
 
+            throw new System.Exception("oh poop");
+
             return logs;
         }
     }
