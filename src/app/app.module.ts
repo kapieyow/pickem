@@ -1,4 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
@@ -18,8 +19,9 @@ import { SeasonComponent } from './season/season.component';
 import { TestDriverComponent } from './test-driver/test-driver.component';
 
 import { LoggerService } from './sub-system/services/logger.service';
+import { StatusService } from './sub-system/services/status.service';
 import { UserService } from './sub-system/services/user.service';
-import { HttpClientModule } from '@angular/common/http';
+
 
 
 @NgModule({
@@ -42,7 +44,7 @@ import { HttpClientModule } from '@angular/common/http';
     ModalModule.forRoot(),
     TabsModule.forRoot(),
   ],
-  providers: [ LoggerService, UserService ],
+  providers: [ LoggerService, StatusService, UserService ],
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }

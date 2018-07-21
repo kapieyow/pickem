@@ -9,6 +9,7 @@ import { UserCredentials } from '../models/user-credentials';
 import { BaseService } from './base.service';
 import { LoggerService } from './logger.service';
 import { environment } from '../../../environments/environment';
+import { StatusService } from './status.service';
 
 
 //"Content-Type", "application/json-patch+json"
@@ -19,12 +20,14 @@ const httpOptions = {
 @Injectable()
 export class UserService extends BaseService {
 
-  constructor(logger: LoggerService, private http: HttpClient) { 
+  constructor(logger: LoggerService, private http: HttpClient, private statusService: StatusService) { 
     super(logger);
   }
 
   login (username: string, password: string) : Observable<boolean>
   {
+    this.statusService.userLoggedIn = false;
+
     let credentials = new UserCredentials();
     credentials.userName = username;
     credentials.password = password;
@@ -35,6 +38,8 @@ export class UserService extends BaseService {
           {
             let token = (<any>response).token;
             localStorage.setItem("JWT", token);
+            this.statusService.userName = username;
+            this.statusService.userLoggedIn = true;
           }),
         map(response => true),
         catchError(error =>
@@ -44,5 +49,11 @@ export class UserService extends BaseService {
             return of(false);
           })
       );
+  }
+
+  logout ()
+  {
+    localStorage.removeItem("JWT");
+    this.statusService.userLoggedIn = false;
   }
 }
