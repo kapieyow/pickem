@@ -60,6 +60,7 @@ namespace PickEmServer.Api.Controllers
         [HttpGet]
         public async Task<List<Log>> Get()
         {
+            // TODO: unfake this
             var logs = new List<Log>();
             logs.Add(new Log { Id = -1, Component = "I is fake", LogLevel = "um", LogMessage = "I is test data" });
 
