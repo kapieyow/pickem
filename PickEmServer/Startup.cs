@@ -75,9 +75,8 @@ namespace PickEmServer
             // Swagga
             services.AddSwaggerGen(c => c.SwaggerDoc("v1", new Info { Title = "PickEm API", Version = "v1" }));
 
-            // Marten document store -> postgres
+            // postgres conn
             string postgresConnectionString = Configuration.GetSection("PostgresConnection:ConnectionString").Value;
-            services.AddScoped<IDocumentStore>(provider => DocumentStore.For(postgresConnectionString));
 
             // Wire in ASP.NET identity using Marten->postgress
             var identBuilder = services
@@ -92,6 +91,16 @@ namespace PickEmServer
 
             identBuilder = new IdentityBuilder(identBuilder.UserType, typeof(IdentityRole), identBuilder.Services);
             identBuilder.AddMartenStores<PickEmUser, IdentityRole>(postgresConnectionString);
+
+            // Marten document store -> postgres
+            services.AddScoped<IDocumentStore>(provider => DocumentStore.For(_ =>
+            {
+                _.Connection(postgresConnectionString);
+                // TODO: by putting this AFTER the identity code above it will put all tables including the asp ones in the "public" schema
+                // could separate
+                _.DatabaseSchemaName = "public";
+            }));
+
 
         }
 
