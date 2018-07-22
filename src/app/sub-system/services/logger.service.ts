@@ -2,6 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { LogAdd } from '../models/log-add';
 import { environment } from '../../../environments/environment';
+import { Observable, throwError } from 'rxjs';
+import { Log } from '../models/log';
+import { tap, catchError } from 'rxjs/operators';
+import { ThrowStmt, ERROR_COMPONENT_TYPE } from '@angular/compiler';
 
 //"Content-Type", "application/json-patch+json"
 const httpOptions = {
@@ -72,4 +76,17 @@ export class LoggerService {
         );
   }
 
+  public readLogs(): Observable<Log[]>
+  {
+    return this.http.get<Log[]>(environment.pickemRestServerBaseUrl + "/logs", httpOptions)
+      .pipe(
+        tap(response => this.debug(`read (${response.length}) logs`)),
+        catchError(error => 
+          {
+            var errorMessage = `Failed to read logs (${this.buildErrorMessage(error)})`;
+            this.error(errorMessage);
+            return throwError(errorMessage);
+          })
+      );
+  }
 }

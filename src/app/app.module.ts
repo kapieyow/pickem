@@ -50,8 +50,7 @@ export function tokenGetter() {
     JwtModule.forRoot({
       config: {
         tokenGetter: tokenGetter,
-        whitelistedDomains: [ environment.pickemRestServerBaseUrl ],
-        blacklistedRoutes: [ environment.pickemRestServerBaseUrl + "/auth/login" ]
+        whitelistedDomains: [ environment.pickemBaseDomain ]
       }
     }),
     HttpClientModule,

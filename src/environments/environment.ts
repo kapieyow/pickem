@@ -6,4 +6,5 @@
 export const environment = {
   production: false,
   pickemRestServerBaseUrl: "http://localhost:51890/api",
+  pickemBaseDomain: "localhost:51890",
 };
