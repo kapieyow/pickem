@@ -7,12 +7,14 @@ import { SeasonComponent } from '../season/season.component';
 import { WeekComponent } from '../week/week.component';
 import { TestDriverComponent } from '../test-driver/test-driver.component';
 
+import { AuthGuard } from '../sub-system/auth/auth-guard';
+
 const routes: Routes = [
   { path: '', component: LoginComponent },
-  { path: 'player', component: PlayerComponent },
-  { path: 'season', component: SeasonComponent },
-  { path: 'week', component: WeekComponent },
-  { path: 'testdriver', component: TestDriverComponent },
+  { path: 'player', component: PlayerComponent, canActivate: [AuthGuard] },
+  { path: 'season', component: SeasonComponent, canActivate: [AuthGuard] },
+  { path: 'week', component: WeekComponent, canActivate: [AuthGuard]  },
+  { path: 'testdriver', component: TestDriverComponent  },
 ];
 
 @NgModule({
