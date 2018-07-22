@@ -8,7 +8,8 @@ import { CollapseModule } from 'ngx-bootstrap/collapse'
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 
-import { JwtHelper } from '../../node_modules/angular2-jwt';
+import { JwtModule } from '@auth0/angular-jwt';
+import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { AppRoutingModule } from './app-routing/app-routing.module';
 
@@ -24,8 +25,11 @@ import { AuthGuard } from './sub-system/auth/auth-guard';
 import { LoggerService } from './sub-system/services/logger.service';
 import { StatusService } from './sub-system/services/status.service';
 import { UserService } from './sub-system/services/user.service';
+import { environment } from '../environments/environment';
 
-
+export function tokenGetter() {
+  return localStorage.getItem('JWT');
+}
 
 @NgModule({
   declarations: [
@@ -43,11 +47,18 @@ import { UserService } from './sub-system/services/user.service';
     BsDropdownModule.forRoot(),
     ButtonsModule.forRoot(),
     CollapseModule.forRoot(),
+    JwtModule.forRoot({
+      config: {
+        tokenGetter: tokenGetter,
+        whitelistedDomains: [ environment.pickemRestServerBaseUrl ],
+        blacklistedRoutes: [ environment.pickemRestServerBaseUrl + "/auth/login" ]
+      }
+    }),
     HttpClientModule,
     ModalModule.forRoot(),
     TabsModule.forRoot(),
   ],
-  providers: [ AuthGuard, JwtHelper, LoggerService, StatusService, UserService ],
+  providers: [ AuthGuard, JwtHelperService, LoggerService, StatusService, UserService ],
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }

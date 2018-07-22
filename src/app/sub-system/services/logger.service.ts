@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { LogAdd } from '../models/log-add';
 import { environment } from '../../../environments/environment';
-import { basename } from 'path';
 
 //"Content-Type", "application/json-patch+json"
 const httpOptions = {
