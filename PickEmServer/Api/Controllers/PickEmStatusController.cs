@@ -27,6 +27,12 @@ namespace PickEmServer.Api.Controllers
         {
             PickEmStatus pickEmStatus = new PickEmStatus();
 
+            // user if there is one
+            if (User.Identity.IsAuthenticated)
+            {
+                pickEmStatus.AuthenticatedUserName = User.Identity.Name;
+            }
+
             Assembly executingAssembly = Assembly.GetExecutingAssembly();
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(executingAssembly.Location);
 
@@ -36,7 +42,6 @@ namespace PickEmServer.Api.Controllers
                 pickEmStatus.Database = dbSession.Connection.Database;
                 pickEmStatus.DatabaseHost = dbSession.Connection.Host;
             }
-
             
             pickEmStatus.Product = executingAssembly.GetCustomAttribute<AssemblyProductAttribute>().Product;
             pickEmStatus.ProductVersion = fileVersionInfo.ProductVersion;

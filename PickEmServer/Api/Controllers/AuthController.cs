@@ -49,18 +49,24 @@ namespace PickEmServer.Api.Controllers
                 return Unauthorized();
             }
 
-
             // check the credentials
             if (await _userManager.CheckPasswordAsync(userToVerify, credentials.Password))
             {
+
+                // thumbs up, create the Jawt
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Consts.SECRET_KEY));
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, credentials.UserName)
+                    // TODO: could add roles here, probably based on user setup in db i.e. kip is god
+                };
 
                 var token = new JwtSecurityToken(
                     issuer: _jwtOptions.Issuer,
                     audience: _jwtOptions.Audience,
-                    claims: new List<Claim>(),
-                    expires: DateTime.Now.AddMinutes(5),
+                    claims: claims,
+                    expires: DateTime.Now.AddMinutes(1), // TODO: This should be longer, trying to force timeouts
                     signingCredentials: signinCredentials
                 );
 
