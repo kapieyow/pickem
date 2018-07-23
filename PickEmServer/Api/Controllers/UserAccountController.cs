@@ -49,7 +49,13 @@ namespace PickEmServer.Api.Controllers
 
             _logger.LogInformation(resultMessage);
 
-            return new OkObjectResult(resultMessage);
+            User newUser = new User
+            {
+                Email = userRegistration.Email,
+                UserName = userRegistration.UserName
+            };
+
+            return new OkObjectResult(newUser);
         }
 
     }

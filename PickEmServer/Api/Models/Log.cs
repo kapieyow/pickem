@@ -2,9 +2,9 @@
 {
     public class Log
     {
-        public int Id { get; set; }
-        public string Component { get; set; }
-        public string LogMessage { get; set; }
-        public string LogLevel { get; set; }
+        public int Id { get; internal set; }
+        public string Component { get; internal set; }
+        public string LogMessage { get; internal set; }
+        public string LogLevel { get; internal set; }
     }
 }
