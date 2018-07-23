@@ -1,5 +1,5 @@
 <br>
-<div class="card border-primary mb-3">
+<div class="card border-secondary mb-3">
   <div class="card-header">Login</div>
   <div class="card-body">
     <form>
@@ -17,8 +17,13 @@
       </fieldset>
     </form>
   </div>
-
+  <br>
   <div *ngIf="inputsInvalid" class="alert alert-danger">
-    <strong>Whoops!</strong> Those aren't valid credentials. Please reenter your user name and password.
+    <strong>Whoops!</strong>
+    <ul>
+      <li *ngFor="let loginError of loginErrors">
+        <div>{{ loginError }}</div>
+      </li>
+    </ul>
   </div>
 </div>

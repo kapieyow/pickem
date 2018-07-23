@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { LogAdd } from '../models/log-add';
+import { LogAdd } from '../models/api/log-add';
 import { environment } from '../../../environments/environment';
 import { Observable, throwError } from 'rxjs';
-import { Log } from '../models/log';
+import { Log } from '../models/api/log';
 import { tap, catchError } from 'rxjs/operators';
 import { ThrowStmt, ERROR_COMPONENT_TYPE } from '@angular/compiler';
 
@@ -47,19 +47,76 @@ export class LoggerService {
     this.postToServer("WTF", logMessage);
   }
 
-  public buildErrorMessage(error: HttpErrorResponse) : string {
-
+  public logAndParseHttpError(error: HttpErrorResponse) : string[] 
+  {
     if (error.error instanceof ErrorEvent) {
       // A client-side or network error occurred. Handle it accordingly.
-      return `[client side]: ${error.error.message}`
+      var errorMessage = `[client side]: ${error.error.message}`;
+      this.error(errorMessage);
+      return [errorMessage];
     } 
-    else {
-      // The backend returned an unsuccessful response code.
-      // The response body may contain clues as to what went wrong,
-      var errorBodyJson = JSON.stringify(error.error);
-      return `${error.message}: ${errorBodyJson}`;
+    else if ( error.status == 400 )
+    {
+      // bad request / validation
+      // break out the validation messages
+      try 
+      {
+        var errorMessages: string[] = [];
+
+        // this is a bit nutz. Trying to get the error messages out from serial json, which is an array of arrays
+        var errorProperties = Object
+          .keys(error.error)
+          .forEach(key => errorMessages = errorMessages.concat(error.error[key]));
+
+        var errorBodyJson = JSON.stringify(error.error);
+        var errorMessage = `${error.message}: ${errorBodyJson}`;
+        
+        // only a validation so log as warning
+        this.warn(errorMessage);
+        return errorMessages;
+      }
+      catch (e)
+      {
+          // log as if unknown.
+          return [ "Oops! Didn't expect this", "Unable to digest 400 error", this.logAsUnhandledHttpError(error) ];
+      }
+    }
+    else if ( error.status == 401 )
+    {
+        // unauthorized
+        var errorBodyJson = JSON.stringify(error.error);
+        var errorMessage = `${error.message}: ${errorBodyJson}`;
+        
+        // only a validation so log as warning
+        this.warn(errorMessage);
+        return [ "You are not authorized for this action"];
+    }
+    else
+    {
+      return [ "Oops! Didn't expect this", this.logAsUnhandledHttpError(error) ];
     }
   };
+
+  public readLogs(): Observable<Log[]>
+  {
+    return this.http.get<Log[]>(environment.pickemRestServerBaseUrl + "/logs", httpOptions)
+      .pipe(
+        tap(response => this.debug(`read (${response.length}) logs`)),
+        catchError(error => 
+          {
+            return throwError([this.logAsUnhandledHttpError(error)]);
+          })
+      );
+  }
+
+  private logAsUnhandledHttpError(error: HttpErrorResponse) : string 
+  {
+    var errorBodyJson = JSON.stringify(error.error);
+    var errorMessage = `${error.message}: ${errorBodyJson}`;
+    
+    this.error(errorMessage);
+    return `${error.message}`;
+  }
 
   private postToServer(logLevel: string, logMessage: string)
   {
@@ -72,21 +129,11 @@ export class LoggerService {
     this.http.post<LogAdd>(environment.pickemRestServerBaseUrl + "/logs", logAdd, httpOptions)
       .subscribe( 
         response => { /* thumbs up */ },
-        error => { console.error(`Unable to log message (${logMessage}) at level (${logLevel}) to server due to (${this.buildErrorMessage(error)})`); }
+        error => { 
+          var errorBodyJson = JSON.stringify(error.error);
+          var serverError = `${error.message}: ${errorBodyJson}`;
+          console.error(`Unable to log message (${logMessage}) at level (${logLevel}) to server due to (${serverError})`); }
         );
   }
 
-  public readLogs(): Observable<Log[]>
-  {
-    return this.http.get<Log[]>(environment.pickemRestServerBaseUrl + "/logs", httpOptions)
-      .pipe(
-        tap(response => this.debug(`read (${response.length}) logs`)),
-        catchError(error => 
-          {
-            var errorMessage = `Failed to read logs (${this.buildErrorMessage(error)})`;
-            this.error(errorMessage);
-            return throwError(errorMessage);
-          })
-      );
-  }
 }

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { LoggerService } from '../sub-system/services/logger.service';
-import { Log } from '../sub-system/models/log';
+import { Log } from '../sub-system/models/api/log';
 
 @Component({
   selector: 'app-test-driver',
@@ -22,7 +22,7 @@ export class TestDriverComponent implements OnInit {
   
 
   logs: Log[];
-  errorMessage: string = null;
+  errorMessages: string[] = [];
 
   readLogs ()
   {
@@ -31,7 +31,9 @@ export class TestDriverComponent implements OnInit {
     this.logger.readLogs()
       .subscribe(
         response => {this.logs = response},
-        error => { this.errorMessage = error}
+        errors => { 
+          this.errorMessages = errors;
+        }
       )
   }
 

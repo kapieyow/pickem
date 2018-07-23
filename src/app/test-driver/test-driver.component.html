@@ -17,8 +17,13 @@
 
   <br>
   <br>
-  <div *ngIf="errorMessage" class="alert alert-danger">
-    <strong>Whoops!</strong> {{ errorMessage }}
+  <div *ngIf="errorMessages.length > 0" class="alert alert-danger">
+    <strong>Whoops!</strong>
+    <ul>
+      <li *ngFor="let errorMessage of errorMessages" >
+        <div>{{ errorMessage }}</div>
+      </li>
+    </ul>
   </div>
 
   <ul>

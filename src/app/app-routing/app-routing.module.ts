@@ -6,6 +6,7 @@ import { PlayerComponent } from '../player/player.component';
 import { SeasonComponent } from '../season/season.component';
 import { WeekComponent } from '../week/week.component';
 import { TestDriverComponent } from '../test-driver/test-driver.component';
+import { RegisterComponent } from '../register/register.component';
 
 import { AuthGuard } from '../sub-system/auth/auth-guard';
 
@@ -14,6 +15,7 @@ const routes: Routes = [
   { path: 'player', component: PlayerComponent, canActivate: [AuthGuard] },
   { path: 'season', component: SeasonComponent, canActivate: [AuthGuard] },
   { path: 'week', component: WeekComponent, canActivate: [AuthGuard]  },
+  { path: 'register', component: RegisterComponent  },
   { path: 'testdriver', component: TestDriverComponent  },
 ];
 

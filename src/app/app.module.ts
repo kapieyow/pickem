@@ -26,6 +26,7 @@ import { LoggerService } from './sub-system/services/logger.service';
 import { StatusService } from './sub-system/services/status.service';
 import { UserService } from './sub-system/services/user.service';
 import { environment } from '../environments/environment';
+import { RegisterComponent } from './register/register.component';
 
 export function tokenGetter() {
   return localStorage.getItem('JWT');
@@ -39,7 +40,8 @@ export function tokenGetter() {
     PlayerComponent,
     WeekComponent,
     SeasonComponent,
-    TestDriverComponent
+    TestDriverComponent,
+    RegisterComponent
   ],
   imports: [
     BrowserModule,
