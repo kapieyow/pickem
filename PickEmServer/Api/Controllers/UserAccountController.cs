@@ -27,7 +27,7 @@ namespace PickEmServer.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] UserRegistration userRegistration)
+        public async Task<IActionResult> RegisterUser([FromBody] UserRegistration userRegistration)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

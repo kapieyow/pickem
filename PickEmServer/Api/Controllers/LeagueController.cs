@@ -154,5 +154,28 @@ namespace PickEmServer.Api.Controllers
 
             return leagueScoreboard;
         }
+
+        [Authorize]
+        [HttpGet]
+        [Route("api/{SeasonCode}/{LeagueCode}/players")]
+        public async Task<List<Player>> GetPlayers(string SeasonCode, string LeagueCode)
+        {
+            return new List<Player>
+            {
+                new Player { PlayerTag = "bewwew" },
+                new Player { PlayerTag = "cushyGoblin" },
+                new Player { PlayerTag = "kapieyow" },
+                new Player { PlayerTag = "samSpade" },
+                new Player { PlayerTag = "sigterm" }
+            };
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("api/{SeasonCode}/{LeagueCode}/weeks")]
+        public async Task<List<int>> GetWeekNumbers(string SeasonCode, string LeagueCode)
+        {
+            return new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+        }
     }
 }
