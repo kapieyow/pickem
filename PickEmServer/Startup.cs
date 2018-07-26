@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using PickEmServer.App;
 using PickEmServer.App.Models;
+using PickEmServer.Heart;
 using PickEmServer.Jwt.Models;
 using PickEmServer.Middleware;
 using Swashbuckle.AspNetCore.Swagger;
@@ -36,6 +37,8 @@ namespace PickEmServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<DatabaseInitializer>();
+
             // Get JWT options from app settings
             var jwtAppSettingOptions = Configuration.GetSection(nameof(JwtIssuerOptions));
 

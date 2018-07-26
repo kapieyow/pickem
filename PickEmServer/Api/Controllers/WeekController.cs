@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PickEmServer.Api.Models;
+using PickEmServer.App;
 
 namespace PickEmServer.Api.Controllers
 {

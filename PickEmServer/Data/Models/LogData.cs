@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Marten.Schema;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ namespace PickEmServer.Data.Models
 {
     public class LogData
     {
+        [Identity]
         public int Id { get; set; }
         public string Component { get; set; }
         public string LogMessage { get; set; }

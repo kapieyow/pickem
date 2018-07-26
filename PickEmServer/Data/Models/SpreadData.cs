@@ -1,8 +1,8 @@
 ﻿using PickEmServer.App;
 
-namespace PickEmServer.Api.Models
+namespace PickEmServer.Data.Models
 {
-    public class Spread
+    public class SpreadData
     {
         public SpreadDirections SpreadDirection { get; internal set; }
         public decimal PointSpread { get; internal set; }
