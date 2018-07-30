@@ -27,8 +27,7 @@ namespace PickEmServer.Heart
         {
             using (var dbSession = _documentStore.LightweightSession())
             {
-
-                // verify the game codes exist
+                // verify the team codes exist
                 var teams = await dbSession
                     .Query<TeamData>()
                     .Where(team => team.TeamCode == newGame.AwayTeamCode || team.TeamCode == newGame.HomeTeamCode)
@@ -40,23 +39,37 @@ namespace PickEmServer.Heart
                     string matchedAwayTeamCode = teams.SingleOrDefault(team => team.TeamCode == newGame.AwayTeamCode)?.TeamCode;
                     string matchedHomeTeamCode = teams.SingleOrDefault(team => team.TeamCode == newGame.AwayTeamCode)?.TeamCode;
 
-                    string errorMessage = string.Format(
-                        "Input away team code ({0}) home team code ({1}) not valid. Matched only away team code ({2}) home team code ({3})",
-                        newGame.AwayTeamCode,
-                        newGame.HomeTeamCode,
-                        matchedAwayTeamCode,
-                        matchedHomeTeamCode
-                        );
-
-                    throw new ArgumentException(errorMessage);
+                    throw new ArgumentException($"Input away team code ({newGame.AwayTeamCode}) home team code ({newGame.HomeTeamCode}) not valid. Matched only away team code ({matchedAwayTeamCode}) home team code ({matchedHomeTeamCode})");
                 }
 
-                // TODO: verify game doesn't exist yet?
+                // verify game does not already exist by id or by season/week/awayteam/hometeam
+                var game = await dbSession
+                   .Query<GameData>()
+                   .Where(g => 
+                        g.GameId == newGame.GameId 
+                        || 
+                        ( 
+                            g.SeasonCodeRef == SeasonCode
+                            &&
+                            g.WeekNumberRef == WeekNumber
+                            &&
+                            g.AwayTeam.TeamCodeRef == newGame.AwayTeamCode 
+                            && 
+                            g.HomeTeam.TeamCodeRef == newGame.HomeTeamCode ) 
+                        )
+                   .SingleOrDefaultAsync()
+                   .ConfigureAwait(false);
+
+                if ( game != null )
+                {
+                    throw new ArgumentException($"Matching game already exists by Id: {newGame.GameId} or Season: {SeasonCode}, Week: {WeekNumber}, Away Team: {newGame.AwayTeamCode} and Home Team: {newGame.HomeTeamCode}");
+                }
 
                 GameData newGameData = new GameData
                 {
                     GameId = newGame.GameId,
                     GameStart = newGame.GameStart,
+                    LastUpdated = DateTime.Now,
                     NeutralField = newGame.NeutralField,
                     SeasonCodeRef = SeasonCode,
                     WeekNumberRef = WeekNumber,
