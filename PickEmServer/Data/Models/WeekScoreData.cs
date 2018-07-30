@@ -7,7 +7,7 @@ namespace PickEmServer.Data.Models
 {
     public class WeekScoreData
     {
-        public int WeekNumberRef { get; internal set; }
-        public int Points { get; internal set; }
+        public int WeekNumberRef { get; set; }
+        public int Points { get; set; }
     }
 }

@@ -5,6 +5,6 @@ namespace PickEmServer.Data.Models
     public class WeekData
     {
         [Identity]
-        public int WeekNumber { get; internal set; }
+        public int WeekNumber { get; set; }
     }
 }

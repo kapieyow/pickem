@@ -7,13 +7,13 @@ namespace PickEmServer.Data.Models
     {
 
         [Identity]
-        public int PlayerPicksId { get; internal set; }
+        public int PlayerPicksId { get; set; }
 
-        public string SeasonCodeRef { get; internal set; }
-        public string LeagueCodeRef { get; internal set; }
-        public int WeekNumberRef { get; internal set; }
-        public string PlayerTagRef { get; internal set; }
+        public string SeasonCodeRef { get; set; }
+        public string LeagueCodeRef { get; set; }
+        public int WeekNumberRef { get; set; }
+        public string PlayerTagRef { get; set; }
 
-        public List<GamePickData> Picks { get; internal set; }
+        public List<GamePickData> Picks { get; set; }
     }
 }

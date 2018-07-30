@@ -1,6 +1,10 @@
 ﻿
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace PickEmServer.App
 {
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum GameStates
     {
         SpreadNotSet,
@@ -10,6 +14,7 @@ namespace PickEmServer.App
         Cancelled
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum PickTypes
     {
         Away,
@@ -17,6 +22,7 @@ namespace PickEmServer.App
         None
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum PickStatuses
     {
         Losing,
@@ -28,6 +34,7 @@ namespace PickEmServer.App
         Won
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum SpreadDirections
     {
         None,

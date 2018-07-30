@@ -8,8 +8,8 @@ namespace PickEmServer.Data.Models
 {
     public class GamePickData
     {
-        public int GameIdRef { get; internal set; }
-        public PickTypes Pick { get; internal set; }
-        public PickStatuses PickStatus { get; internal set; }
+        public int GameIdRef { get; set; }
+        public PickTypes Pick { get; set; }
+        public PickStatuses PickStatus { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using FluentValidation.AspNetCore;
@@ -38,7 +39,10 @@ namespace PickEmServer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<DatabaseInitializer>();
-
+            services.AddScoped<GameService>();
+            services.AddScoped<LogService>();
+            services.AddScoped<PickemDatabaseLoggerProvider>();
+ 
             // Get JWT options from app settings
             var jwtAppSettingOptions = Configuration.GetSection(nameof(JwtIssuerOptions));
 
@@ -108,10 +112,12 @@ namespace PickEmServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime applicationLifetime, ILogger<Startup> logger)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime applicationLifetime, ILogger<Startup> logger, ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _logger.LogInformation("Running in ({0}) environment", env.EnvironmentName);
+
+            loggerFactory.AddProvider(serviceProvider.GetService<PickemDatabaseLoggerProvider>());
 
             app.UseAuthentication();
 

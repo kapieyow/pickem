@@ -7,9 +7,9 @@ namespace PickEmServer.Data.Models
 {
     public class PlayerSeasonScoreData
     {
-        public string PlayerTagRef { get; internal set; }
-        public int Points { get; internal set; }
+        public string PlayerTagRef { get; set; }
+        public int Points { get; set; }
 
-        public List<WeekScoreData> WeeklyScores { get; internal set; }
+        public List<WeekScoreData> WeeklyScores { get; set; }
     }
 }

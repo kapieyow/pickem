@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
 using PickEmServer.Data.Models;
+using PickEmServer.Heart;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -16,43 +17,21 @@ namespace PickEmServer.Api.Controllers
     {
         private readonly IDocumentStore _documentStore;
         private readonly ILogger<LogController> _logger;
+        private readonly LogService _logService;
 
-        public LogController(ILogger<LogController> logger, IDocumentStore documentStore)
+        public LogController(ILogger<LogController> logger, IDocumentStore documentStore, LogService logService)
         {
             _documentStore = documentStore;
             _logger = logger;
+            _logService = logService;
         }
 
         // POST: api/logs
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] LogAdd logAdd)
         {
-            // TODO : better mapping e.g. auto mapper or something 
-            LogData logData = new LogData
-            {
-                Component = logAdd.Component,
-                LogLevel = logAdd.LogLevel,
-                LogMessage = logAdd.LogMessage
-            };
-
-            using (var dbSession = _documentStore.LightweightSession())
-            {
-                dbSession.Store(logData);
-                await dbSession.SaveChangesAsync();
-
-                // success return as API "read" object
-                // TODO: better mapping e.g.auto mapper or something
-                Log newLog = new Log
-                {
-                    Id = logData.Id,
-                    Component = logData.Component,
-                    LogLevel = logData.LogLevel,
-                    LogMessage = logData.LogMessage
-                };
-
-                return new OkObjectResult(newLog);
-            }
-
+            Log newLog = await _logService.AddLog(logAdd);
+            return new OkObjectResult(newLog);
         }
 
         // GET: api/logs
@@ -60,11 +39,7 @@ namespace PickEmServer.Api.Controllers
         [HttpGet]
         public async Task<List<Log>> Get()
         {
-            // TODO: unfake this
-            var logs = new List<Log>();
-            logs.Add(new Log { Id = -1, Component = "I is fake", LogLevel = "um", LogMessage = "I is test data" });
-
-            return logs;
+            return await _logService.ReadLogs();
         }
     }
 }

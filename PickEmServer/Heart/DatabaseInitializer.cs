@@ -55,10 +55,11 @@ namespace PickEmServer.Heart
         {
             using (var dbSession = _documentStore.LightweightSession())
             {
+                dbSession.Store(new SeasonData { SeasonCode = "17", SeasonTitle = "2017" });
                 dbSession.Store(new SeasonData { SeasonCode = "18", SeasonTitle = "2018" });
                 dbSession.SaveChanges();
 
-                return 1;
+                return 2;
             }
         }
 
