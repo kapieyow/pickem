@@ -88,6 +88,56 @@ namespace PickEmServer.Heart
             return await this.ReadGame(newGame.GameId);
         }
 
+
+        public async Task<Game> UpdateGame(string SeasonCode, int WeekNumber, int GameId, GameUpdate gameUpdates)
+        {
+            using (var dbSession = _documentStore.LightweightSession())
+            {
+                var game = await dbSession
+                   .Query<GameData>()
+                   .Where(g => g.GameId == GameId && g.SeasonCodeRef == SeasonCode && g.WeekNumberRef == WeekNumber)
+                   .SingleOrDefaultAsync()
+                   .ConfigureAwait(false);
+
+                if (game == null)
+                {
+                    throw new ArgumentException($"No matching game found to update. Criteria Id: {GameId} or Season: {SeasonCode}, Week: {WeekNumber}");
+                }
+
+                GameChanger gameChanger = new GameChanger(game, dbSession);
+                gameChanger.ApplyChanges(gameUpdates);
+                gameChanger.SaveChanges();
+
+            }
+
+            // read back out to return
+            return await this.ReadGame(GameId);
+        }
+
+        public async Task<Game> UpdateSpread(string SeasonCode, int WeekNumber, int GameId, SpreadUpdate spreadUpdates)
+        {
+            using (var dbSession = _documentStore.LightweightSession())
+            {
+                var game = await dbSession
+                   .Query<GameData>()
+                   .Where(g => g.GameId == GameId && g.SeasonCodeRef == SeasonCode && g.WeekNumberRef == WeekNumber)
+                   .SingleOrDefaultAsync()
+                   .ConfigureAwait(false);
+
+                if (game == null)
+                {
+                    throw new ArgumentException($"No matching game found to update. Criteria Id: {GameId} or Season: {SeasonCode}, Week: {WeekNumber}");
+                }
+
+                GameChanger gameChanger = new GameChanger(game, dbSession);
+                gameChanger.ApplySpread(spreadUpdates);
+                gameChanger.SaveChanges();
+            }
+
+            // read back out to return
+            return await this.ReadGame(GameId);
+        }
+
         public async Task<Game> ReadGame(int gameId)
         {
             using (var dbSession = _documentStore.QuerySession())

@@ -26,5 +26,21 @@ namespace PickEmServer.Api.Controllers
             // TODO: handle exceptions
             return await _gameService.AddGame(SeasonCode, WeekNumber, newGame);
         }
+
+        [HttpPut]
+        [Route("api/private/{SeasonCode}/{WeekNumber}/games/{GameId}")]
+        public async Task<Game> UpdateGame(string SeasonCode, int WeekNumber, int GameId, [FromBody] GameUpdate gameUpdates)
+        {
+            // TODO: handle exceptions
+            return await _gameService.UpdateGame(SeasonCode, WeekNumber, GameId, gameUpdates);
+        }
+
+        [HttpPut]
+        [Route("api/private/{SeasonCode}/{WeekNumber}/games/{GameId}/spread")]
+        public async Task<Game> UpdateSpread(string SeasonCode, int WeekNumber, int GameId, [FromBody] SpreadUpdate spreadUpdates)
+        {
+            // TODO: handle exceptions
+            return await _gameService.UpdateSpread(SeasonCode, WeekNumber, GameId, spreadUpdates);
+        }
     }
 }
