@@ -19,6 +19,11 @@ namespace PickEmServer.Heart
 
         public async Task<Log> AddLog (LogAdd logAdd)
         {
+
+            if ( logAdd == null )
+            {
+                throw new ArgumentException("No LogAdd parameter input for AddLog (is null)");
+            }
             // TODO : better mapping e.g. auto mapper or something 
             LogData logData = new LogData
             {

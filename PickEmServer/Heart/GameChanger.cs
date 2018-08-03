@@ -64,6 +64,7 @@ namespace PickEmServer.Heart
                         // TODO: more here to cancel? no scores?
                         break;
 
+
                     case GameStates.Final:
                         //  - game: set winner
                         _game.AwayTeam.Winner = (_game.AwayTeam.Score > _game.HomeTeam.Score);
