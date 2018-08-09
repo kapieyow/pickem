@@ -25,6 +25,11 @@ namespace PickEmServer.Heart
 
         public async Task<Game> AddGame(string SeasonCode, int WeekNumber, GameAdd newGame)
         {
+            if (newGame == null)
+            {
+                throw new ArgumentException("No newGame parameter input for AddGame (is null)");
+            }
+
             using (var dbSession = _documentStore.LightweightSession())
             {
                 // verify the team codes exist
@@ -37,7 +42,7 @@ namespace PickEmServer.Heart
                 if ( teams.Count != 2 )
                 {
                     string matchedAwayTeamCode = teams.SingleOrDefault(team => team.TeamCode == newGame.AwayTeamCode)?.TeamCode;
-                    string matchedHomeTeamCode = teams.SingleOrDefault(team => team.TeamCode == newGame.AwayTeamCode)?.TeamCode;
+                    string matchedHomeTeamCode = teams.SingleOrDefault(team => team.TeamCode == newGame.HomeTeamCode)?.TeamCode;
 
                     throw new ArgumentException($"Input away team code ({newGame.AwayTeamCode}) home team code ({newGame.HomeTeamCode}) not valid. Matched only away team code ({matchedAwayTeamCode}) home team code ({matchedHomeTeamCode})");
                 }
