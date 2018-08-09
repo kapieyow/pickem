@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import json
 import requests
 
@@ -11,6 +12,8 @@ URL_SEASON_TOKEN = "{SeasonCode}"
 URL_WEEK_TOKEN = "{WeekNumber}"
 NCAA_DOMAIN_URL = "http://data.ncaa.com"
 NCAA_BASE_DATA_URL = "http://data.ncaa.com/sites/default/files/data/scoreboard/football/fbs/" + URL_SEASON_TOKEN + "/" + URL_WEEK_TOKEN + "/scoreboard.json"
+#NCAA_DOMAIN_URL = "http://localhost:51890"
+#NCAA_BASE_DATA_URL = "http://localhost:51890/scoreboard.json"
 PICKEM_COMPONENT_NAME = "Pick'Em NCAA Game Loader"
 PICKEM_SERVER_BASE_URL = "http://localhost:51890/api"
 PICKEM_LOG_LEVEL_DEBUG = "DEBUG"
@@ -37,7 +40,10 @@ def readNcaaGames():
 
     url = NCAA_BASE_DATA_URL
     url = url.replace(URL_SEASON_TOKEN, str(args.season))
-    url = url.replace(URL_WEEK_TOKEN, str(args.week))
+    if (args.week < 10):
+        url = url.replace(URL_WEEK_TOKEN, "0" + str(args.week))
+    else:
+        url = url.replace(URL_WEEK_TOKEN, str(args.week))
 
     print("URL: " + url)
 
@@ -59,20 +65,67 @@ def readNcaaGames():
     return games
 
 
-def loadNcaaGame(gameUrlPath):
+def loadNcaaGame(gameUrlPath, seasonCode, weekNumber):
     url = NCAA_DOMAIN_URL + gameUrlPath
 
-    response = requests.get(url, headers={'Content-Type': 'application/json'})
+    try:
+        response = requests.get(url, headers={'Content-Type': 'application/json'})
+    except:
+        log(PICKEM_LOG_LEVEL_ERROR, "HTTP Read timeout *probably*: " + url)
+        return False
+
 
     if(not response.ok):
-        print("FAILED: " + url + " HTTP CODE: " + str(response.status_code))
+        log(PICKEM_LOG_LEVEL_ERROR, "FAILED READ: " + url + " HTTP CODE: " + str(response.status_code))
         return False
 
     else:
+        print("SUCCESS READ: " + url)
+
         responseJson = response.json()
-        print("SUCCESS: " + url)
-        #print("SUCCESS Game raw: " + json.dumps(responseJson))
-        return True
+
+        gameId = responseJson['id']
+        neutralField = "false"
+        awayTeamCode = responseJson['away']['nameSeo']
+        homeTeamCode = responseJson['home']['nameSeo']
+        gameStart = responseJson['startDate'] + "T" 
+        startTime = responseJson['startTime']
+
+        if ( startTime == "Cancelled" ):
+            log(PICKEM_LOG_LEVEL_WARN, "Game Cancelled: " + url)
+            return False
+        elif ( startTime == "Postponed" ):
+            log(PICKEM_LOG_LEVEL_WARN, "Game Postponed: " + url)
+            return False
+
+        # TODO better time handling. Example value "10:15 PM ET"
+        # dt = datetime.datetime()
+        timeParts = responseJson['startTime'].split(" ")
+        hourMins = timeParts[0].split(":")
+        if ( hourMins[0] == "12" and timeParts[1] == "AM" ):
+            gameStart = gameStart + "00:" + hourMins[1] + ":00"
+        elif ( hourMins[0] != "12" and timeParts[1] == "PM" ):
+            gameStart = gameStart + str(int(hourMins[0]) + 12) + ":" + hourMins[1] + ":00"
+        else:
+            gameStart = gameStart + hourMins[0] + ":" + hourMins[1] + ":00"
+
+#        {
+#            "gameId": 0, 
+#            "gameStart": "2018-08-03T19:18:08.826Z", responseJson['startDate']  2017-11-18, "startTime": "10:15 PM ET",
+#            "neutralField": true,
+#            "awayTeamCode": "string", -- responseJson['away']['nameSeo']
+#            "homeTeamCode": "string" -- responseJson['home']['nameSeo']
+#        }
+        pickemGamePostUrl = PICKEM_SERVER_BASE_URL + "/private/" + seasonCode + "/" + weekNumber + "/games"
+        gameData = '{"gameId": "' + gameId + '","gameStart": "' + gameStart + '", "neutralField": "' + neutralField + '", "awayTeamCode": "' + awayTeamCode + '", "homeTeamCode": "' + homeTeamCode + '"}'
+        response = requests.post(pickemGamePostUrl, data=gameData, headers={'Content-Type': 'application/json'})
+
+        if(not response.ok):
+            log(PICKEM_LOG_LEVEL_ERROR, "FAILED SAVE: " + url + " HTTP CODE: " + str(response.status_code))
+            return False
+        else:
+            print("SUCCESS SAVE: " + url)
+            return True
 
 # +++++++
 #  Main
@@ -94,7 +147,7 @@ gamesLoaded = 0
 gameUrls = readNcaaGames()
 
 for gameUrl in gameUrls:
-    if ( loadNcaaGame(gameUrl) ):
+    if ( loadNcaaGame(gameUrl, str(args.season), str(args.week)) ):
         gamesLoaded += 1
 
 
