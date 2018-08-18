@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+#
+# OLD script writes files. Can bail on this file
+# 
+
 import argparse
 import json
 import requests

@@ -8,7 +8,9 @@
             "program": "${file}",
             "args": [
                 "-s 2017",
-                "-w 2"
+                "-w 2",
+                "-a",
+                "update"
             ]
         },
         {

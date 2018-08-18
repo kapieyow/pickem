@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
-# OLD this only loads (inserts) games
-##
-
 import argparse
 import datetime
 import json
 import requests
 
 # "configs"
-VERSION = "0.2.2"
+VERSION = "0.3.3"
 
 URL_SEASON_TOKEN = "{SeasonCode}"
 URL_WEEK_TOKEN = "{WeekNumber}"
@@ -139,22 +136,28 @@ def loadNcaaGame(gameUrlPath, seasonCode, weekNumber):
 parser = argparse.ArgumentParser(description='Load NCAA games for a week')
 parser.add_argument('-s', '--season', type=int, required=True, help='season in YYYY e.g. 2001')
 parser.add_argument('-w', '--week', type=int, required=True, help='Week in ## e.g. 07')
+parser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
 args = parser.parse_args()
 
 print("----------------------------------------")
 print("  {0:s} - {1:s} ".format(PICKEM_COMPONENT_NAME, VERSION))
 print("----------------------------------------")
 
-gamesLoaded = 0
+gamesModified = 0
 
-gameUrls = readNcaaGames()
+if ( args.action == "insert" or args.action == "i"):
 
-for gameUrl in gameUrls:
-    if ( loadNcaaGame(gameUrl, str(args.season), str(args.week)) ):
-        gamesLoaded += 1
+    gameUrls = readNcaaGames()
 
+    for gameUrl in gameUrls:
+        if ( loadNcaaGame(gameUrl, str(args.season), str(args.week)) ):
+            gamesModified += 1
+            
+    log(PICKEM_LOG_LEVEL_INFO, "Loaded (" + str(gamesModified) + ") games for season (" + str(args.season) + ") week (" + str(args.week) + ")")
 
-log(PICKEM_LOG_LEVEL_INFO, "Loaded (" + str(gamesLoaded) + ") games for season (" + str(args.season) + ") week (" + str(args.week) + ")")
+elif ( args.action == "update" or args.action == "u" ):
+    # TODO call server to get full game list
+    log(PICKEM_LOG_LEVEL_INFO, "Updated (" + str(gamesModified) + ") games for season (" + str(args.season) + ") week (" + str(args.week) + ")")
 
-
-
+else:
+    log(PICKEM_LOG_LEVEL_WTF, "Unhandled action (a) parameter (" + args.action + ") why didn't the argparser catch it?")
