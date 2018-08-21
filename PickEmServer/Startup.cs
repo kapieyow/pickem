@@ -40,9 +40,11 @@ namespace PickEmServer
         {
             services.AddScoped<DatabaseInitializer>();
             services.AddScoped<GameService>();
+            services.AddScoped<LeagueService>();
             services.AddScoped<LogService>();
             services.AddScoped<PickemDatabaseLoggerProvider>();
- 
+            services.AddScoped<ReferenceService>();
+
             // Get JWT options from app settings
             var jwtAppSettingOptions = Configuration.GetSection(nameof(JwtIssuerOptions));
 

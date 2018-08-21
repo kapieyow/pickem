@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 
 namespace PickEmServer.Data.Models
 {
-    public class WeekScoreData
+    public class LeagueGameData
     {
-        public int WeekNumberRef { get; set; }
-        public int Points { get; set; }
+        public int GameIdRef { get; set; }
+
+        public List<PlayerPickData> PlayerPicks { get; set; }
     }
 }

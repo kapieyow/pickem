@@ -15,15 +15,16 @@ namespace PickEmServer.Heart
     {
         private readonly IDocumentStore _documentStore;
         private readonly ILogger<GameService> _logger;
+        private readonly ReferenceService _referenceSevice;
 
-
-        public GameService(IDocumentStore documentStore, ILogger<GameService> logger)
+        public GameService(IDocumentStore documentStore, ILogger<GameService> logger, ReferenceService referenceSevice)
         {
             _documentStore = documentStore;
             _logger = logger;
+            _referenceSevice = referenceSevice;
         }
 
-        public async Task<Game> AddGame(string SeasonCode, int WeekNumber, GameAdd newGame)
+        public async Task<Game> AddGame(string seasonCode, int weekNumber, GameAdd newGame)
         {
             if (newGame == null)
             {
@@ -32,6 +33,8 @@ namespace PickEmServer.Heart
 
             using (var dbSession = _documentStore.LightweightSession())
             {
+                _referenceSevice.ThrowIfNonexistantSeason(seasonCode);
+
                 // verify the team codes exist
                 var teams = await dbSession
                     .Query<TeamData>()
@@ -54,9 +57,9 @@ namespace PickEmServer.Heart
                         g.GameId == newGame.GameId 
                         || 
                         ( 
-                            g.SeasonCodeRef == SeasonCode
+                            g.SeasonCodeRef == seasonCode
                             &&
-                            g.WeekNumberRef == WeekNumber
+                            g.WeekNumberRef == weekNumber
                             &&
                             g.AwayTeam.TeamCodeRef == newGame.AwayTeamCode 
                             && 
@@ -67,7 +70,7 @@ namespace PickEmServer.Heart
 
                 if ( game != null )
                 {
-                    throw new ArgumentException($"Matching game already exists by Id: {newGame.GameId} or Season: {SeasonCode}, Week: {WeekNumber}, Away Team: {newGame.AwayTeamCode} and Home Team: {newGame.HomeTeamCode}");
+                    throw new ArgumentException($"Matching game already exists by Id: {newGame.GameId} or Season: {seasonCode}, Week: {weekNumber}, Away Team: {newGame.AwayTeamCode} and Home Team: {newGame.HomeTeamCode}");
                 }
 
                 GameData newGameData = new GameData
@@ -76,8 +79,8 @@ namespace PickEmServer.Heart
                     GameStart = newGame.GameStart,
                     LastUpdated = DateTime.Now,
                     NeutralField = newGame.NeutralField,
-                    SeasonCodeRef = SeasonCode,
-                    WeekNumberRef = WeekNumber,
+                    SeasonCodeRef = seasonCode,
+                    WeekNumberRef = weekNumber,
                     GameState = GameStates.SpreadNotSet,
                     AwayTeam = new GameTeamData { TeamCodeRef = newGame.AwayTeamCode, Score = 0, ScoreAfterSpread = 0, Winner = false },
                     HomeTeam = new GameTeamData { TeamCodeRef = newGame.HomeTeamCode, Score = 0, ScoreAfterSpread = 0, Winner = false },

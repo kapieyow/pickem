@@ -23,9 +23,6 @@ namespace PickEmServer.Heart
             jobResult.Messages = new List<string>();
             int count;
 
-            count = this.LoadLeagues();
-            jobResult.Messages.Add(string.Format("Added ({0}) Leagues", count));
-
             count = this.LoadSeasons();
             jobResult.Messages.Add(string.Format("Added ({0}) Seasons", count));
 
@@ -37,18 +34,6 @@ namespace PickEmServer.Heart
 
             jobResult.Success = true;
             return jobResult;
-        }
-
-        private int LoadLeagues()
-        {
-            using (var dbSession = _documentStore.LightweightSession())
-            {
-                dbSession.Store(new LeagueData { LeagueCode = "NeOnYa", LeagueTitle = "Did you get NeOnYa?" });
-                dbSession.Store(new LeagueData { LeagueCode = "BurlMafia", LeagueTitle = "Burlington Mafia" });
-                dbSession.SaveChanges();
-
-                return 2;
-            }
         }
 
         private int LoadSeasons()

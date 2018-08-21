@@ -6,12 +6,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PickEmServer.Api.Models;
+using PickEmServer.Heart;
 
 namespace PickEmServer.Api.Controllers
 {
     [Produces("application/json")]
     public class LeagueController : Controller
     {
+        private readonly LeagueService _leagueService;
+
+        public LeagueController(LeagueService leagueService)
+        {
+            _leagueService = leagueService;
+        }
+
         [Authorize]
         [HttpGet]
         [Route("api/{SeasonCode}/{LeagueCode}/scoreboard")]
@@ -177,5 +185,25 @@ namespace PickEmServer.Api.Controllers
         {
             return new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
         }
+
+
+        [Authorize]
+        [HttpPost]
+        [Route("api/{SeasonCode}/leagues")]
+        public async Task<League> AddLeague(string SeasonCode, [FromBody] LeagueAdd newLeague)
+        {
+            // TODO: handle exceptions
+            return await _leagueService.AddLeague(SeasonCode,  newLeague);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("api/{seasonCode}/{leagueCode}/{weekNumber}/games")]
+        public async Task<League> AddLeague(string seasonCode, string leagueCode, int weekNumber, [FromBody] LeagueGameAdd newLeagueGame)
+        {
+            // TODO: handle exceptions
+            return await _leagueService.AddLeagueGame(seasonCode, leagueCode, weekNumber, newLeagueGame);
+        }
+
     }
 }

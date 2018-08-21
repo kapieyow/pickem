@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace PickEmServer.Data.Models
 {
-    public class LeagueSuperWeekData
+    public class LeagueWeekData
     {
         public int WeekNumberRef { get; set; }
 
-        public List<LeagueSuperGameData> Games { get; set; }
+        public List<LeagueGameData> Games { get; set; }
 
         public List<PlayerScoreSubtotalData> PlayerWeekScores { get; set; }
     }
