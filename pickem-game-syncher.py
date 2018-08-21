@@ -33,15 +33,15 @@ def log(logLevel, message):
 
     return
 
-def readNcaaGames():
+def readNcaaGames(ncaaSeason, week):
     print("Reading NCAA Games...")
 
     url = NCAA_BASE_DATA_URL
-    url = url.replace(URL_SEASON_TOKEN, str(args.season))
-    if (args.week < 10):
-        url = url.replace(URL_WEEK_TOKEN, "0" + str(args.week))
+    url = url.replace(URL_SEASON_TOKEN, str(ncaaSeason))
+    if (week < 10):
+        url = url.replace(URL_WEEK_TOKEN, "0" + str(week))
     else:
-        url = url.replace(URL_WEEK_TOKEN, str(args.week))
+        url = url.replace(URL_WEEK_TOKEN, str(week))
 
     print("URL: " + url)
 
@@ -63,7 +63,7 @@ def readNcaaGames():
     return games
 
 
-def loadNcaaGame(gameUrlPath, seasonCode, weekNumber):
+def loadNcaaGame(gameUrlPath, pickemSeasonCode, weekNumber):
     url = NCAA_DOMAIN_URL + gameUrlPath
 
     try:
@@ -116,7 +116,7 @@ def loadNcaaGame(gameUrlPath, seasonCode, weekNumber):
 #            "awayTeamCode": "string", -- responseJson['away']['nameSeo']
 #            "homeTeamCode": "string" -- responseJson['home']['nameSeo']
 #        }
-        pickemGamePostUrl = PICKEM_SERVER_BASE_URL + "/private/" + seasonCode + "/" + weekNumber + "/games"
+        pickemGamePostUrl = PICKEM_SERVER_BASE_URL + "/private/" + pickemSeasonCode + "/" + weekNumber + "/games"
         gameData = '{"gameId": "' + gameId + '","gameStart": "' + gameStart + '", "neutralField": "' + neutralField + '", "awayTeamCode": "' + awayTeamCode + '", "homeTeamCode": "' + homeTeamCode + '"}'
         response = requests.post(pickemGamePostUrl, data=gameData, headers={'Content-Type': 'application/json'})
 
@@ -134,7 +134,8 @@ def loadNcaaGame(gameUrlPath, seasonCode, weekNumber):
 # Command Line Interface
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 parser = argparse.ArgumentParser(description='Load NCAA games for a week')
-parser.add_argument('-s', '--season', type=int, required=True, help='season in YYYY e.g. 2001')
+parser.add_argument('-ns', '--ncaa_season', type=int, required=True, help='NCAA season in YYYY e.g. 2017')
+parser.add_argument('-ps', '--pickem_season', type=int, required=True, help='PickEm season in YY e.g. 17')
 parser.add_argument('-w', '--week', type=int, required=True, help='Week in ## e.g. 07')
 parser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
 args = parser.parse_args()
@@ -147,17 +148,17 @@ gamesModified = 0
 
 if ( args.action == "insert" or args.action == "i"):
 
-    gameUrls = readNcaaGames()
+    gameUrls = readNcaaGames(args.ncaa_season, args.week)
 
     for gameUrl in gameUrls:
-        if ( loadNcaaGame(gameUrl, str(args.season), str(args.week)) ):
+        if ( loadNcaaGame(gameUrl, str(args.pickem_season), str(args.week)) ):
             gamesModified += 1
             
-    log(PICKEM_LOG_LEVEL_INFO, "Loaded (" + str(gamesModified) + ") games for season (" + str(args.season) + ") week (" + str(args.week) + ")")
+    log(PICKEM_LOG_LEVEL_INFO, "Loaded (" + str(gamesModified) + ") games for NCAA season (" + str(args.ncaa_season) + ") week (" + str(args.week) + ")")
 
 elif ( args.action == "update" or args.action == "u" ):
     # TODO call server to get full game list
-    log(PICKEM_LOG_LEVEL_INFO, "Updated (" + str(gamesModified) + ") games for season (" + str(args.season) + ") week (" + str(args.week) + ")")
+    log(PICKEM_LOG_LEVEL_INFO, "Updated (" + str(gamesModified) + ") games for NCAA season (" + str(args.ncaa_season) + ") week (" + str(args.week) + ")")
 
 else:
     log(PICKEM_LOG_LEVEL_WTF, "Unhandled action (a) parameter (" + args.action + ") why didn't the argparser catch it?")

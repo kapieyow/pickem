@@ -27,7 +27,7 @@ webHtml = webRequest.text
 soup = BeautifulSoup(webHtml, "html.parser")
 
 contentTable = soup.find("div", id="pb")
-containerDiv = contentTable.find("div", recursive=False);
+containerDiv = contentTable.find("div", recursive=False)
 
 # set load time only once so all inserts have the same run time
 loaderRunTime = datetime.datetime.now()
