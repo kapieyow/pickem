@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import datetime;
+import datetime
 import json
 import psycopg2
 from psycopg2.extras import Json

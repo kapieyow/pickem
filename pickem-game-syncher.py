@@ -12,8 +12,6 @@ URL_SEASON_TOKEN = "{SeasonCode}"
 URL_WEEK_TOKEN = "{WeekNumber}"
 NCAA_DOMAIN_URL = "http://data.ncaa.com"
 NCAA_BASE_DATA_URL = "http://data.ncaa.com/sites/default/files/data/scoreboard/football/fbs/" + URL_SEASON_TOKEN + "/" + URL_WEEK_TOKEN + "/scoreboard.json"
-#NCAA_DOMAIN_URL = "http://localhost:51890"
-#NCAA_BASE_DATA_URL = "http://localhost:51890/scoreboard.json"
 PICKEM_COMPONENT_NAME = "Pick'Em NCAA Game Loader"
 PICKEM_SERVER_BASE_URL = "http://localhost:51890/api"
 PICKEM_LOG_LEVEL_DEBUG = "DEBUG"
@@ -80,8 +78,6 @@ def loadNcaaGame(gameUrlPath, seasonCode, weekNumber):
         return False
 
     else:
-        print("SUCCESS READ: " + url)
-
         responseJson = response.json()
 
         gameId = responseJson['id']
@@ -102,7 +98,11 @@ def loadNcaaGame(gameUrlPath, seasonCode, weekNumber):
         # dt = datetime.datetime()
         timeParts = responseJson['startTime'].split(" ")
         hourMins = timeParts[0].split(":")
-        if ( hourMins[0] == "12" and timeParts[1] == "AM" ):
+        if ( startTime == "TBA" ):
+            # Start Time To Be Announced this means no start time yet and the parses above are empty, post as zeros (midnight) will be updated in game synchs later
+            log(PICKEM_LOG_LEVEL_WARN, "Game start TBA" + url)
+            gameStart = gameStart + "00:00:00"
+        elif ( hourMins[0] == "12" and timeParts[1] == "AM" ):
             gameStart = gameStart + "00:" + hourMins[1] + ":00"
         elif ( hourMins[0] != "12" and timeParts[1] == "PM" ):
             gameStart = gameStart + str(int(hourMins[0]) + 12) + ":" + hourMins[1] + ":00"

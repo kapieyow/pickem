@@ -7,10 +7,10 @@
             "request": "launch",
             "program": "${file}",
             "args": [
-                "-s 2017",
-                "-w 2",
+                "-s 2018",
+                "-w 1",
                 "-a",
-                "update"
+                "insert"
             ]
         },
         {
