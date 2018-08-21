@@ -161,54 +161,124 @@ namespace PickEmServer.Heart
                     .SingleAsync()
                     .ConfigureAwait(false);
 
-                Game apiGame = new Game
-                {
-                    AwayTeam = new TeamScore
-                    {
-                        Score = game.AwayTeam.Score,
-                        ScoreAfterSpread = game.AwayTeam.ScoreAfterSpread,
-                        Team = new Team
-                        {
-                            icon24FileName = awayTeam.icon24FileName,
-                            LongName = awayTeam.LongName,
-                            NcaaNameSeo = awayTeam.NcaaNameSeo,
-                            ShortName = awayTeam.ShortName,
-                            TeamCode = awayTeam.TeamCode,
-                            theSpreadName = awayTeam.theSpreadName
-                        },
-                        Winner = game.AwayTeam.Winner
-                    },
-                    CurrentPeriod = game.CurrentPeriod,
-                    GameId = game.GameId,
-                    GameStart = game.GameStart,
-                    HomeTeam = new TeamScore
-                    {
-                        Score = game.HomeTeam.Score,
-                        ScoreAfterSpread = game.HomeTeam.ScoreAfterSpread,
-                        Team = new Team
-                        {
-                            icon24FileName = homeTeam.icon24FileName,
-                            LongName = homeTeam.LongName,
-                            NcaaNameSeo = homeTeam.NcaaNameSeo,
-                            ShortName = homeTeam.ShortName,
-                            TeamCode = homeTeam.TeamCode,
-                            theSpreadName = homeTeam.theSpreadName
-                        },
-                        Winner = game.HomeTeam.Winner
-                    },
-                    GameState = game.GameState,
-                    LastUpdated = game.LastUpdated,
-                    NeutralField = game.NeutralField,
-                    Spread = new Spread
-                    {
-                        PointSpread = game.Spread.PointSpread,
-                        SpreadDirection = game.Spread.SpreadDirection
-                    },
-                    TimeClock = game.TimeClock
-                };
+                return MapGameDataToApi(game, awayTeam, homeTeam);
 
-                return apiGame;
             }
+        }
+
+        public async Task<List<Game>> ReadGamesInAnyLeague(string seasonCode, int weekNumber)
+        {
+            using (var dbSession = _documentStore.QuerySession())
+            {
+                // get all leagues in season
+                var leagues = await dbSession
+                    .Query<LeagueData>()
+                    .Where(l => l.SeasonCodeRef == seasonCode)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                if ( leagues.Count == 0 )
+                {
+                    return new List<Game>();
+                }
+
+                Dictionary<int, int> distinctGameIds = new Dictionary<int, int>();
+
+                foreach ( var league in leagues )
+                {
+                    var leagueWeek = league.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
+
+                    // ignore leagues that don't have this week
+                    if ( leagueWeek != null )
+                    {
+                        foreach ( var game in leagueWeek.Games )
+                        {
+                            if ( !distinctGameIds.ContainsKey(game.GameIdRef) )
+                            {
+                                distinctGameIds.Add(game.GameIdRef, game.GameIdRef);
+                            }
+                        }
+                    }
+                }
+
+                if ( distinctGameIds.Count == 0 )
+                {
+                    return new List<Game>();
+                }
+
+                var gameIdArray = distinctGameIds.Keys.ToArray();
+
+                var reffedAwayTeams = new Dictionary<string, TeamData>();
+                var reffedHomeTeams = new Dictionary<string, TeamData>();
+
+                var allGamesInWeek = await dbSession
+                    .Query<GameData>()
+                    .Include(g => g.AwayTeam.TeamCodeRef, reffedAwayTeams)
+                    .Include(g => g.HomeTeam.TeamCodeRef, reffedHomeTeams)
+                    .Where(g => g.GameId.IsOneOf(gameIdArray))
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                var apiGames = new List<Game>();
+
+                foreach ( var gameData in allGamesInWeek )
+                {
+                    apiGames.Add(MapGameDataToApi(gameData, reffedAwayTeams[gameData.AwayTeam.TeamCodeRef], reffedHomeTeams[gameData.HomeTeam.TeamCodeRef]));
+                }
+
+                return apiGames;
+                
+            }
+        }
+
+        private Game MapGameDataToApi(GameData gameData, TeamData awayTeamData, TeamData homeTeamData)
+        {
+            return new Game
+            {
+                AwayTeam = new TeamScore
+                {
+                    Score = gameData.AwayTeam.Score,
+                    ScoreAfterSpread = gameData.AwayTeam.ScoreAfterSpread,
+                    Team = new Team
+                    {
+                        icon24FileName = awayTeamData.icon24FileName,
+                        LongName = awayTeamData.LongName,
+                        NcaaNameSeo = awayTeamData.NcaaNameSeo,
+                        ShortName = awayTeamData.ShortName,
+                        TeamCode = awayTeamData.TeamCode,
+                        theSpreadName = awayTeamData.theSpreadName
+                    },
+                    Winner = gameData.AwayTeam.Winner
+                },
+                CurrentPeriod = gameData.CurrentPeriod,
+                GameId = gameData.GameId,
+                GameStart = gameData.GameStart,
+                HomeTeam = new TeamScore
+                {
+                    Score = gameData.HomeTeam.Score,
+                    ScoreAfterSpread = gameData.HomeTeam.ScoreAfterSpread,
+                    Team = new Team
+                    {
+                        icon24FileName = homeTeamData.icon24FileName,
+                        LongName = homeTeamData.LongName,
+                        NcaaNameSeo = homeTeamData.NcaaNameSeo,
+                        ShortName = homeTeamData.ShortName,
+                        TeamCode = homeTeamData.TeamCode,
+                        theSpreadName = homeTeamData.theSpreadName
+                    },
+                    Winner = gameData.HomeTeam.Winner
+                },
+                GameState = gameData.GameState,
+                LastUpdated = gameData.LastUpdated,
+                NeutralField = gameData.NeutralField,
+                Spread = new Spread
+                {
+                    PointSpread = gameData.Spread.PointSpread,
+                    SpreadDirection = gameData.Spread.SpreadDirection
+                },
+                TimeClock = gameData.TimeClock
+            };
+
         }
     }
 }

@@ -199,7 +199,7 @@ namespace PickEmServer.Api.Controllers
         [Authorize]
         [HttpPost]
         [Route("api/{seasonCode}/{leagueCode}/{weekNumber}/games")]
-        public async Task<League> AddLeague(string seasonCode, string leagueCode, int weekNumber, [FromBody] LeagueGameAdd newLeagueGame)
+        public async Task<League> AddLeagueGame(string seasonCode, string leagueCode, int weekNumber, [FromBody] LeagueGameAdd newLeagueGame)
         {
             // TODO: handle exceptions
             return await _leagueService.AddLeagueGame(seasonCode, leagueCode, weekNumber, newLeagueGame);
