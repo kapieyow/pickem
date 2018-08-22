@@ -82,7 +82,7 @@ export class PlayerComponent implements OnInit {
         AwayTeamWins: 3,
         GameStatus: "Saturday 9/27 - 8:00PM EDT",
         GameStatusCode: GameStatus.SpreadNotSet,
-        HomeTeamIconImage: "clemson.24.png",
+        HomeTeamIconImage: "north-carolina.24.png",
         HomeTeamLosses: 1,
         HomeTeamName: "Home Team",
         HomeTeamRank: 15,
@@ -324,7 +324,5 @@ export class PlayerComponent implements OnInit {
       });
 
   }
-
-
 
 }

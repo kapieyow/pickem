@@ -17,8 +17,6 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { TopNavComponent } from './top-nav/top-nav.component';
 import { PlayerComponent } from './player/player.component';
-import { WeekComponent } from './week/week.component';
-import { SeasonComponent } from './season/season.component';
 import { TestDriverComponent } from './test-driver/test-driver.component';
 
 import { AuthGuard } from './sub-system/auth/auth-guard';
@@ -38,8 +36,6 @@ export function tokenGetter() {
     LoginComponent,
     TopNavComponent,
     PlayerComponent,
-    WeekComponent,
-    SeasonComponent,
     TestDriverComponent,
     RegisterComponent
   ],
