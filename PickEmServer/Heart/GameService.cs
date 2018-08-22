@@ -99,6 +99,11 @@ namespace PickEmServer.Heart
 
         public async Task<Game> UpdateGame(string SeasonCode, int WeekNumber, int GameId, GameUpdate gameUpdates)
         {
+            if (gameUpdates == null)
+            {
+                throw new ArgumentException("No gameUpdates parameter input for UpdateGame (is null)");
+            }
+
             using (var dbSession = _documentStore.LightweightSession())
             {
                 var game = await dbSession
