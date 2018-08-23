@@ -179,6 +179,14 @@ namespace PickEmServer.Api.Controllers
         }
 
         [Authorize]
+        [HttpPost]
+        [Route("api/{SeasonCode}/{LeagueCode}/players")]
+        public async Task<League> AddLeaguePlayer(string LeagueCode, [FromBody] LeaguePlayerAdd newLeaguePlayer)
+        {
+            return await _leagueService.AddLeaguePlayer(LeagueCode, newLeaguePlayer);
+        }
+
+        [Authorize]
         [HttpGet]
         [Route("api/{SeasonCode}/{LeagueCode}/weeks")]
         public async Task<List<int>> GetWeekNumbers(string SeasonCode, string LeagueCode)
@@ -198,12 +206,13 @@ namespace PickEmServer.Api.Controllers
 
         [Authorize]
         [HttpPost]
-        [Route("api/{seasonCode}/{leagueCode}/{weekNumber}/games")]
-        public async Task<League> AddLeagueGame(string seasonCode, string leagueCode, int weekNumber, [FromBody] LeagueGameAdd newLeagueGame)
+        [Route("api/{SeasonCode}/{LeagueCode}/{weekNumber}/games")]
+        public async Task<League> AddLeagueGame(string SeasonCode, string LeagueCode, int weekNumber, [FromBody] LeagueGameAdd newLeagueGame)
         {
-            // TODO: handle exceptions
-            return await _leagueService.AddLeagueGame(seasonCode, leagueCode, weekNumber, newLeagueGame);
+            return await _leagueService.AddLeagueGame(SeasonCode, LeagueCode, weekNumber, newLeagueGame);
         }
+
+       
 
     }
 }

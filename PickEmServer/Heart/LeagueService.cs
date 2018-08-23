@@ -1,6 +1,8 @@
 ﻿using Marten;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
+using PickEmServer.App.Models;
 using PickEmServer.Data.Models;
 using System;
 using System.Collections.Generic;
@@ -14,12 +16,14 @@ namespace PickEmServer.Heart
         private readonly IDocumentStore _documentStore;
         private readonly ILogger<LeagueService> _logger;
         private readonly ReferenceService _referenceSevice;
+        private readonly UserManager<PickEmUser> _userManager;
 
-        public LeagueService(IDocumentStore documentStore, ILogger<LeagueService> logger, ReferenceService referenceService)
+        public LeagueService(IDocumentStore documentStore, ILogger<LeagueService> logger, ReferenceService referenceService, UserManager<PickEmUser> userManager)
         {
             _documentStore = documentStore;
             _logger = logger;
             _referenceSevice = referenceService;
+            _userManager = userManager;
         }
 
         public async Task<League> AddLeague(string seasonCode, LeagueAdd newLeague)
@@ -51,20 +55,20 @@ namespace PickEmServer.Heart
                     LeagueCode = newLeague.LeagueCode,
                     LeagueTitle = newLeague.LeagueTitle,
                     PlayerSeasonScores = new List<PlayerScoreSubtotalData>(),
-                    PlayerTagRefs = new List<string>(),
+                    Players = new List<LeaguePlayerData>(),
                     SeasonCodeRef = seasonCode,
                     Weeks = new List<LeagueWeekData>()
                 };
 
-                foreach ( var weekNumberRef in newLeague.WeekNumbers )
+                foreach (var weekNumberRef in newLeague.WeekNumbers)
                 {
                     // TODO: verify week exists?
                     newLeagueData.Weeks.Add(new LeagueWeekData
-                        {
-                            Games = new List<LeagueGameData>(),
-                            PlayerWeekScores = new List<PlayerScoreSubtotalData>(),
-                            WeekNumberRef = weekNumberRef
-                        });
+                    {
+                        Games = new List<LeagueGameData>(),
+                        PlayerWeekScores = new List<PlayerScoreSubtotalData>(),
+                        WeekNumberRef = weekNumberRef
+                    });
                 }
 
                 dbSession.Store(newLeagueData);
@@ -112,12 +116,12 @@ namespace PickEmServer.Heart
                     .Where(l => l.LeagueCode == leagueCode)
                     .SingleOrDefault();
 
-                if (leagueData == null )
+                if (leagueData == null)
                 {
                     throw new ArgumentException($"No league exists with league code: {leagueCode}");
                 }
 
-                if (leagueData.SeasonCodeRef != seasonCode )
+                if (leagueData.SeasonCodeRef != seasonCode)
                 {
                     throw new ArgumentException($"No league exists with league code: {leagueCode} for season: {seasonCode}");
                 }
@@ -128,7 +132,7 @@ namespace PickEmServer.Heart
                     throw new ArgumentException($"League with league code: {leagueCode} does not contain week: {weekNumber}");
                 }
 
-                if ( leagueWeek.Games.Exists(g => g.GameIdRef == newLeagueGame.GameId) )
+                if (leagueWeek.Games.Exists(g => g.GameIdRef == newLeagueGame.GameId))
                 {
                     throw new ArgumentException($"League with league code: {leagueCode} already has game with gameid: {newLeagueGame.GameId} for week: {weekNumber}");
                 }
@@ -138,12 +142,12 @@ namespace PickEmServer.Heart
                     .Where(g => g.GameId == newLeagueGame.GameId)
                     .SingleOrDefault();
 
-                if ( game == null )
+                if (game == null)
                 {
                     throw new ArgumentException($"Game with gameid: {newLeagueGame.GameId} does not exist");
                 }
 
-                if ( game.WeekNumberRef != weekNumber )
+                if (game.WeekNumberRef != weekNumber)
                 {
                     throw new ArgumentException($"Game week must match League week and they do not. League with league code: {leagueCode} has week: {weekNumber}. Game with game id: {newLeagueGame.GameId} has week {game.WeekNumberRef}");
                 }
@@ -160,5 +164,47 @@ namespace PickEmServer.Heart
             // read back out to return
             return await this.ReadLeague(leagueCode);
         }
+
+        internal async Task<League> AddLeaguePlayer(string leagueCode, LeaguePlayerAdd newLeaguePlayer)
+        {
+            if (newLeaguePlayer == null)
+            {
+                throw new ArgumentException("No newLeagueGame parameter input for AddLeaguePlayer (is null)");
+            }
+
+            if ( await _userManager.FindByNameAsync(newLeaguePlayer.UserName) == null )
+            {
+                throw new ArgumentException($"No user with username (id) : {newLeaguePlayer.UserName}. Cannot add league player"); 
+            }
+
+            using (var dbSession = _documentStore.LightweightSession())
+            {
+                var leagueData = dbSession
+                    .Query<LeagueData>()
+                    .Where(l => l.LeagueCode == leagueCode)
+                    .SingleOrDefault();
+
+                if (leagueData == null)
+                {
+                    throw new ArgumentException($"No league exists with league code: {leagueCode}");
+                }
+
+                
+                if (leagueData.Players.Exists(p => p.PlayerTag == newLeaguePlayer.PlayerTag))
+                {
+                    throw new ArgumentException($"League with league code: {leagueCode} already has player with player tag: {newLeaguePlayer.PlayerTag}");
+                }
+                
+                // whew we can add this now.
+                leagueData.Players.Add(new LeaguePlayerData { PlayerTag = newLeaguePlayer.PlayerTag, UserNameRef = newLeaguePlayer.UserName });
+
+                dbSession.Store(leagueData);
+                dbSession.SaveChanges();
+            }
+
+            // read back out to return
+            return await this.ReadLeague(leagueCode);
+        }
+        
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
 using PickEmServer.App;
 using PickEmServer.App.Models;
+using PickEmServer.Heart;
 
 namespace PickEmServer.Api.Controllers
 {
@@ -18,12 +19,14 @@ namespace PickEmServer.Api.Controllers
     public class UserAccountController : Controller
     {
         private readonly ILogger<UserAccountController> _logger;
+        private readonly LeagueService _leagueService;
         private readonly UserManager<PickEmUser> _userManager;
 
-        public UserAccountController(ILogger<UserAccountController> logger, UserManager<PickEmUser> userManager)
+        public UserAccountController(ILogger<UserAccountController> logger, UserManager<PickEmUser> userManager, LeagueService leagueService)
         {
             _logger = logger;
             _userManager = userManager;
+            _leagueService = leagueService;
         }
 
         [HttpPost]
@@ -43,7 +46,10 @@ namespace PickEmServer.Api.Controllers
             if (!result.Succeeded)
                 return new BadRequestObjectResult(AuthHelpers.AddErrorsToModelState(result, ModelState));
 
-            // TODO, should this save a pickem account also (not in ASP identity, in local store?)
+            // TODO this auto adds use to DEFAULT league. Make this better with registration
+            // for specific league etc.
+            // ALSO: allow for player tag to not match user name
+            await _leagueService.AddLeaguePlayer("Default", new LeaguePlayerAdd { PlayerTag = userRegistration.UserName, UserName = userRegistration.UserName });
 
             string resultMessage = string.Format("User ({0}) created", userRegistration.UserName);
 

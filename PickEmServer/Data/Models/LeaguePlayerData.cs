@@ -2,7 +2,7 @@
 
 namespace PickEmServer.Data.Models
 {
-    public class PlayerData
+    public class LeaguePlayerData
     {
         [Identity]
         public string PlayerTag { get; set; }
