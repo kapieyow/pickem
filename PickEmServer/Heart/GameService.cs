@@ -96,6 +96,30 @@ namespace PickEmServer.Heart
             return await this.ReadGame(newGame.GameId);
         }
 
+        internal async Task<List<Game>> ReadGames(string seasonCode, int weekNumber)
+        {
+            using (var dbSession = _documentStore.QuerySession())
+            {
+                var reffedAwayTeams = new Dictionary<string, TeamData>();
+                var reffedHomeTeams = new Dictionary<string, TeamData>();
+
+                var allGamesInWeek = await dbSession
+                    .Query<GameData>()
+                    .Include(g => g.AwayTeam.TeamCodeRef, reffedAwayTeams)
+                    .Include(g => g.HomeTeam.TeamCodeRef, reffedHomeTeams)
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                var apiGames = new List<Game>();
+
+                foreach (var gameData in allGamesInWeek)
+                {
+                    apiGames.Add(MapGameDataToApi(gameData, reffedAwayTeams[gameData.AwayTeam.TeamCodeRef], reffedHomeTeams[gameData.HomeTeam.TeamCodeRef]));
+                }
+
+                return apiGames;
+            }
+        }
 
         public async Task<Game> UpdateGame(string SeasonCode, int WeekNumber, int GameId, GameUpdate gameUpdates)
         {
@@ -129,6 +153,11 @@ namespace PickEmServer.Heart
 
         public async Task<Game> UpdateSpread(string SeasonCode, int WeekNumber, int GameId, SpreadUpdate spreadUpdates)
         {
+            if (spreadUpdates == null)
+            {
+                throw new ArgumentException("No spreadUpdates parameter input for UpdateSpread (is null)");
+            }
+
             using (var dbSession = _documentStore.LightweightSession())
             {
                 var game = await dbSession

@@ -29,9 +29,6 @@ namespace PickEmServer.Heart
             count = this.LoadTeams();
             jobResult.Messages.Add(string.Format("Added ({0}) Teams", count));
 
-            count = this.LoadWeeks();
-            jobResult.Messages.Add(string.Format("Added ({0}) Weeks", count));
-
             jobResult.Success = true;
             return jobResult;
         }
@@ -339,31 +336,6 @@ namespace PickEmServer.Heart
                 dbSession.SaveChanges();
 
                 return count;
-            }
-        }
-
-        private int LoadWeeks()
-        {
-            using (var dbSession = _documentStore.LightweightSession())
-            {
-                dbSession.Store(new WeekData { WeekNumber = 1 });
-                dbSession.Store(new WeekData { WeekNumber = 2 });
-                dbSession.Store(new WeekData { WeekNumber = 3 });
-                dbSession.Store(new WeekData { WeekNumber = 4 });
-                dbSession.Store(new WeekData { WeekNumber = 5 });
-                dbSession.Store(new WeekData { WeekNumber = 6 });
-                dbSession.Store(new WeekData { WeekNumber = 7 });
-                dbSession.Store(new WeekData { WeekNumber = 8 });
-                dbSession.Store(new WeekData { WeekNumber = 9 });
-                dbSession.Store(new WeekData { WeekNumber = 10 });
-                dbSession.Store(new WeekData { WeekNumber = 11 });
-                dbSession.Store(new WeekData { WeekNumber = 12 });
-                dbSession.Store(new WeekData { WeekNumber = 13 });
-                dbSession.Store(new WeekData { WeekNumber = 14 });
-                dbSession.Store(new WeekData { WeekNumber = 15 });
-                dbSession.SaveChanges();
-
-                return 15;
             }
         }
     }

@@ -26,6 +26,13 @@ namespace PickEmServer.Api.Controllers
             return await _gameService.ReadGamesInAnyLeague(SeasonCode, WeekNumber);
         }
 
+        [HttpGet]
+        [Route("api/private/{SeasonCode}/{WeekNumber}/games")]
+        public async Task<List<Game>> ReadGames(string SeasonCode, int WeekNumber)
+        {
+            return await _gameService.ReadGames(SeasonCode, WeekNumber);
+        }
+
         [HttpPost]
         [Route("api/private/{SeasonCode}/{WeekNumber}/games")]
         public async Task<Game> AddGame(string SeasonCode, int WeekNumber, [FromBody] GameAdd newGame)
@@ -41,7 +48,7 @@ namespace PickEmServer.Api.Controllers
         }
 
         [HttpPut]
-        [Route("api/private/{SeasonCode}/{WeekNumber}/games/{GameId}/spread")]
+        [Route("api/private/{SeasonCode}/{WeekNumber}/games/{GameId}/spreads")]
         public async Task<Game> UpdateSpread(string SeasonCode, int WeekNumber, int GameId, [FromBody] SpreadUpdate spreadUpdates)
         {
             return await _gameService.UpdateSpread(SeasonCode, WeekNumber, GameId, spreadUpdates);

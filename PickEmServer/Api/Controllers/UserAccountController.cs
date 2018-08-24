@@ -46,10 +46,13 @@ namespace PickEmServer.Api.Controllers
             if (!result.Succeeded)
                 return new BadRequestObjectResult(AuthHelpers.AddErrorsToModelState(result, ModelState));
 
-            // TODO this auto adds use to DEFAULT league. Make this better with registration
-            // for specific league etc.
-            // ALSO: allow for player tag to not match user name
-            await _leagueService.AddLeaguePlayer("Default", new LeaguePlayerAdd { PlayerTag = userRegistration.UserName, UserName = userRegistration.UserName });
+            if (!userRegistration.DoNotSetDefaultLeague)
+            {
+                // TODO this auto adds use to DEFAULT league. Make this better with registration
+                // for specific league etc.
+                // ALSO: allow for player tag to not match user name
+                await _leagueService.AddLeaguePlayer("Default", new LeaguePlayerAdd { PlayerTag = userRegistration.UserName, UserName = userRegistration.UserName });
+            }
 
             string resultMessage = string.Format("User ({0}) created", userRegistration.UserName);
 
