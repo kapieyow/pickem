@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
+import argparse
 import datetime
 import json
-import psycopg2
-from psycopg2.extras import Json
 import requests
 from bs4 import BeautifulSoup
 
@@ -13,15 +12,64 @@ class Jsonable:
 
 
 # "configs"
-SPREADER_VERSION = "0.4.10"
-DB_CONN_STRING = "dbname=PickemSpreads user=kip"
+VERSION = "0.5.11"
+
+PICKEM_COMPONENT_NAME = "Pick'Em Spread Loader"
+PICKEM_SERVER_BASE_URL = "http://localhost:51890/api"
+PICKEM_LOG_LEVEL_DEBUG = "DEBUG"
+PICKEM_LOG_LEVEL_INFO = "INFO"
+PICKEM_LOG_LEVEL_WARN = "WARN"
+PICKEM_LOG_LEVEL_ERROR = "ERROR"
+PICKEM_LOG_LEVEL_WTF = "WTF"
+SPREAD_SITE_URL = "https://www.thespread.com/ncaa-college-football-public-betting-chart"
 
 
-print("---------------------------------")
-print("  Pickem Spread Loader - {0:s} ".format(SPREADER_VERSION))
-print("---------------------------------")
+def getApi(url):
+    response = requests.get(url, headers={'Content-Type': 'application/json'})
 
-webRequest = requests.get("https://www.thespread.com/ncaa-college-football-public-betting-chart")
+    if(not response.ok):
+        response.raise_for_status()
+    else:
+        print(response)
+        print(response.json())
+
+    return response.json()
+
+
+def putToApi(url, postData, jwt):
+    if ( jwt == "" ):
+        response = requests.put(url, data=postData, headers={'Content-Type': 'application/json'})
+    else:
+        response = requests.put(url, data=postData, headers={'Content-Type': 'application/json', 'authorization': "Bearer " + jwt})
+
+    if(not response.ok):
+        response.raise_for_status()
+    else:
+        print(response)
+        print(response.json())
+
+    return response.json()
+
+# +++++++
+#  Main
+# +++++++
+
+# Command Line Interface
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+parser = argparse.ArgumentParser(description='Load NCAA games for a week')
+parser.add_argument('-ps', '--pickem_season', type=int, required=True, help='PickEm season in YY e.g. 17')
+parser.add_argument('-w', '--week', type=int, required=True, help='Week in ## e.g. 07')
+args = parser.parse_args()
+
+print("----------------------------------------")
+print("  {0:s} - {1:s} ".format(PICKEM_COMPONENT_NAME, VERSION))
+print("----------------------------------------")
+
+
+# get games for week
+pickemGamesForWeek = getApi(PICKEM_SERVER_BASE_URL + "/private/" + str(args.pickem_season) + "/" + str(args.week) + "/games_in_any_league")
+
+webRequest = requests.get(SPREAD_SITE_URL)
 webHtml = webRequest.text
 
 soup = BeautifulSoup(webHtml, "html.parser")
@@ -32,11 +80,8 @@ containerDiv = contentTable.find("div", recursive=False)
 # set load time only once so all inserts have the same run time
 loaderRunTime = datetime.datetime.now()
 
-# fun with db conn
-dbConn = psycopg2.connect(DB_CONN_STRING)
-dbCursor = dbConn.cursor()
-
-gameCount = 0
+spreadsGameCount = 0
+updatedPickemGameCount = 0
 
 # Loop on "rows" one for each game
 for divRow in containerDiv.find_all("div", class_="datarow"):
@@ -54,6 +99,9 @@ for divRow in containerDiv.find_all("div", class_="datarow"):
 
 	nextGameSpread.VisitorTeam = thisDataDiv.find_next("span", id="tmv").string
 	nextGameSpread.HomeTeam = thisDataDiv.find_next("span", id="tmh").string
+	# team name may have "(N)" at the end indicating neutral field, if it do, cut it
+	if len(nextGameSpread.HomeTeam) > 5 and nextGameSpread.HomeTeam[-4:] == " (N)":
+		nextGameSpread.HomeTeam = nextGameSpread.HomeTeam[:-4]
 
 	# spread in two "columns" (divs) over
 	thisDataDiv = thisDataDiv.next_sibling.next_sibling
@@ -66,16 +114,41 @@ for divRow in containerDiv.find_all("div", class_="datarow"):
 	spreadJson = nextGameSpread.toJSON()
 	print (spreadJson)
 
-	sql = "INSERT INTO SpreadLoads (SpreadData, Loaded, SpreadLoaderVersion) VALUES (%s, %s, %s)"	
-	dbCursor.execute(sql, (spreadJson, loaderRunTime, SPREADER_VERSION,))
-	dbConn.commit()
-	gameCount += 1
+	# see if there is a match in the pickem games
+	for pickemGame in pickemGamesForWeek:
+		if pickemGame['awayTeam']['team']['theSpreadName'] == nextGameSpread.VisitorTeam and pickemGame['homeTeam']['team']['theSpreadName'] == nextGameSpread.HomeTeam:
+			# matched update pickem spread
+
+			gameId = pickemGame['gameId']
+			# /api/private/{SeasonCode}/{WeekNumber}/games/{GameId}/spread
+			spreadPostUrl = PICKEM_SERVER_BASE_URL + "/private/" + str(args.pickem_season) + "/" + str(args.week) + "/games/" + str(gameId) + "/spreads"
+
+			# which way does the spread go?
+			spreadDirection = "THIS_IS_WRONG_SHOULD_BE_SET"
+			if ( nextGameSpread.SpreadToVisitor == "0" ):
+				spreadDirection = "None"
+				absSpread = "0"
+			elif ( nextGameSpread.SpreadToVisitor[:1] == "-" ):
+				spreadDirection = "ToHome"
+				absSpread = nextGameSpread.SpreadToVisitor[1:]
+			else:
+				spreadDirection = "ToAway"
+				absSpread = nextGameSpread.SpreadToVisitor[1:]
+
+			postData = '''
+			{
+				"spreadDirection": "''' + spreadDirection + '''",
+				"pointSpread": "''' + absSpread + '''"
+			}
+			'''
+			putToApi(spreadPostUrl, postData, "")
+			updatedPickemGameCount = updatedPickemGameCount + 1
+			break
+
+	spreadsGameCount = spreadsGameCount + 1
 
 
-dbCursor.close()
-dbConn.close()
-
-print ("read {0} game spreads".format(gameCount))	
+print ("Read {0} game spreads. Matched {1} games and updated.".format(spreadsGameCount, updatedPickemGameCount))	
 
 
 
