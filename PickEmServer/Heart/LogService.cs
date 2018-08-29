@@ -23,7 +23,7 @@ namespace PickEmServer.Heart
             {
                 throw new ArgumentException("No LogAdd parameter input for AddLog (is null)");
             }
-            // TODO : better mapping e.g. auto mapper or something 
+
             LogData logData = new LogData
             {
                 Component = logAdd.Component,
@@ -37,7 +37,6 @@ namespace PickEmServer.Heart
                 await dbSession.SaveChangesAsync();
 
                 // success return as API "read" object
-                // TODO: better mapping e.g.auto mapper or something
                 Log newLog = new Log
                 {
                     Id = logData.Id,

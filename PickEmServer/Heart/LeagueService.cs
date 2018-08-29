@@ -62,7 +62,6 @@ namespace PickEmServer.Heart
 
                 foreach (var weekNumberRef in newLeague.WeekNumbers)
                 {
-                    // TODO: verify week exists?
                     newLeagueData.Weeks.Add(new LeagueWeekData
                     {
                         Games = new List<LeagueGameData>(),

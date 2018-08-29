@@ -66,7 +66,7 @@ namespace PickEmServer.Api.Controllers
                     issuer: _jwtOptions.Issuer,
                     audience: _jwtOptions.Audience,
                     claims: claims,
-                    expires: DateTime.Now.AddMinutes(1), // TODO: This should be longer, trying to force timeouts
+                    expires: DateTime.Now.AddMinutes(3600), // TODO: Is this a decent timeout?
                     signingCredentials: signinCredentials
                 );
 
