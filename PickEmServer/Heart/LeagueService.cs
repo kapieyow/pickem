@@ -80,27 +80,6 @@ namespace PickEmServer.Heart
 
         }
 
-        public async Task<League> ReadLeague(string leagueCode)
-        {
-            using (var dbSession = _documentStore.QuerySession())
-            {
-                var leagueData = await dbSession
-                    .Query<LeagueData>()
-                    .Where(l => l.LeagueCode == leagueCode)
-                    .SingleAsync()
-                    .ConfigureAwait(false);
-
-                // TODO: fill in other league data to API
-                League apiLeague = new League
-                {
-                    LeagueCode = leagueData.LeagueCode,
-                    LeagueTitle = leagueData.LeagueTitle
-                };
-
-                return apiLeague;
-            }
-        }
-
         internal async Task<League> AddLeagueGame(string seasonCode, string leagueCode, int weekNumber, LeagueGameAdd newLeagueGame)
         {
 
@@ -155,7 +134,7 @@ namespace PickEmServer.Heart
                 // whew we can add this now.
                 leagueWeek.Games.Add(new LeagueGameData { GameIdRef = newLeagueGame.GameId, PlayerPicks = new List<PlayerPickData>() });
 
-                // TODO: need to sync players?
+                SynchGamesAndPlayers(leagueData);
 
                 dbSession.Store(leagueData);
                 dbSession.SaveChanges();
@@ -198,6 +177,8 @@ namespace PickEmServer.Heart
                 // whew we can add this now.
                 leagueData.Players.Add(new LeaguePlayerData { PlayerTag = newLeaguePlayer.PlayerTag, UserNameRef = newLeaguePlayer.UserName });
 
+                SynchGamesAndPlayers(leagueData);
+
                 dbSession.Store(leagueData);
                 dbSession.SaveChanges();
             }
@@ -205,6 +186,119 @@ namespace PickEmServer.Heart
             // read back out to return
             return await this.ReadLeague(leagueCode);
         }
-        
+
+        public async Task<List<Player>> ReadLeaguePlayers(string seasonCode, string leagueCode)
+        {
+            var leagueData = await this.GetLeagueData(seasonCode, leagueCode);
+
+            var resultPlayers = new List<Player>();
+
+            foreach ( var playerData in leagueData.Players )
+            {
+                resultPlayers.Add(new Player
+                {
+                    PlayerTag = playerData.PlayerTag
+                });
+            }
+
+            return resultPlayers;
+        }
+
+        public async Task<List<int>> ReadLeagueWeeks(string seasonCode, string leagueCode)
+        {
+            var leagueData = await this.GetLeagueData(seasonCode, leagueCode);
+
+            var resultWeeks = new List<int>();
+
+            foreach (var weekData in leagueData.Weeks)
+            {
+                resultWeeks.Add(weekData.WeekNumberRef);
+            }
+
+            return resultWeeks;
+        }
+
+        private async Task<LeagueData> GetLeagueData(string seasonCode, string leagueCode)
+        {
+            using (var dbSession = _documentStore.QuerySession())
+            {
+                var leagueData = await dbSession
+                    .Query<LeagueData>()
+                    .Where(l => l.LeagueCode == leagueCode && l.SeasonCodeRef == seasonCode)
+                    .SingleOrDefaultAsync()
+                    .ConfigureAwait(false);
+
+                if (leagueData == null)
+                {
+                    throw new ArgumentException($"No league exists with league code: {leagueCode} for season: {seasonCode}");
+                }
+
+                return leagueData;
+            }
+        }
+
+        private async Task<League> ReadLeague(string leagueCode)
+        {
+            using (var dbSession = _documentStore.QuerySession())
+            {
+                var leagueData = await dbSession
+                    .Query<LeagueData>()
+                    .Where(l => l.LeagueCode == leagueCode)
+                    .SingleAsync()
+                    .ConfigureAwait(false);
+
+                // TODO: fill in other league data to API
+                League apiLeague = new League
+                {
+                    LeagueCode = leagueData.LeagueCode,
+                    LeagueTitle = leagueData.LeagueTitle
+                };
+
+                return apiLeague;
+            }
+        }
+
+        private void SynchGamesAndPlayers(LeagueData leagueData)
+        {
+            // TODO: is this a pig with cartisian-o-rama?
+
+            foreach ( var playerData in leagueData.Players )
+            {
+                if ( !leagueData.PlayerSeasonScores.Any(pss => pss.PlayerTagRef == playerData.PlayerTag) )
+                {
+                    leagueData.PlayerSeasonScores.Add(new PlayerScoreSubtotalData
+                    {
+                        PlayerTagRef = playerData.PlayerTag,
+                        Points = 0
+                    });
+                }
+
+                foreach ( var weekData in leagueData.Weeks )
+                {
+                    if (!weekData.PlayerWeekScores.Any(pws => pws.PlayerTagRef == playerData.PlayerTag))
+                    {
+                        weekData.PlayerWeekScores.Add(new PlayerScoreSubtotalData
+                        {
+                            PlayerTagRef = playerData.PlayerTag,
+                            Points = 0
+                        });
+                    }
+
+                    foreach (var gameData in weekData.Games)
+                    {
+                        if (!gameData.PlayerPicks.Any(pp => pp.PlayerTagRef == playerData.PlayerTag))
+                        {
+                            gameData.PlayerPicks.Add(new PlayerPickData
+                            {
+                                Pick = App.PickTypes.None,
+                                PickStatus = App.PickStatuses.None,
+                                PlayerTagRef = playerData.PlayerTag
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }
