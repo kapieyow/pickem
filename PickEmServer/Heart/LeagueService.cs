@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
+using PickEmServer.App;
 using PickEmServer.App.Models;
 using PickEmServer.Data.Models;
 using System;
@@ -11,16 +12,32 @@ using System.Threading.Tasks;
 
 namespace PickEmServer.Heart
 {
+   
     public class LeagueService
     {
         private readonly IDocumentStore _documentStore;
         private readonly ILogger<LeagueService> _logger;
+        private readonly GameService _gameSevice;
         private readonly ReferenceService _referenceSevice;
         private readonly UserManager<PickEmUser> _userManager;
 
-        public LeagueService(IDocumentStore documentStore, ILogger<LeagueService> logger, ReferenceService referenceService, UserManager<PickEmUser> userManager)
+        private class LeagueGameComparer : IEqualityComparer<LeagueGameData>
+        {
+            public bool Equals(LeagueGameData x, LeagueGameData y)
+            {
+                return x.GameIdRef == y.GameIdRef;
+            }
+
+            public int GetHashCode(LeagueGameData obj)
+            {
+                return obj.GetHashCode();
+            }
+        }
+
+        public LeagueService(IDocumentStore documentStore, ILogger<LeagueService> logger, ReferenceService referenceService, GameService gameSevice, UserManager<PickEmUser> userManager)
         {
             _documentStore = documentStore;
+            _gameSevice = gameSevice;
             _logger = logger;
             _referenceSevice = referenceService;
             _userManager = userManager;
@@ -81,7 +98,6 @@ namespace PickEmServer.Heart
 
         internal async Task<League> AddLeagueGame(string seasonCode, string leagueCode, int weekNumber, LeagueGameAdd newLeagueGame)
         {
-
             if (newLeagueGame == null)
             {
                 throw new ArgumentException("No newLeagueGame parameter input for AddLeagueGame (is null)");
@@ -186,6 +202,178 @@ namespace PickEmServer.Heart
             return await this.ReadLeague(leagueCode);
         }
 
+        internal async Task<List<LeagueData>> ApplyGameChanges(GameData updatedGame, GameChanges gameChanges, IDocumentSession runningDbSession)
+        {
+            var leagueGameToMatch = new LeagueGameData { GameIdRef = updatedGame.GameId };
+
+            // TODO: is there a better way to do this, native to Marten? Failed with the following
+            //      .Where(l => l.Weeks.Any(w => w.Games.Any(g => g.GameIdRef == updatedGame.GameId)))
+            //  .Where(l => l.Weeks.Any(w => w.Games.Contains(leagueGameToMatch, new LeagueGameComparer())))
+            var directSql = 
+                $@"SELECT 
+                    jsonb_pretty(l.data)
+                FROM
+                    public.mt_doc_leaguedata l,
+                    jsonb_array_elements(data->'Weeks') weeks,
+	                jsonb_array_elements(weeks->'Games') games
+                WHERE
+                    games->>'GameIdRef' = '{updatedGame.GameId}'"
+                ;
+
+            var associatedLeagues = runningDbSession.Query<LeagueData>(directSql).ToList();
+
+            foreach ( var leagueData in associatedLeagues )
+            {
+                // Checking both change flags and updating player picks. 
+                if ( gameChanges.ScoreChanged || gameChanges.GameStateChanged )
+                {
+                    // game score changed : update pick status(es) for related games
+                    // TODO: ToArray is dumb. There will only be one. How to in Linq?
+                    var assocatedLeagueGameData = leagueData.Weeks.SelectMany(w => w.Games.Where(g => g.GameIdRef == updatedGame.GameId)).ToArray();
+
+                    foreach (var playerPickData in assocatedLeagueGameData[0].PlayerPicks)
+                    {
+                        switch (updatedGame.GameState)
+                        {
+                            case GameStates.Cancelled:
+                                playerPickData.PickStatus = PickStatuses.None;
+                                break;
+
+                            case GameStates.Final:
+                                if (updatedGame.AwayTeam.ScoreAfterSpread < updatedGame.HomeTeam.ScoreAfterSpread)
+                                {
+                                    // home team winning (on spread)
+                                    switch (playerPickData.Pick)
+                                    {
+                                        case PickTypes.None:
+                                            playerPickData.PickStatus = PickStatuses.None;
+                                            break;
+
+                                        case PickTypes.Away:
+                                            playerPickData.PickStatus = PickStatuses.Lost;
+                                            break;
+
+                                        case PickTypes.Home:
+                                            playerPickData.PickStatus = PickStatuses.Won;
+                                            break;
+
+                                        default:
+                                            throw new ArgumentException($"Unknown PickTypes: {playerPickData.Pick}");
+                                    }
+                                }
+                                else if (updatedGame.AwayTeam.ScoreAfterSpread > updatedGame.HomeTeam.ScoreAfterSpread)
+                                {
+                                    // away team winning (on spread)
+                                    switch (playerPickData.Pick)
+                                    {
+                                        case PickTypes.None:
+                                            playerPickData.PickStatus = PickStatuses.None;
+                                            break;
+
+                                        case PickTypes.Away:
+                                            playerPickData.PickStatus = PickStatuses.Won;
+                                            break;
+
+                                        case PickTypes.Home:
+                                            playerPickData.PickStatus = PickStatuses.Lost;
+                                            break;
+
+                                        default:
+                                            throw new ArgumentException($"Unknown PickTypes: {playerPickData.Pick}");
+                                    }
+                                }
+                                else
+                                {
+                                    // tied (on spread)
+                                    if (playerPickData.Pick == PickTypes.None)
+                                    {
+                                        playerPickData.PickStatus = PickStatuses.None;
+                                    }
+                                    else
+                                    {
+                                        playerPickData.PickStatus = PickStatuses.Pushed;
+                                    }
+                                }
+                                break;
+
+                            case GameStates.InGame:
+                                if (updatedGame.AwayTeam.ScoreAfterSpread < updatedGame.HomeTeam.ScoreAfterSpread)
+                                {
+                                    // home team winning (on spread)
+                                    switch (playerPickData.Pick)
+                                    {
+                                        case PickTypes.None:
+                                            playerPickData.PickStatus = PickStatuses.None;
+                                            break;
+
+                                        case PickTypes.Away:
+                                            playerPickData.PickStatus = PickStatuses.Losing;
+                                            break;
+
+                                        case PickTypes.Home:
+                                            playerPickData.PickStatus = PickStatuses.Winning;
+                                            break;
+
+                                        default:
+                                            throw new ArgumentException($"Unknown PickTypes: {playerPickData.Pick}");
+                                    }
+                                }
+                                else if (updatedGame.AwayTeam.ScoreAfterSpread > updatedGame.HomeTeam.ScoreAfterSpread)
+                                {
+                                    // away team winning (on spread)
+                                    switch (playerPickData.Pick)
+                                    {
+                                        case PickTypes.None:
+                                            playerPickData.PickStatus = PickStatuses.None;
+                                            break;
+
+                                        case PickTypes.Away:
+                                            playerPickData.PickStatus = PickStatuses.Winning;
+                                            break;
+
+                                        case PickTypes.Home:
+                                            playerPickData.PickStatus = PickStatuses.Losing;
+                                            break;
+
+                                        default:
+                                            throw new ArgumentException($"Unknown PickTypes: {playerPickData.Pick}");
+                                    }
+                                }
+                                else
+                                {
+                                    // tied (on spread)
+                                    if (playerPickData.Pick == PickTypes.None)
+                                    {
+                                        playerPickData.PickStatus = PickStatuses.None;
+                                    }
+                                    else
+                                    {
+                                        playerPickData.PickStatus = PickStatuses.Pushing;
+                                    }
+                                }
+                                break;
+
+                            default:
+                                throw new Exception($"Invalid game state to change score {updatedGame.GameState}");
+                        }
+                        break;
+
+                    }
+                }
+
+                if ( gameChanges.GameStateChanged )
+                {
+                    if ( updatedGame.GameState == GameStates.Final || updatedGame.GameState == GameStates.Cancelled )
+                    {
+                        this.SynchScoreboards(leagueData);
+                    }
+                }
+            }
+
+            return associatedLeagues.ToList();
+        }
+
+
         public async Task<List<Player>> ReadLeaguePlayers(string seasonCode, string leagueCode)
         {
             var leagueData = await this.GetLeagueData(seasonCode, leagueCode);
@@ -217,23 +405,77 @@ namespace PickEmServer.Heart
             return resultWeeks;
         }
 
+        internal async Task<PlayerPick> SetPlayerPick(string seasonCode, string leagueCode, int weekNumber, string playerTag, int gameId, PlayerPickUpdate newPlayerPick)
+        {
+            if (newPlayerPick == null)
+            {
+                throw new ArgumentException("No newPlayerPick parameter input for SetPlayerPick (is null)");
+            }
+
+            using (var dbSession = _documentStore.LightweightSession())
+            {
+                var leagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
+
+                var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
+                if (weekData == null)
+                {
+                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode} does not contain a week: {weekNumber}");
+                }
+
+                var pickemGameData = weekData.Games.SingleOrDefault(g => g.GameIdRef == gameId);
+                if (pickemGameData == null)
+                {
+                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber} does not have a game with gameid: {gameId}");
+                }
+
+                var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef == playerTag);
+                if (playerPickData == null)
+                {
+                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber}, game {gameId}, has no player pick for {playerTag}. Is {playerTag} in this league?");
+                }
+
+                // get associated game to make sure the player can update the pick
+                var gameData = await _gameSevice.ReadGame(gameId);
+
+                switch ( gameData.GameState )
+                {
+                    case GameStates.Cancelled:
+                    case GameStates.Final:
+                    case GameStates.InGame:
+                        throw new Exception($"Player: {playerTag} in league: {leagueCode} cannot make a pick for game: {gameId} because the game is in the following game state: {gameData.GameState}");
+                }
+
+                playerPickData.Pick = newPlayerPick.Pick;
+
+                dbSession.Store(leagueData);
+                dbSession.SaveChanges();
+
+                return new PlayerPick { Pick = playerPickData.Pick };
+            }
+        }
+
         private async Task<LeagueData> GetLeagueData(string seasonCode, string leagueCode)
         {
             using (var dbSession = _documentStore.QuerySession())
             {
-                var leagueData = await dbSession
-                    .Query<LeagueData>()
-                    .Where(l => l.LeagueCode == leagueCode && l.SeasonCodeRef == seasonCode)
-                    .SingleOrDefaultAsync()
-                    .ConfigureAwait(false);
-
-                if (leagueData == null)
-                {
-                    throw new ArgumentException($"No league exists with league code: {leagueCode} for season: {seasonCode}");
-                }
-
-                return leagueData;
+                return await GetLeagueData(dbSession, seasonCode, leagueCode);
             }
+        }
+
+        private async Task<LeagueData> GetLeagueData(IQuerySession runningDocumentSession, string seasonCode, string leagueCode)
+        {
+            var leagueData = await runningDocumentSession
+                .Query<LeagueData>()
+                .Where(l => l.LeagueCode == leagueCode && l.SeasonCodeRef == seasonCode)
+                .SingleOrDefaultAsync()
+                .ConfigureAwait(false);
+
+            if (leagueData == null)
+            {
+                throw new ArgumentException($"No league exists with league code: {leagueCode} for season: {seasonCode}");
+            }
+
+            return leagueData;
         }
 
         private async Task<League> ReadLeague(string leagueCode)
@@ -299,5 +541,26 @@ namespace PickEmServer.Heart
             }
         }
 
+        private void SynchScoreboards(LeagueData leagueData)
+        {
+            var playerTags = leagueData.Players.Select(p => p.PlayerTag);
+
+            // by week
+            foreach ( var weekData in leagueData.Weeks )
+            {
+                foreach ( var playerTag in playerTags )
+                {
+                    var playerWeekScoreData = weekData.PlayerWeekScores.Single(pws => pws.PlayerTagRef == playerTag);
+                    playerWeekScoreData.Points = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStatuses.Won)).Count();
+                }
+            }
+
+            // whole season
+            foreach (var playerTag in playerTags)
+            {
+                var playerSeasonScoreData = leagueData.PlayerSeasonScores.Single(pss => pss.PlayerTagRef == playerTag);
+                playerSeasonScoreData.Points = leagueData.Weeks.SelectMany(w => w.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStatuses.Won))).Count();
+            }
+        }
     }
 }

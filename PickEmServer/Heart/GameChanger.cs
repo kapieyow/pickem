@@ -7,32 +7,41 @@ using System.Collections.Generic;
 
 namespace PickEmServer.Heart
 {
-    public class GameChanger
+    internal class GameChanger
     {
         private GameData _game;
         private IDocumentSession _dbSession;
 
-        public GameChanger(GameData game, IDocumentSession dbSession)
+        internal GameChanger(GameData game, IDocumentSession dbSession)
         {
             _game = game;
             _dbSession = dbSession;
         }
 
-        public void ApplyChanges(GameUpdate gameUpdates)
+        internal GameChanges ApplyChanges(GameUpdate gameUpdates)
         {
+            GameChanges gameChanges = new GameChanges();
+
             _game.LastUpdated = gameUpdates.LastUpdated;
             _game.CurrentPeriod = gameUpdates.CurrentPeriod;
             _game.TimeClock = gameUpdates.TimeClock;
             _game.GameStart = gameUpdates.GameStart;
-            this.UpdateAwayTeamScore(gameUpdates.AwayTeamScore);
-            this.UpdateHomeTeamScore(gameUpdates.HomeTeamScore);
+            if ( this.UpdateAwayTeamScore(gameUpdates.AwayTeamScore) )
+            {
+                gameChanges.ScoreChanged = true;
+            }
 
-            this.UpdateGameState(gameUpdates.GameState);
+            if ( this.UpdateHomeTeamScore(gameUpdates.HomeTeamScore) )
+            {
+                gameChanges.ScoreChanged = true;
+            }
 
-            _dbSession.Store(_game);
+            gameChanges.GameStateChanged = this.UpdateGameState(gameUpdates.GameState);
+
+            return gameChanges;
         }
 
-        public void ApplySpread(SpreadUpdate spreadUpdates)
+        internal void ApplySpread(SpreadUpdate spreadUpdates)
         {
             if ( _game.GameState != GameStates.SpreadNotSet )
             {
@@ -43,84 +52,53 @@ namespace PickEmServer.Heart
             _game.Spread.SpreadDirection = spreadUpdates.SpreadDirection;
 
             this.SynchScoresAfterSpread();
-
-            _dbSession.Store(_game);
         }
 
-        public void SaveChanges()
-        {
-            _dbSession.SaveChanges();
-        }
-
-        private void UpdateGameState(GameStates newGameState)
+        private bool UpdateGameState(GameStates newGameState)
         {
             if ( _game.GameState != newGameState )
             {
                 _game.GameState = newGameState;
 
-                switch (newGameState)
+                if ( newGameState == GameStates.Final )
                 {
-                    case GameStates.Cancelled:
-                        // TODO: more here to cancel? no scores?
-                        break;
-
-
-                    case GameStates.Final:
-                        //  - game: set winner
-                        _game.AwayTeam.Winner = (_game.AwayTeam.Score > _game.HomeTeam.Score);
-                        _game.HomeTeam.Winner = (_game.AwayTeam.Score < _game.HomeTeam.Score);
-
-                        // TODO: //  - player picks: update pick status(es) for related games
-                        // TODO: //  - player picks: update week points
-                        // TODO: //  - week scoreboard: update this weeks player points (in leagues with games)
-                        // TODO: //  - league board: update this weeks player points (in leagues with games)
-                        // TODO: //  - league board: update this seasons player points (in leagues with games)
-
-                        break;
-
-                    case GameStates.InGame:
-                        // TODO: //  - picks: lock picks
-                        break;
-
-                    case GameStates.SpreadNotSet:
-                        break;
-
-                    case GameStates.SpreadSet:
-                        // TODO: // open picks
-                        break;
-                    default:
-                        throw new ArgumentException($"Unknown new game state: {newGameState}");
+                    _game.AwayTeam.Winner = (_game.AwayTeam.Score > _game.HomeTeam.Score);
+                    _game.HomeTeam.Winner = (_game.AwayTeam.Score < _game.HomeTeam.Score);
                 }
-
+                
+                // game state changed
+                return true;
             }
+
+            return false;
         }
 
-        private void UpdateAwayTeamScore(int newScore)
+        private bool UpdateAwayTeamScore(int newScore)
         {
             if ( _game.AwayTeam.Score != newScore )
             {
-                //  - game: update score
                 _game.AwayTeam.Score = newScore;
-
-                //  - game: update score after spread
                 this.SynchScoresAfterSpread();
 
-                // TODO: //  - player picks: update pick status(es) for related games
+                // score changed
+                return true;
             }
+
+            return false;
         }
 
-        private void UpdateHomeTeamScore(int newScore)
+        private bool UpdateHomeTeamScore(int newScore)
         {
             if (_game.HomeTeam.Score != newScore)
             {
-                //  - game: update score
                 _game.HomeTeam.Score = newScore;
-
-                //  - game: update score after spread
                 this.SynchScoresAfterSpread();
 
-                // TODO: //  - player picks: update pick status(es) for related games
+                // score changed
+                return true;
             }
+
+            return false;
         }
 
         private void SynchScoresAfterSpread()

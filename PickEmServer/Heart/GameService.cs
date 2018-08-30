@@ -1,5 +1,6 @@
 ﻿using Marten;
 using Marten.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
 using PickEmServer.App;
@@ -15,13 +16,15 @@ namespace PickEmServer.Heart
     {
         private readonly IDocumentStore _documentStore;
         private readonly ILogger<GameService> _logger;
+        private readonly IServiceProvider _serviceProvider;
         private readonly ReferenceService _referenceSevice;
 
-        public GameService(IDocumentStore documentStore, ILogger<GameService> logger, ReferenceService referenceSevice)
+        public GameService(IDocumentStore documentStore, ILogger<GameService> logger, ReferenceService referenceSevice, IServiceProvider serviceProvider)
         {
             _documentStore = documentStore;
             _logger = logger;
             _referenceSevice = referenceSevice;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<Game> AddGame(string seasonCode, int weekNumber, GameAdd newGame)
@@ -142,9 +145,24 @@ namespace PickEmServer.Heart
                 }
 
                 GameChanger gameChanger = new GameChanger(game, dbSession);
-                gameChanger.ApplyChanges(gameUpdates);
-                gameChanger.SaveChanges();
+                var gameChanges = gameChanger.ApplyChanges(gameUpdates);
+                dbSession.Store(game);
 
+                if ( gameChanges.GameStateChanged || gameChanges.ScoreChanged )
+                {
+                    // score and/or game state changed, let all the leagues know.
+
+                    // TODO - avoid direct new up of league service. Cannot IoC do to circlies because game service uses league. What to do?
+                    var leagueService = _serviceProvider.GetService<LeagueService>();
+                    var leaguesData = await leagueService.ApplyGameChanges(game, gameChanges, dbSession);
+
+                    foreach ( var leagueData in leaguesData )
+                    {
+                        dbSession.Store(leagueData);
+                    }
+                }
+
+                dbSession.SaveChanges();
             }
 
             // read back out to return
@@ -173,7 +191,8 @@ namespace PickEmServer.Heart
 
                 GameChanger gameChanger = new GameChanger(game, dbSession);
                 gameChanger.ApplySpread(spreadUpdates);
-                gameChanger.SaveChanges();
+                dbSession.Store(game);
+                dbSession.SaveChanges();
             }
 
             // read back out to return
