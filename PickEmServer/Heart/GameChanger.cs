@@ -54,6 +54,16 @@ namespace PickEmServer.Heart
             this.SynchScoresAfterSpread();
         }
 
+        internal void LockSpread()
+        {
+            if (_game.GameState != GameStates.SpreadNotSet)
+            {
+                throw new InvalidOperationException($"Cannot lock game id: {_game.GameId} spread because the game state is: {_game.GameState}");
+            }
+
+            _game.GameState = GameStates.SpreadLocked;
+        }
+
         private bool UpdateGameState(GameStates newGameState)
         {
             if ( _game.GameState != newGameState )

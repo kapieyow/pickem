@@ -99,6 +99,31 @@ namespace PickEmServer.Heart
             return await this.ReadGame(newGame.GameId);
         }
 
+        internal async Task<Game> LockSpread(string seasonCode, int weekNumber, int gameId)
+        {
+            using (var dbSession = _documentStore.LightweightSession())
+            {
+                var game = await dbSession
+                   .Query<GameData>()
+                   .Where(g => g.GameId == gameId && g.SeasonCodeRef == seasonCode && g.WeekNumberRef == weekNumber)
+                   .SingleOrDefaultAsync()
+                   .ConfigureAwait(false);
+
+                if (game == null)
+                {
+                    throw new ArgumentException($"No matching game found to update. Criteria Id: {gameId} or Season: {seasonCode}, Week: {weekNumber}");
+                }
+
+                GameChanger gameChanger = new GameChanger(game, dbSession);
+                gameChanger.LockSpread();
+                dbSession.Store(game);
+                dbSession.SaveChanges();
+            }
+
+            // read back out to return
+            return await this.ReadGame(gameId);
+        }
+
         internal async Task<List<Game>> ReadGames(string seasonCode, int weekNumber)
         {
             using (var dbSession = _documentStore.QuerySession())

@@ -8,7 +8,7 @@ namespace PickEmServer.App
     public enum GameStates
     {
         SpreadNotSet,
-        SpreadSet,
+        SpreadLocked,
         InGame,
         Final,
         Cancelled

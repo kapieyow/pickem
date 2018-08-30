@@ -48,10 +48,17 @@ namespace PickEmServer.Api.Controllers
         }
 
         [HttpPut]
-        [Route("api/private/{SeasonCode}/{WeekNumber}/games/{GameId}/spreads")]
+        [Route("api/private/{SeasonCode}/{WeekNumber}/games/{GameId}/spread")]
         public async Task<Game> UpdateSpread(string SeasonCode, int WeekNumber, int GameId, [FromBody] SpreadUpdate spreadUpdates)
         {
             return await _gameService.UpdateSpread(SeasonCode, WeekNumber, GameId, spreadUpdates);
+        }
+
+        [HttpPut]
+        [Route("api/private/{SeasonCode}/{WeekNumber}/games/{GameId}/spread/lock")]
+        public async Task<Game> UpdateSpread(string SeasonCode, int WeekNumber, int GameId)
+        {
+            return await _gameService.LockSpread(SeasonCode, WeekNumber, GameId);
         }
     }
 }
