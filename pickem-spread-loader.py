@@ -121,7 +121,7 @@ for divRow in containerDiv.find_all("div", class_="datarow"):
 
 			gameId = pickemGame['gameId']
 			# /api/private/{SeasonCode}/{WeekNumber}/games/{GameId}/spread
-			spreadPostUrl = PICKEM_SERVER_BASE_URL + "/private/" + str(args.pickem_season) + "/" + str(args.week) + "/games/" + str(gameId) + "/spreads"
+			spreadPostUrl = PICKEM_SERVER_BASE_URL + "/private/" + str(args.pickem_season) + "/" + str(args.week) + "/games/" + str(gameId) + "/spread"
 
 			# which way does the spread go?
 			spreadDirection = "THIS_IS_WRONG_SHOULD_BE_SET"
