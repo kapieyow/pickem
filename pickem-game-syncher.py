@@ -162,7 +162,9 @@ def udpateNcaaGame(pickemGameJson, ncaaSeason, pickemSeason, weekNumber):
             # game has not started don't mess with spread set or not status
             gameState = pickemGameJson['gameState']
         elif ( ncaaGameState == "live" ):
-            # game has not started don't mess with spread set or not status
+            gameState = "InGame"
+        elif ( ncaaGameState == "delayed" ):
+            # TODO - handle Delayed 
             gameState = "InGame"
         else:
             # In game?
