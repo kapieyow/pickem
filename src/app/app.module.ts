@@ -20,6 +20,7 @@ import { PlayerComponent } from './player/player.component';
 import { TestDriverComponent } from './test-driver/test-driver.component';
 
 import { AuthGuard } from './sub-system/auth/auth-guard';
+import { LeagueService } from './sub-system/services/league.service';
 import { LoggerService } from './sub-system/services/logger.service';
 import { StatusService } from './sub-system/services/status.service';
 import { UserService } from './sub-system/services/user.service';
@@ -55,7 +56,7 @@ export function tokenGetter() {
     ModalModule.forRoot(),
     TabsModule.forRoot(),
   ],
-  providers: [ AuthGuard, JwtHelperService, LoggerService, StatusService, UserService ],
+  providers: [ AuthGuard, JwtHelperService, LeagueService, LoggerService, StatusService, UserService ],
   bootstrap: [ AppComponent ]
 })
 export class AppModule { }

@@ -8,6 +8,7 @@ import { Observable, throwError } from 'rxjs';
 import { UserCredentials } from '../models/api/user-credentials';
 import { LoggerService } from './logger.service';
 import { environment } from '../../../environments/environment';
+import { LeagueService } from './league.service';
 import { StatusService } from './status.service';
 import { UserRegistration } from '../models/api/user-registration';
 import { User } from '../models/api/user';
@@ -23,7 +24,7 @@ const httpOptions = {
   // TODO: Should this service be broken out into "authentication/login" and "user like registration" like the server API is?
 export class UserService {
 
-  constructor(private logger: LoggerService, private http: HttpClient, private statusService: StatusService) { }
+  constructor(private logger: LoggerService, private http: HttpClient, private statusService: StatusService, private leagueService: LeagueService) { }
 
   login (username: string, password: string) : Observable<any>
   {
@@ -54,6 +55,38 @@ export class UserService {
             return throwError(this.logger.logAndParseHttpError(error));
           })
       );
+  }
+
+  setupUser (userName: string) : Observable<any>
+  {
+    return this.leagueService.readPlayer(this.statusService.seasonCode, this.statusService.leagueCode, userName)
+    .pipe(
+      tap(response => 
+        {
+          this.statusService.userPlayerTag = response.playerTag
+          this.statusService.playerTagFilter = response.playerTag;
+        }),
+      catchError(error =>
+        {
+          return throwError(this.logger.logAndParseHttpError(error));
+        })
+    );
+  }
+
+  getUsersPlayerTag(userName: string) : string
+  {
+    var playerTag = "";
+    this.leagueService.readPlayer(this.statusService.seasonCode, this.statusService.leagueCode, userName)
+      .subscribe(
+        response => { 
+          playerTag = response.playerTag;
+        },
+        errors => { 
+          return throwError(this.logger.logAndParseHttpError(errors)); 
+        }
+      );
+
+    return playerTag;
   }
 
   logout ()

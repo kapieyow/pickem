@@ -1,55 +1,60 @@
 import { Component, OnInit } from '@angular/core';
+import { Observable, throwError } from 'rxjs';
+import { PlayerScoreboardPick } from '../sub-system/models/api/player-scoreboard-pick';
+import { LeagueService } from '../sub-system/services/league.service';
+import { LoggerService } from '../sub-system/services//logger.service';
+import { StatusService } from '../sub-system/services/status.service';
 
 class Pick {
-  AwayTeamIconImage: string;
-  AwayTeamLosses: number;
-  AwayTeamName: string;
-  AwayTeamRank: number;
-  AwayTeamScore: number;
-  AwayTeamWins: number;
-  GameStatus: string;
-  GameStatusCode: GameStatus;
-  HomeTeamIconImage: string;
-  HomeTeamLosses: number;
-  HomeTeamName: string;
-  HomeTeamRank: number;
-  HomeTeamScore: number;
-  HomeTeamWins: number;
-  Id: number;
-  PickCode: PickCodes;
-  PickState: PickStatus;
-  PickToSpreadNeatral: number;
-  Spread: number;
-  SpreadDirection: SpreadDirections;
+  awayTeamIconFileName: string;
+  awayTeamLosses: number;
+  awayTeamLongName: string;
+  awayTeamRank: number;
+  awayTeamScore: number;
+  awayTeamWins: number;
+  gameStatusDescription: string;
+  gameState: gameStatusDescription;
+  homeTeamIconFileName: string;
+  homeTeamLosses: number;
+  homeTeamLongName: string;
+  homeTeamRank: number;
+  homeTeamScore: number;
+  homeTeamWins: number;
+  gameId: number;
+  pick: PickCodes;
+  pickState: PickStatus;
+  pickToSpreadNeutral: number;
+  spread: number;
+  spreadDirection: SpreadDirections;
 }
 
-enum GameStatus {
-  Final = "FINAL",
-  InGame = "IN_GAME",
-  SpreadNotSet = "SPREAD_NOT_SET",
-  SpreadSet = "SPREAD_SET"
+enum gameStatusDescription {
+  Final = "Final",
+  InGame = "InGame",
+  SpreadNotSet = "SpreadNotSet",
+  SpreadLocked = "SpreadLocked"
 }
 
 enum PickCodes {
-  Away = "AWAY",
-  Home = "HOME",
-  None = "NONE"
+  Away = "Away",
+  Home = "Home",
+  None = "None"
 }
 
 enum PickStatus {
-  Losing = "LOSING",
-  Lost = "LOST",
-  None = "NONE",
-  Pushing = "PUSHING",
-  Pushed = "PUSHED",
-  Winning = "WINNING",
-  Won = "WON"
+  Losing = "Losing",
+  Lost = "Lost",
+  None = "None",
+  Pushing = "Pushing",
+  Pushed = "Pushed",
+  Winning = "Winning",
+  Won = "Won"
 }
 
 enum SpreadDirections {
-  None = "NONE",
-  ToAway = "TO_AWAY",
-  ToHome = "TO_HOME"
+  None = "None",
+  ToAway = "ToAway",
+  ToHome = "ToHome"
 }
 
 @Component({
@@ -59,191 +64,203 @@ enum SpreadDirections {
 })
 export class PlayerComponent implements OnInit {
 
-  Picks: Pick[] = [];
+  //Picks: Pick[] = [];
+  Picks: PlayerScoreboardPick[] = [];
 
-  constructor() { }
+
+  constructor(private leagueService: LeagueService, private logger: LoggerService, private statusService: StatusService) { }
 
   ngOnInit() {
-    this.loadFakePicks();
+    this.getPlayerPicks();
+  }
+
+  getPlayerPicks()
+  {
+    this.leagueService.readPlayerScoreboard(this.statusService.seasonCode, this.statusService.leagueCode, this.statusService.weekNumberFilter, this.statusService.playerTagFilter)
+      .subscribe(
+        response => { 
+          this.Picks = response 
+        },
+        errors => { return throwError(this.logger.logAndParseHttpError(errors)); }
+      );
   }
 
   loadFakePicks() {
 
-
-
     // spread not set (none at all yet)
+    /*
     this.Picks.push(
       {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 2,
-        AwayTeamName: "No Spread",
-        AwayTeamRank: 0,
-        AwayTeamScore: null,
-        AwayTeamWins: 3,
-        GameStatus: "Saturday 9/27 - 8:00PM EDT",
-        GameStatusCode: GameStatus.SpreadNotSet,
-        HomeTeamIconImage: "north-carolina.24.png",
-        HomeTeamLosses: 1,
-        HomeTeamName: "Home Team",
-        HomeTeamRank: 15,
-        HomeTeamScore: null,
-        HomeTeamWins: 4,
-        Id: 1,
-        PickCode: PickCodes.None,
-        PickState: PickStatus.None,
-        PickToSpreadNeatral: null,
-        Spread: null,
-        SpreadDirection: SpreadDirections.None
+        awayTeamIconFileName: "clemson.24.png",
+        awayTeamLosses: 2,
+        awayTeamLongName: "No spread",
+        awayTeamRank: 0,
+        awayTeamScore: null,
+        awayTeamWins: 3,
+        gameStatusDescription: "Saturday 9/27 - 8:00PM EDT",
+        gameState: gameStatusDescription.SpreadNotSet,
+        homeTeamIconFileName: "north-carolina.24.png",
+        homeTeamLosses: 1,
+        homeTeamLongName: "Home Team",
+        homeTeamRank: 15,
+        homeTeamScore: null,
+        homeTeamWins: 4,
+        gameId: 1,
+        pick: PickCodes.None,
+        pickState: PickStatus.None,
+        pickToSpreadNeutral: null,
+        spread: null,
+        spreadDirection: SpreadDirections.None
       });
 
     // spread not set (pending spread)
     this.Picks.push(
       {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 2,
-        AwayTeamName: "Spread not set, but have draft",
-        AwayTeamRank: 0,
-        AwayTeamScore: null,
-        AwayTeamWins: 3,
-        GameStatus: "Saturday 9/27 - 8:00PM EDT",
-        GameStatusCode: GameStatus.SpreadNotSet,
-        HomeTeamIconImage: "clemson.24.png",
-        HomeTeamLosses: 1,
-        HomeTeamName: "Home Team",
-        HomeTeamRank: 15,
-        HomeTeamScore: null,
-        HomeTeamWins: 4,
-        Id: 2,
-        PickCode: PickCodes.None,
-        PickState: PickStatus.None,
-        PickToSpreadNeatral: null,
-        Spread: 6,
-        SpreadDirection: SpreadDirections.ToAway
+        awayTeamIconFileName: "clemson.24.png",
+        awayTeamLosses: 2,
+        awayTeamLongName: "spread not set, but have draft",
+        awayTeamRank: 0,
+        awayTeamScore: null,
+        awayTeamWins: 3,
+        gameStatusDescription: "Saturday 9/27 - 8:00PM EDT",
+        gameState: gameStatusDescription.SpreadNotSet,
+        homeTeamIconFileName: "clemson.24.png",
+        homeTeamLosses: 1,
+        homeTeamLongName: "Home Team",
+        homeTeamRank: 15,
+        homeTeamScore: null,
+        homeTeamWins: 4,
+        gameId: 2,
+        pick: PickCodes.None,
+        pickState: PickStatus.None,
+        pickToSpreadNeutral: null,
+        spread: 6,
+        spreadDirection: SpreadDirections.ToAway
       });
 
     // spread set:  no pick (away spread)
     this.Picks.push(
       {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 2,
-        AwayTeamName: "Spread set no pick",
-        AwayTeamRank: 0,
-        AwayTeamScore: null,
-        AwayTeamWins: 3,
-        GameStatus: "Saturday 9/27 - 8:00PM EDT",
-        GameStatusCode: GameStatus.SpreadSet,
-        HomeTeamIconImage: "clemson.24.png",
-        HomeTeamLosses: 1,
-        HomeTeamName: "Home Team",
-        HomeTeamRank: 15,
-        HomeTeamScore: null,
-        HomeTeamWins: 4,
-        Id: 3,
-        PickCode: PickCodes.None,
-        PickState: PickStatus.None,
-        PickToSpreadNeatral: null,
-        Spread: 6,
-        SpreadDirection: SpreadDirections.ToAway
+        awayTeamIconFileName: "clemson.24.png",
+        awayTeamLosses: 2,
+        awayTeamLongName: "spread set no pick",
+        awayTeamRank: 0,
+        awayTeamScore: null,
+        awayTeamWins: 3,
+        gameStatusDescription: "Saturday 9/27 - 8:00PM EDT",
+        gameState: gameStatusDescription.SpreadLocked,
+        homeTeamIconFileName: "clemson.24.png",
+        homeTeamLosses: 1,
+        homeTeamLongName: "Home Team",
+        homeTeamRank: 15,
+        homeTeamScore: null,
+        homeTeamWins: 4,
+        gameId: 3,
+        pick: PickCodes.None,
+        pickState: PickStatus.None,
+        pickToSpreadNeutral: null,
+        spread: 6,
+        spreadDirection: SpreadDirections.ToAway
       });
 
     // spread set:  no pick (home spread)
     this.Picks.push(
       {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 2,
-        AwayTeamName: "Spread set no pick",
-        AwayTeamRank: 0,
-        AwayTeamScore: null,
-        AwayTeamWins: 3,
-        GameStatus: "Saturday 9/27 - 8:00PM EDT",
-        GameStatusCode: GameStatus.SpreadSet,
-        HomeTeamIconImage: "clemson.24.png",
-        HomeTeamLosses: 1,
-        HomeTeamName: "Home Team",
-        HomeTeamRank: 15,
-        HomeTeamScore: null,
-        HomeTeamWins: 4,
-        Id: 4,
-        PickCode: PickCodes.None,
-        PickState: PickStatus.None,
-        PickToSpreadNeatral: null,
-        Spread: 6,
-        SpreadDirection: SpreadDirections.ToHome
+        awayTeamIconFileName: "clemson.24.png",
+        awayTeamLosses: 2,
+        awayTeamLongName: "spread set no pick",
+        awayTeamRank: 0,
+        awayTeamScore: null,
+        awayTeamWins: 3,
+        gameStatusDescription: "Saturday 9/27 - 8:00PM EDT",
+        gameState: gameStatusDescription.SpreadLocked,
+        homeTeamIconFileName: "clemson.24.png",
+        homeTeamLosses: 1,
+        homeTeamLongName: "Home Team",
+        homeTeamRank: 15,
+        homeTeamScore: null,
+        homeTeamWins: 4,
+        gameId: 4,
+        pick: PickCodes.None,
+        pickState: PickStatus.None,
+        pickToSpreadNeutral: null,
+        spread: 6,
+        spreadDirection: SpreadDirections.ToHome
       });
 
     // spread set:  picked away
     this.Picks.push(
       {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 2,
-        AwayTeamName: "Away Team",
-        AwayTeamRank: 0,
-        AwayTeamScore: null,
-        AwayTeamWins: 3,
-        GameStatus: "Saturday 9/27 - 8:00PM EDT",
-        GameStatusCode: GameStatus.SpreadSet,
-        HomeTeamIconImage: "clemson.24.png",
-        HomeTeamLosses: 1,
-        HomeTeamName: "Home Team",
-        HomeTeamRank: 15,
-        HomeTeamScore: null,
-        HomeTeamWins: 4,
-        Id: 9,
-        PickCode: PickCodes.Away,
-        PickState: PickStatus.None,
-        PickToSpreadNeatral: null,
-        Spread: 6,
-        SpreadDirection: SpreadDirections.ToHome
+        awayTeamIconFileName: "clemson.24.png",
+        awayTeamLosses: 2,
+        awayTeamLongName: "Away Team",
+        awayTeamRank: 0,
+        awayTeamScore: null,
+        awayTeamWins: 3,
+        gameStatusDescription: "Saturday 9/27 - 8:00PM EDT",
+        gameState: gameStatusDescription.SpreadLocked,
+        homeTeamIconFileName: "clemson.24.png",
+        homeTeamLosses: 1,
+        homeTeamLongName: "Home Team",
+        homeTeamRank: 15,
+        homeTeamScore: null,
+        homeTeamWins: 4,
+        gameId: 9,
+        pick: PickCodes.Away,
+        pickState: PickStatus.None,
+        pickToSpreadNeutral: null,
+        spread: 6,
+        spreadDirection: SpreadDirections.ToHome
       });
 
     // spread set:  picked home
     this.Picks.push(
       {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 2,
-        AwayTeamName: "Away Team",
-        AwayTeamRank: 0,
-        AwayTeamScore: null,
-        AwayTeamWins: 3,
-        GameStatus: "Saturday 9/27 - 8:00PM EDT",
-        GameStatusCode: GameStatus.SpreadSet,
-        HomeTeamIconImage: "clemson.24.png",
-        HomeTeamLosses: 1,
-        HomeTeamName: "Home Team",
-        HomeTeamRank: 15,
-        HomeTeamScore: null,
-        HomeTeamWins: 4,
-        Id: 10,
-        PickCode: PickCodes.Home,
-        PickState: PickStatus.None,
-        PickToSpreadNeatral: null,
-        Spread: 6,
-        SpreadDirection: SpreadDirections.ToHome
+        awayTeamIconFileName: "clemson.24.png",
+        awayTeamLosses: 2,
+        awayTeamLongName: "Away Team",
+        awayTeamRank: 0,
+        awayTeamScore: null,
+        awayTeamWins: 3,
+        gameStatusDescription: "Saturday 9/27 - 8:00PM EDT",
+        gameState: gameStatusDescription.SpreadLocked,
+        homeTeamIconFileName: "clemson.24.png",
+        homeTeamLosses: 1,
+        homeTeamLongName: "Home Team",
+        homeTeamRank: 15,
+        homeTeamScore: null,
+        homeTeamWins: 4,
+        gameId: 10,
+        pick: PickCodes.Home,
+        pickState: PickStatus.None,
+        pickToSpreadNeutral: null,
+        spread: 6,
+        spreadDirection: SpreadDirections.ToHome
       });
 
     // in game - picked away, losing
     this.Picks.push(
       {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 2,
-        AwayTeamName: "In Game Away Team",
-        AwayTeamRank: 0,
-        AwayTeamScore: 15,
-        AwayTeamWins: 3,
-        GameStatus: "5:18 in 3rd Quarter",
-        GameStatusCode: GameStatus.InGame,
-        HomeTeamIconImage: "clemson.24.png",
-        HomeTeamLosses: 1,
-        HomeTeamName: "In Game Home Team",
-        HomeTeamRank: 15,
-        HomeTeamScore: 28,
-        HomeTeamWins: 4,
-        Id: 11,
-        PickCode: PickCodes.Away,
-        PickState: PickStatus.Losing,
-        PickToSpreadNeatral: -20.5,
-        Spread: 7.5,
-        SpreadDirection: SpreadDirections.ToHome
+        awayTeamIconFileName: "clemson.24.png",
+        awayTeamLosses: 2,
+        awayTeamLongName: "In Game Away Team",
+        awayTeamRank: 0,
+        awayTeamScore: 15,
+        awayTeamWins: 3,
+        gameStatusDescription: "5:18 in 3rd Quarter",
+        gameState: gameStatusDescription.InGame,
+        homeTeamIconFileName: "clemson.24.png",
+        homeTeamLosses: 1,
+        homeTeamLongName: "In Game Home Team",
+        homeTeamRank: 15,
+        homeTeamScore: 28,
+        homeTeamWins: 4,
+        gameId: 11,
+        pick: PickCodes.Away,
+        pickState: PickStatus.Losing,
+        pickToSpreadNeutral: -20.5,
+        spread: 7.5,
+        spreadDirection: SpreadDirections.ToHome
       });
 
     // in game: push, winning, losing X away and home  
@@ -253,76 +270,76 @@ export class PlayerComponent implements OnInit {
 
     this.Picks.push(
       {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 2,
-        AwayTeamName: "Away Team",
-        AwayTeamRank: 0,
-        AwayTeamScore: 3,
-        AwayTeamWins: 3,
-        GameStatus: "Final",
-        GameStatusCode: GameStatus.Final,
-        HomeTeamIconImage: "clemson.24.png",
-        HomeTeamLosses: 1,
-        HomeTeamName: "Home Team",
-        HomeTeamRank: 15,
-        HomeTeamScore: 18,
-        HomeTeamWins: 4,
-        Id: 5,
-        PickCode: PickCodes.Away,
-        PickState: PickStatus.Lost,
-        PickToSpreadNeatral: -7,
-        Spread: 8,
-        SpreadDirection: SpreadDirections.ToAway
+        awayTeamIconFileName: "clemson.24.png",
+        awayTeamLosses: 2,
+        awayTeamLongName: "Away Team",
+        awayTeamRank: 0,
+        awayTeamScore: 3,
+        awayTeamWins: 3,
+        gameStatusDescription: "Final",
+        gameState: gameStatusDescription.Final,
+        homeTeamIconFileName: "clemson.24.png",
+        homeTeamLosses: 1,
+        homeTeamLongName: "Home Team",
+        homeTeamRank: 15,
+        homeTeamScore: 18,
+        homeTeamWins: 4,
+        gameId: 5,
+        pick: PickCodes.Away,
+        pickState: PickStatus.Lost,
+        pickToSpreadNeutral: -7,
+        spread: 8,
+        spreadDirection: SpreadDirections.ToAway
       });
 
     this.Picks.push(
       {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 0,
-        AwayTeamName: "Other Away Team",
-        AwayTeamRank: 4,
-        AwayTeamScore: 35,
-        AwayTeamWins: 4,
-        GameStatus: "Final",
-        GameStatusCode: GameStatus.Final,
-        HomeTeamIconImage: "clemson.24.png",
-        HomeTeamLosses: 1,
-        HomeTeamName: "Other Home Team",
-        HomeTeamRank: 22,
-        HomeTeamScore: 28,
-        HomeTeamWins: 4,
-        Id: 6,
-        PickCode: PickCodes.Away,
-        PickState: PickStatus.Won,
-        PickToSpreadNeatral: 3,
-        Spread: 4,
-        SpreadDirection: SpreadDirections.ToHome
+        awayTeamIconFileName: "clemson.24.png",
+        awayTeamLosses: 0,
+        awayTeamLongName: "Other Away Team",
+        awayTeamRank: 4,
+        awayTeamScore: 35,
+        awayTeamWins: 4,
+        gameStatusDescription: "Final",
+        gameState: gameStatusDescription.Final,
+        homeTeamIconFileName: "clemson.24.png",
+        homeTeamLosses: 1,
+        homeTeamLongName: "Other Home Team",
+        homeTeamRank: 22,
+        homeTeamScore: 28,
+        homeTeamWins: 4,
+        gameId: 6,
+        pick: PickCodes.Away,
+        pickState: PickStatus.Won,
+        pickToSpreadNeutral: 3,
+        spread: 4,
+        spreadDirection: SpreadDirections.ToHome
       });
 
     this.Picks.push(
       {
-        AwayTeamIconImage: "clemson.24.png",
-        AwayTeamLosses: 0,
-        AwayTeamName: "Whatever",
-        AwayTeamRank: 4,
-        AwayTeamScore: 22,
-        AwayTeamWins: 4,
-        GameStatus: "Final",
-        GameStatusCode: GameStatus.Final,
-        HomeTeamIconImage: "clemson.24.png",
-        HomeTeamLosses: 1,
-        HomeTeamName: "Yeah Yeah Yeah",
-        HomeTeamRank: 22,
-        HomeTeamScore: 28,
-        HomeTeamWins: 4,
-        Id: 7,
-        PickCode: PickCodes.Home,
-        PickState: PickStatus.Won,
-        PickToSpreadNeatral: 1.5,
-        Spread: 4.5,
-        SpreadDirection: SpreadDirections.ToAway
+        awayTeamIconFileName: "clemson.24.png",
+        awayTeamLosses: 0,
+        awayTeamLongName: "Whatever",
+        awayTeamRank: 4,
+        awayTeamScore: 22,
+        awayTeamWins: 4,
+        gameStatusDescription: "Final",
+        gameState: gameStatusDescription.Final,
+        homeTeamIconFileName: "clemson.24.png",
+        homeTeamLosses: 1,
+        homeTeamLongName: "Yeah Yeah Yeah",
+        homeTeamRank: 22,
+        homeTeamScore: 28,
+        homeTeamWins: 4,
+        gameId: 7,
+        pick: PickCodes.Home,
+        pickState: PickStatus.Won,
+        pickToSpreadNeutral: 1.5,
+        spread: 4.5,
+        spreadDirection: SpreadDirections.ToAway
       });
-
+      */
   }
 
 }

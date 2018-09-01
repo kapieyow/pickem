@@ -86,69 +86,69 @@
       <!-- picks -->
       <div *ngFor="let pick of Picks" class="my-3 border border-light container">
         <div class="row">
-          <div class="col-md-12 text-white bg-secondary py-1">{{ pick.GameStatus }}</div>
+          <div class="col-md-12 text-white bg-secondary py-1">{{ pick.gameStatusDescription }}</div>
         </div>
         <div class="row p-1">
           <div class="col-md-5 p-2" [ngClass]="
               {
-                'border': pick.PickCode == 'AWAY', 
-                'border-danger': pick.PickCode == 'AWAY' && (pick.PickState == 'LOSING' || pick.PickState == 'LOST'),
-                'border-success': pick.PickCode == 'AWAY' && (pick.PickState == 'WINNING' || pick.PickState == 'WON'), 
-                'bg-danger': pick.PickCode == 'AWAY' && pick.PickState == 'LOST',
-                'bg-success': pick.PickCode == 'AWAY' && pick.PickState == 'WON'
+                'border': pick.pick == 'Away', 
+                'border-danger': pick.pick == 'Away' && (pick.pickState == 'Losing' || pick.pickState == 'Lost'),
+                'border-success': pick.pick == 'Away' && (pick.pickState == 'Winning' || pick.pickState == 'Won'), 
+                'bg-danger': pick.pick == 'Away' && pick.pickState == 'Lost',
+                'bg-success': pick.pick == 'Away' && pick.pickState == 'Won'
               }">
             <div class="row">
               <div class="col-md-10 text-nowrap">
-                <input type="radio" name="{{ pick.Id }}" value="AWAY" [disabled]="pick.GameStatusCode != 'SPREAD_SET'" [checked]="pick.PickCode == 'AWAY'">
-                <img src="assets/team_icons/{{ pick.AwayTeamIconImage }}" width="24" class="mx-1" />
-                <span *ngIf="pick.AwayTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.AwayTeamRank }}</span>
-                {{ pick.AwayTeamName }}
-                <span class="font-weight-light text-light px-1">({{ pick.AwayTeamWins }}-{{ pick.AwayTeamLosses }})</span>
+                <input type="radio" name="{{ pick.gameId }}" value="Away" [disabled]="pick.gameState != 'SpreadLocked'" [checked]="pick.pick == 'Away'">
+                <img src="assets/team_icons/{{ pick.awayTeamIconFileName }}" width="24" class="mx-1" />
+                <span *ngIf="pick.awayTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.awayTeamRank }}</span>
+                {{ pick.awayTeamLongName }}
+                <span class="font-weight-light text-light px-1">({{ pick.awayTeamWins }}-{{ pick.awayTeamLosses }})</span>
               </div>
               <div class="col-md-2 text-nowrap font-weight-bold text-right">
-                <h4>{{ pick.AwayTeamScore }}</h4>
+                <h4>{{ pick.awayTeamScore }}</h4>
               </div>
             </div>
             <div class="row">
-              <div *ngIf="pick.PickCode == '##NOPEY##AWAY' && (pick.GameStatusCode == 'IN_GAME' || pick.GameStatusCode == 'FINAL')" class="col-md-10 text-nowrap">
-                from spread {{ pick.PickToSpreadNeatral }}
+              <div *ngIf="pick.pick == '##NOPEY##Away' && (pick.gameState == 'InGame' || pick.gameState == 'Final')" class="col-md-10 text-nowrap">
+                from spread {{ pick.pickToSpreadNeutral }}
               </div>
             </div>
           </div>
-          <div class="col-md-2 text-center">Spread
-            <div [ngClass]="{'text-warning': pick.GameStatusCode == 'SPREAD_NOT_SET'}">
-              <span *ngIf="pick.Spread == null">?</span>
-              <span *ngIf="pick.Spread != null">
-                <span *ngIf="pick.SpreadDirection == 'TO_AWAY'" class="font-weight-bold lead">&#8701;</span>
-                {{ pick.Spread }}
-                <span *ngIf="pick.GameStatusCode == 'SPREAD_NOT_SET'">*</span>
-                <span class="font-weight-bold lead" *ngIf="pick.SpreadDirection == 'TO_HOME'">&#8702;</span>
+          <div class="col-md-2 text-center">spread
+            <div [ngClass]="{'text-warning': pick.gameState == 'SpreadNotSet'}">
+              <span *ngIf="pick.spread == null">?</span>
+              <span *ngIf="pick.spread != null">
+                <span *ngIf="pick.spreadDirection == 'ToAway'" class="font-weight-bold lead">&#8701;</span>
+                {{ pick.spread }}
+                <span *ngIf="pick.gameState == 'SpreadNotSet'">*</span>
+                <span class="font-weight-bold lead" *ngIf="pick.spreadDirection == 'ToHome'">&#8702;</span>
               </span>
             </div>
           </div>
           <div class="col-md-5 p-2" [ngClass]="
               {
-                'border': pick.PickCode == 'HOME', 
-                'border-danger': pick.PickCode == 'HOME' && (pick.PickState == 'LOSING' || pick.PickState == 'LOST'),
-                'border-success': pick.PickCode == 'HOME' && (pick.PickState == 'WINNING' || pick.PickState == 'WON'), 
-                'bg-danger': pick.PickCode == 'HOME' && pick.PickState == 'LOST',
-                'bg-success': pick.PickCode == 'HOME' && pick.PickState == 'WON'
+                'border': pick.pick == 'Home', 
+                'border-danger': pick.pick == 'Home' && (pick.pickState == 'Losing' || pick.pickState == 'Lost'),
+                'border-success': pick.pick == 'Home' && (pick.pickState == 'Winning' || pick.pickState == 'Won'), 
+                'bg-danger': pick.pick == 'Home' && pick.pickState == 'Lost',
+                'bg-success': pick.pick == 'Home' && pick.pickState == 'Won'
               }">
             <div class="row">
               <div class="col-md-10 text-nowrap">
-                <input type="radio" name="{{ pick.Id }}" value="HOME" [disabled]="pick.GameStatusCode != 'SPREAD_SET'" [checked]="pick.PickCode == 'HOME'">
-                <img src="assets/team_icons/{{ pick.HomeTeamIconImage }}" width="24" class="mx-1" />
-                <span *ngIf="pick.HomeTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.HomeTeamRank }}</span>
-                {{ pick.HomeTeamName }}
-                <span class="font-weight-light text-light px-1">({{ pick.HomeTeamWins }}-{{ pick.HomeTeamLosses }})</span>
+                <input type="radio" name="{{ pick.gameId }}" value="Home" [disabled]="pick.gameState != 'SpreadLocked'" [checked]="pick.pick == 'Home'">
+                <img src="assets/team_icons/{{ pick.homeTeamIconFileName }}" width="24" class="mx-1" />
+                <span *ngIf="pick.homeTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.homeTeamRank }}</span>
+                {{ pick.homeTeamLongName }}
+                <span class="font-weight-light text-light px-1">({{ pick.homeTeamWins }}-{{ pick.homeTeamLosses }})</span>
               </div>
               <div class="col-md-2 text-nowrap font-weight-bold text-right">
-                <h4>{{ pick.HomeTeamScore }}</h4>
+                <h4>{{ pick.homeTeamScore }}</h4>
               </div>
             </div>
             <div class="row">
-              <div *ngIf="pick.PickCode == '##NOPEY##HOME' && (pick.GameStatusCode == 'IN_GAME' || pick.GameStatusCode == 'FINAL')" class="col-md-10 text-nowrap">
-                from spread {{ pick.PickToSpreadNeatral }}
+              <div *ngIf="pick.pick == '##NOPEY##Home' && (pick.gameState == 'InGame' || pick.gameState == 'Final')" class="col-md-10 text-nowrap">
+                from spread {{ pick.pickToSpreadNeutral }}
               </div>
             </div>
           </div>

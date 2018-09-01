@@ -26,7 +26,8 @@ export class LoginComponent implements OnInit {
         result => {
           // result will be true if succesful. If false is 401, bad pwd. All other issues are thrown.
           this.inputsInvalid = false;
-          this.router.navigate(['/player'], { skipLocationChange: true });
+          // chain to user setup. is async will flips screens on success.
+          this.setupUser(username);
         },
         errors => {
           this.inputsInvalid = true;
@@ -34,5 +35,20 @@ export class LoginComponent implements OnInit {
         }
       );
 
+  }
+
+  setupUser(username: string)
+  {
+    this.userService.setupUser(username)
+      .subscribe(
+        result => {
+          // user fully setup go to player view
+          this.router.navigate(['/player'], { skipLocationChange: true });
+        },
+        errors => {
+          this.inputsInvalid = true;
+          this.loginErrors = errors;
+        }
+      );
   }
 }
