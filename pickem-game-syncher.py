@@ -175,9 +175,9 @@ def udpateNcaaGame(pickemGameJson, ncaaSeason, pickemSeason, weekNumber):
         lastUpdated = responseJson['updatedTimestamp']
         currentPeriod = responseJson['currentPeriod']
         ncaaTimeClock = responseJson['timeclock']
-        # TODO parse this correctly
-        timeClock = "00:00:00"
+        timeClock = parseTimeClock(ncaaTimeClock)
         ncaaAwayTeamScore = responseJson['away']['currentScore']
+
         if ( ncaaAwayTeamScore == "" ):
             awayTeamScore = 0
         else:
@@ -232,6 +232,21 @@ def extractGameStart(ncaaJson):
         gameStart = gameStart + hourMins[0] + ":" + hourMins[1] + ":00"
 
     return gameStart
+
+
+def parseTimeClock(ncaaTimeClock):
+    if ( len(ncaaTimeClock) == 0 ):
+        return "00:00:00"
+    else:
+        ncaaTimeClockParts = ncaaTimeClock.split(":")
+        if ( len(ncaaTimeClockParts) == 2 ):
+            if ( len(ncaaTimeClockParts[0]) == 0 ):
+                return "00:00:" + ncaaTimeClockParts[1]
+            else:
+                return "00:" + ncaaTimeClock
+        else:
+            return "00:00:00"
+
 
 # +++++++
 #  Main

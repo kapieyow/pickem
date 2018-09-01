@@ -14,6 +14,22 @@
             ]
         },
         {
+            "name": "updater 18/1 - py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem-game-syncher.py",
+            "args": [
+                "-ns",
+                "2018",
+                "-ps",
+                "18",
+                "-w",
+                "1",
+                "-a",
+                "update"
+            ]
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
