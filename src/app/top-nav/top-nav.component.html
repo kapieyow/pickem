@@ -12,7 +12,7 @@
 
                   <div class="collapse navbar-collapse" [collapse]=isCollapsed>
                       <form class="form-inline my-2 my-lg-0 ml-auto" *ngIf="statusService.userLoggedIn">
-                        <a class="navbar-brand">{{ statusService.userName }}</a>
+                        <a class="navbar-brand">{{ statusService.userName }} - {{ statusService.seasonCode }} - {{ statusService.leagueCode }} - {{ statusService.userPlayerTag }}</a>
                         <button type="button" class="btn btn-outline-info" (click)="logout()">Logout</button>
                       </form>
                   </div>
