@@ -112,7 +112,10 @@ namespace PickEmServer.Heart
 
                 case GameStates.InGame:
                     if (gameData.CurrentPeriod.Length > 0 && Regex.IsMatch(gameData.CurrentPeriod, "^[0-9]"))
-                        return $"{gameData.TimeClock} - {gameData.CurrentPeriod}";
+                    {
+                        var timeClockFormatted = gameData.TimeClock.ToString(@"mm\:ss");
+                        return $"{timeClockFormatted} - {gameData.CurrentPeriod}";
+                    }
                     else
                         return gameData.CurrentPeriod;
 
