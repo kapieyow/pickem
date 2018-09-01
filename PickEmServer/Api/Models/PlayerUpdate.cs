@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 
 namespace PickEmServer.Api.Models
 {
-    public class Player
+    public class PlayerUpdate
     {
-        public string PlayerTag { get; internal set; }
-        public string UserName { get; internal set; }
+        public string PlayerTag { get; set; }
     }
 }

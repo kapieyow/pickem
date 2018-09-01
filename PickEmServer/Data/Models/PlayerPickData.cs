@@ -6,6 +6,6 @@ namespace PickEmServer.Data.Models
     {
         public string PlayerTagRef { get; set; }
         public PickTypes Pick { get; set; }
-        public PickStatuses PickStatus { get; set; }
+        public PickStates PickStatus { get; set; }
     }
 }

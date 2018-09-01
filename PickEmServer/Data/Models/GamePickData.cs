@@ -10,6 +10,6 @@ namespace PickEmServer.Data.Models
     {
         public int GameIdRef { get; set; }
         public PickTypes Pick { get; set; }
-        public PickStatuses PickStatus { get; set; }
+        public PickStates PickStatus { get; set; }
     }
 }
