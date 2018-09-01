@@ -161,6 +161,9 @@ def udpateNcaaGame(pickemGameJson, ncaaSeason, pickemSeason, weekNumber):
         elif ( ncaaGameState == "pre" ):
             # game has not started don't mess with spread set or not status
             gameState = pickemGameJson['gameState']
+        elif ( ncaaGameState == "live" ):
+            # game has not started don't mess with spread set or not status
+            gameState = "InGame"
         else:
             # In game?
             log(PICKEM_LOG_LEVEL_WARN, "Unhandled NCAA game state (" + ncaaGameState + ") defaulting to InGame. " + url)
