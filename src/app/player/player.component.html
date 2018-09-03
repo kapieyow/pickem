@@ -26,7 +26,7 @@
         <div class="row p-1">
           <div class="col-md-5 p-2" [ngClass]="
               {
-                'border': pick.pick == 'Away', 
+                'border rounded': pick.pick == 'Away', 
                 'border-danger': pick.pick == 'Away' && (pick.pickState == 'Losing' || pick.pickState == 'Lost'),
                 'border-success': pick.pick == 'Away' && (pick.pickState == 'Winning' || pick.pickState == 'Won'), 
                 'bg-danger': pick.pick == 'Away' && pick.pickState == 'Lost',
@@ -63,7 +63,7 @@
           </div>
           <div class="col-md-5 p-2" [ngClass]="
               {
-                'border': pick.pick == 'Home', 
+                'border rounded': pick.pick == 'Home', 
                 'border-danger': pick.pick == 'Home' && (pick.pickState == 'Losing' || pick.pickState == 'Lost'),
                 'border-success': pick.pick == 'Home' && (pick.pickState == 'Winning' || pick.pickState == 'Won'), 
                 'bg-danger': pick.pick == 'Home' && pick.pickState == 'Lost',
