@@ -1,23 +1,83 @@
 <!-- top nav -->
 <div class="bs-docs-section clearfix">
-  <div class="row">
-      <div class="col-sm-12">
+    <div class="row">
+        <div class="col-sm-12">
 
-          <div class="bs-component">
-              <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
-                  <a class="navbar-brand" href="javascript:return null;" (click)="statusDialog.show();">NCAAM - Pickem'</a>
-                  <button class="navbar-toggler" type="button" (click)="isCollapsed = !isCollapsed" aria-expanded="false" aria-label="Toggle navigation">
-                      <span class="navbar-toggler-icon"></span>
-                  </button>
+            <div class="bs-component">
+                <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
+                    <a class="navbar-brand" href="javascript:return null;" (click)="statusDialog.show();">NCAAM - Pickem'</a>
+                    <button class="navbar-toggler" type="button" (click)="isCollapsed = !isCollapsed" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
 
-                  <div class="collapse navbar-collapse" [collapse]=isCollapsed>
-                      <form class="form-inline my-2 my-lg-0 ml-auto" *ngIf="statusService.userLoggedIn">
-                        <a class="navbar-brand">{{ statusService.userName }} - {{ statusService.seasonCode }} - {{ statusService.leagueCode }} - {{ statusService.userPlayerTag }}</a>
-                        <button type="button" class="btn btn-outline-info" (click)="logout()">Logout</button>
-                      </form>
-                  </div>
-              </nav>
-          </div>
-      </div>
-  </div>
+                    <div class="collapse navbar-collapse" [collapse]=isCollapsed>
+                        <form class="form-inline my-2 my-lg-0 ml-auto" *ngIf="statusService.userLoggedIn">
+
+                            <div class="btn-group mx-2" dropdown>
+                                <button id="button-player" dropdownToggle type="button" class="btn btn-warning dropdown-toggle" aria-controls="dropdown-player">
+                                    Kapieyow
+                                    <span class="caret"></span>
+                                </button>
+                                <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-warning text-light" role="menu" aria-labelledby="button-player">
+                                    <li role="menuitem">
+                                        <a class="dropdown-item text-light">Fred</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item text-light">Wilma</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item text-light">Barney</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="btn-group" dropdown>
+                                <button id="button-week" dropdownToggle type="button" class="btn btn-warning dropdown-toggle" aria-controls="dropdown-week">
+                                    Week 1
+                                    <span class="caret"></span>
+                                </button>
+                                <ul id="dropdown-week" *dropdownMenu class="dropdown-menu bg-warning text-light" role="menu" aria-labelledby="button-week">
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 2</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 3</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 4</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 5</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 6</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 7</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 8</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 9</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 10</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 11</a>
+                                    </li>
+                                    <li role="menuitem">
+                                        <a class="dropdown-item">Week 12</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="ml-3">
+                                <a class="navbar-brand" (click)="logout()">{{ statusService.userPlayerTag }}</a>
+                            </div>
+                        </form>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
 </div>

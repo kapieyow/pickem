@@ -1,75 +1,9 @@
 <div class="my-3">
-  <button type="button" class="btn btn-outline-info" (click)="getPlayerPicks()">Reload</button>
+  
   <tabset>
 
     <!-- player tab -->
     <tab heading="Player" id="tab1">
-
-      <!-- row for filter drops -->
-      <div class="row mx-0 my-2">
-        <div class="col-sm-12 px-0">
-          <div class="float-right">
-            <div class="btn-group mx-2" dropdown>
-              <button id="button-player" dropdownToggle type="button" class="btn btn-info dropdown-toggle" aria-controls="dropdown-player">
-                Kapieyow
-                <span class="caret"></span>
-              </button>
-              <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-info text-light" role="menu" aria-labelledby="button-player">
-                <li role="menuitem">
-                  <a class="dropdown-item">Fred</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Wilma</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Barney</a>
-                </li>
-              </ul>
-            </div>
-            <div class="btn-group" dropdown>
-              <button id="button-week" dropdownToggle type="button" class="btn btn-info dropdown-toggle" aria-controls="dropdown-week">
-                Week 1
-                <span class="caret"></span>
-              </button>
-              <ul id="dropdown-week" *dropdownMenu class="dropdown-menu bg-info text-light" role="menu" aria-labelledby="button-week">
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 2</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 3</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 4</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 5</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 6</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 7</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 8</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 9</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 10</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 11</a>
-                </li>
-                <li role="menuitem">
-                  <a class="dropdown-item">Week 12</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- row for "no games yet" message -->
       <div *ngIf="Picks.length == 0" class="row mx-0 my-1">
@@ -160,47 +94,7 @@
 
     <!-- week tab -->
     <tab heading="Week">
-      <div class="btn-group my-2 float-right" dropdown>
-        <button id="button-week" dropdownToggle type="button" class="btn btn-info dropdown-toggle" aria-controls="dropdown-week">
-          Week 1
-          <span class="caret"></span>
-        </button>
-        <ul id="dropdown-week" *dropdownMenu class="dropdown-menu bg-info text-light" role="menu" aria-labelledby="button-week">
-          <li role="menuitem">
-            <a class="dropdown-item">Week 2</a>
-          </li>
-          <li role="menuitem">
-            <a class="dropdown-item">Week 3</a>
-          </li>
-          <li role="menuitem">
-            <a class="dropdown-item">Week 4</a>
-          </li>
-          <li role="menuitem">
-            <a class="dropdown-item">Week 5</a>
-          </li>
-          <li role="menuitem">
-            <a class="dropdown-item">Week 6</a>
-          </li>
-          <li role="menuitem">
-            <a class="dropdown-item">Week 7</a>
-          </li>
-          <li role="menuitem">
-            <a class="dropdown-item">Week 8</a>
-          </li>
-          <li role="menuitem">
-            <a class="dropdown-item">Week 9</a>
-          </li>
-          <li role="menuitem">
-            <a class="dropdown-item">Week 10</a>
-          </li>
-          <li role="menuitem">
-            <a class="dropdown-item">Week 11</a>
-          </li>
-          <li role="menuitem">
-            <a class="dropdown-item">Week 12</a>
-          </li>
-        </ul>
-      </div>
+      
 
       <table class="table table-hover">
         <thead>
@@ -381,4 +275,5 @@
       </table>
     </tab>
   </tabset>
+  <button type="button" class="btn btn-outline-info" (click)="getPlayerPicks()">Reload</button>
 </div>
