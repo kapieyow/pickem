@@ -14,28 +14,28 @@
                         <form class="form-inline my-2 my-lg-0 ml-auto" *ngIf="statusService.userLoggedIn">
 
                             <div class="btn-group mx-2" dropdown>
-                                <button id="button-player" dropdownToggle type="button" class="btn btn-warning dropdown-toggle" aria-controls="dropdown-player">
+                                <button id="button-player" dropdownToggle type="button" class="btn btn-outline-warning dropdown-toggle" aria-controls="dropdown-player">
                                     Kapieyow
                                     <span class="caret"></span>
                                 </button>
-                                <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-warning text-light" role="menu" aria-labelledby="button-player">
+                                <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-warning" role="menu" aria-labelledby="button-player">
                                     <li role="menuitem">
-                                        <a class="dropdown-item text-light">Fred</a>
+                                        <a class="dropdown-item">Fred</a>
                                     </li>
                                     <li role="menuitem">
-                                        <a class="dropdown-item text-light">Wilma</a>
+                                        <a class="dropdown-item">Wilma</a>
                                     </li>
                                     <li role="menuitem">
-                                        <a class="dropdown-item text-light">Barney</a>
+                                        <a class="dropdown-item">Barney</a>
                                     </li>
                                 </ul>
                             </div>
                             <div class="btn-group" dropdown>
-                                <button id="button-week" dropdownToggle type="button" class="btn btn-warning dropdown-toggle" aria-controls="dropdown-week">
+                                <button id="button-week" dropdownToggle type="button" class="btn btn-outline-warning dropdown-toggle" aria-controls="dropdown-week">
                                     Week 1
                                     <span class="caret"></span>
                                 </button>
-                                <ul id="dropdown-week" *dropdownMenu class="dropdown-menu bg-warning text-light" role="menu" aria-labelledby="button-week">
+                                <ul id="dropdown-week" *dropdownMenu class="dropdown-menu bg-warning" role="menu" aria-labelledby="button-week">
                                     <li role="menuitem">
                                         <a class="dropdown-item">Week 2</a>
                                     </li>
@@ -73,6 +73,9 @@
                             </div>
                             <div class="ml-3">
                                 <a class="navbar-brand" (click)="logout()">{{ statusService.userPlayerTag }}</a>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-outline-warning" (click)="getPlayerPicks()">Reload</button>
                             </div>
                         </form>
                     </div>

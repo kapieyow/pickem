@@ -20,4 +20,9 @@ export class TopNavComponent implements OnInit {
     this.userService.logout();
     this.router.navigate(['/'], { skipLocationChange: true });
   }
+
+  loadDropDowns()
+  {
+    
+  }
 }
