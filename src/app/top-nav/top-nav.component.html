@@ -15,59 +15,23 @@
 
                             <div class="btn-group mx-2" dropdown>
                                 <button id="button-player" dropdownToggle type="button" class="btn btn-outline-warning dropdown-toggle" aria-controls="dropdown-player">
-                                    Kapieyow
+                                    {{ statusService.playerTagFilter }}
                                     <span class="caret"></span>
                                 </button>
                                 <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-warning" role="menu" aria-labelledby="button-player">
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Fred</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Wilma</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Barney</a>
+                                    <li *ngFor="let player of players" role="menuitem" (click)="changePlayer(player.playerTag);">
+                                        <a class="dropdown-item">{{ player.playerTag }}</a>
                                     </li>
                                 </ul>
                             </div>
                             <div class="btn-group" dropdown>
                                 <button id="button-week" dropdownToggle type="button" class="btn btn-outline-warning dropdown-toggle" aria-controls="dropdown-week">
-                                    Week 1
+                                    Week {{ statusService.weekNumberFilter }}
                                     <span class="caret"></span>
                                 </button>
                                 <ul id="dropdown-week" *dropdownMenu class="dropdown-menu bg-warning" role="menu" aria-labelledby="button-week">
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 2</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 3</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 4</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 5</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 6</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 7</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 8</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 9</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 10</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 11</a>
-                                    </li>
-                                    <li role="menuitem">
-                                        <a class="dropdown-item">Week 12</a>
+                                    <li *ngFor="let week of weeks" role="menuitem" (click)="changeWeek(week);">
+                                        <a class="dropdown-item">Week {{ week }}</a>
                                     </li>
                                 </ul>
                             </div>
@@ -75,7 +39,7 @@
                                 <a class="navbar-brand" (click)="logout()">{{ statusService.userPlayerTag }}</a>
                             </div>
                             <div>
-                                <button type="button" class="btn btn-outline-warning" (click)="getPlayerPicks()">Reload</button>
+                                <button type="button" class="btn btn-outline-warning" (click)="reloadScoreboards()">Reload</button>
                             </div>
                         </form>
                     </div>

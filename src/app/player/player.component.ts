@@ -14,11 +14,7 @@ import { StatusService } from '../sub-system/services/status.service';
 })
 export class PlayerComponent implements OnInit {
 
-  //Picks: Pick[] = [];
-  Picks: PlayerScoreboardPick[] = [];
-
-
-  constructor(private leagueService: LeagueService, private logger: LoggerService, private statusService: StatusService) { }
+  constructor(public leagueService: LeagueService, private logger: LoggerService, private statusService: StatusService) { }
 
   ngOnInit() {
     this.getPlayerPicks();
@@ -26,13 +22,11 @@ export class PlayerComponent implements OnInit {
 
   getPlayerPicks()
   {
-    this.leagueService.readPlayerScoreboard(this.statusService.seasonCode, this.statusService.leagueCode, this.statusService.weekNumberFilter, this.statusService.playerTagFilter)
-      .subscribe(
-        response => { 
-          this.Picks = response 
-        },
-        errors => { return throwError(this.logger.logAndParseHttpError(errors)); }
-      );
+    this.leagueService.loadPlayerScoreboard(
+      this.statusService.seasonCode, 
+      this.statusService.leagueCode, 
+      this.statusService.weekNumberFilter, 
+      this.statusService.playerTagFilter);
   }
 
 }
