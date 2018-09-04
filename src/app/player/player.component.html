@@ -1,5 +1,5 @@
 <div class="my-3">
-  
+
   <tabset>
 
     <!-- player tab -->
@@ -26,15 +26,18 @@
         <div class="row p-1">
           <div class="col-md-5 p-2" [ngClass]="
               {
-                'border rounded': pick.pick == 'Away', 
-                'border-danger': pick.pick == 'Away' && (pick.pickState == 'Losing' || pick.pickState == 'Lost'),
-                'border-success': pick.pick == 'Away' && (pick.pickState == 'Winning' || pick.pickState == 'Won'), 
-                'bg-danger': pick.pick == 'Away' && pick.pickState == 'Lost',
-                'bg-success': pick.pick == 'Away' && pick.pickState == 'Won'
-              }">
+                'pickem-card-locked': pick.pick != 'Away' && (!gamePickableByCurrentPlayer(pick) || pick.pickState != 'None'),
+                'pickem-card-none': pick.pick != 'Away' && gamePickableByCurrentPlayer(pick),
+                'pickem-card-picked': pick.pick == 'Away' && pick.pickState == 'None', 
+                'pickem-card-losing': pick.pick == 'Away' && pick.pickState == 'Losing', 
+                'pickem-card-lost': pick.pick == 'Away' && pick.pickState == 'Lost', 
+                'pickem-card-pushing': pick.pick == 'Away' && pick.pickState == 'Pushing', 
+                'pickem-card-pushed': pick.pick == 'Away' && pick.pickState == 'Pushed', 
+                'pickem-card-winning': pick.pick == 'Away' && pick.pickState == 'Winning', 
+                'pickem-card-won': pick.pick == 'Away' && pick.pickState == 'Won'
+              }" (click)="setPick(pick, 'Away');">
             <div class="row">
               <div class="col-md-10 text-nowrap">
-                <input type="radio" name="{{ pick.gameId }}" value="Away" [disabled]="pick.gameState != 'SpreadLocked'" [checked]="pick.pick == 'Away'">
                 <img src="assets/team_icons/{{ pick.awayTeamIconFileName }}" width="24" class="mx-1" />
                 <span *ngIf="pick.awayTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.awayTeamRank }}</span>
                 {{ pick.awayTeamLongName }}
@@ -44,9 +47,12 @@
                 <h4>{{ pick.awayTeamScore }}</h4>
               </div>
             </div>
-            <div class="row">
-              <div *ngIf="pick.pick == '##NOPEY##Away' && (pick.gameState == 'InGame' || pick.gameState == 'Final')" class="col-md-10 text-nowrap">
-                from spread {{ pick.pickToSpreadNeutral }}
+            <div *ngIf="pick.spreadDirection == 'ToAway' && (pick.gameState == 'InGame' || pick.gameState == 'Final')" class="row">
+              <div class="col-md-10 text-nowrap">
+                &nbsp;
+              </div>
+              <div class="col-md-2 text-nowrap text-right text-light">
+                <div class="b-0 m-0" tooltip="Score after spread" placement="right">{{ pick.awayTeamScore + pick.spread }}</div>
               </div>
             </div>
           </div>
@@ -63,15 +69,18 @@
           </div>
           <div class="col-md-5 p-2" [ngClass]="
               {
-                'border rounded': pick.pick == 'Home', 
-                'border-danger': pick.pick == 'Home' && (pick.pickState == 'Losing' || pick.pickState == 'Lost'),
-                'border-success': pick.pick == 'Home' && (pick.pickState == 'Winning' || pick.pickState == 'Won'), 
-                'bg-danger': pick.pick == 'Home' && pick.pickState == 'Lost',
-                'bg-success': pick.pick == 'Home' && pick.pickState == 'Won'
-              }">
+                'pickem-card-locked': pick.pick != 'Home' && (!gamePickableByCurrentPlayer(pick) || pick.pickState != 'None'),
+                'pickem-card-none': pick.pick != 'Home' && gamePickableByCurrentPlayer(pick),
+                'pickem-card-picked': pick.pick == 'Home' && pick.pickState == 'None', 
+                'pickem-card-losing': pick.pick == 'Home' && pick.pickState == 'Losing', 
+                'pickem-card-lost': pick.pick == 'Home' && pick.pickState == 'Lost', 
+                'pickem-card-pushing': pick.pick == 'Home' && pick.pickState == 'Pushing', 
+                'pickem-card-pushed': pick.pick == 'Home' && pick.pickState == 'Pushed', 
+                'pickem-card-winning': pick.pick == 'Home' && pick.pickState == 'Winning', 
+                'pickem-card-won': pick.pick == 'Home' && pick.pickState == 'Won'
+              }" (click)="setPick(pick, 'Home');">
             <div class="row">
               <div class="col-md-10 text-nowrap">
-                <input type="radio" name="{{ pick.gameId }}" value="Home" [disabled]="pick.gameState != 'SpreadLocked'" [checked]="pick.pick == 'Home'">
                 <img src="assets/team_icons/{{ pick.homeTeamIconFileName }}" width="24" class="mx-1" />
                 <span *ngIf="pick.homeTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.homeTeamRank }}</span>
                 {{ pick.homeTeamLongName }}
@@ -81,9 +90,12 @@
                 <h4>{{ pick.homeTeamScore }}</h4>
               </div>
             </div>
-            <div class="row">
-              <div *ngIf="pick.pick == '##NOPEY##Home' && (pick.gameState == 'InGame' || pick.gameState == 'Final')" class="col-md-10 text-nowrap">
-                from spread {{ pick.pickToSpreadNeutral }}
+            <div *ngIf="pick.spreadDirection == 'ToHome' && (pick.gameState == 'InGame' || pick.gameState == 'Final')" class="row">
+              <div class="col-md-10 text-nowrap">
+                &nbsp;
+              </div>
+              <div class="col-md-2 text-nowrap text-right text-light">
+                <div class="b-0 m-0" tooltip="Score after spread" placement="right">{{ pick.homeTeamScore + pick.spread }}</div>
               </div>
             </div>
           </div>
@@ -94,7 +106,7 @@
 
     <!-- week tab -->
     <tab heading="Week">
-      
+
 
       <table class="table table-hover">
         <thead>

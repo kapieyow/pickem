@@ -9603,3 +9603,85 @@
  .modal-header .close:hover, .modal-header .close:focus, .modal-footer .close:hover, .modal-footer .close:focus {
    opacity: 1;
  }
+
+ /* pickem specifics */
+  .pickem-card-none
+  {
+    background-color:inherit !important; 
+    border-width:2px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #2B3E50 !important; 
+    border-style: solid  ; 
+  }
+  .pickem-card-none:hover
+  {
+    background-color:inherit !important; 
+    border-width:2px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #f0ad4e !important; 
+    border-style: solid !important; 
+  }
+  .pickem-card-locked 
+  {
+    background-color:inherit !important; 
+    border-width:2px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #2B3E50 !important; 
+    border-style: solid  ; 
+  }
+  .pickem-card-picked 
+  {
+    background-color:inherit !important; 
+    border-width:2px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #fff !important; 
+    border-style: solid  ; 
+  }
+  .pickem-card-losing 
+  {
+    background-color:inherit !important; 
+    border-width:2px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #990500 !important; 
+    border-style: solid !important; 
+  }
+  .pickem-card-lost 
+  {
+    background-color:#990500 !important; 
+    border-width:1px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #8d9dad !important; 
+    border-style: solid !important; 
+  }
+  .pickem-card-pushing 
+  {
+    background-color:inherit !important; 
+    border-width:2px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #868e96 !important; 
+    border-style: solid !important; 
+  }
+  .pickem-card-pushed 
+  {
+    background-color:#868e96 !important; 
+    border-width:1px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #8d9dad !important; 
+    border-style: solid !important; 
+  }
+  .pickem-card-winning 
+  {
+    background-color:inherit !important; 
+    border-width:2px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #006400 !important; 
+    border-style: solid !important; 
+  }
+  .pickem-card-won 
+  {
+    background-color:#006400 !important; 
+    border-width:1px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #8d9dad !important; 
+    border-style: solid !important; 
+  }

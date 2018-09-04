@@ -8,6 +8,9 @@ import { Player } from '../models/api/player';
 import { PlayerScoreboardPick } from '../models/api/player-scoreboard-pick';
 import { LoggerService } from './logger.service';
 import { StatusService } from './status.service';
+import { PickTypes, PickStates, GameStates } from '../models/api/enums';
+import { PlayerPick } from '../models/api/player-pick';
+import { PlayerPickUpdate } from '../models/api/player-pick-update';
 
 //"Content-Type", "application/json-patch+json"
 const httpOptions = {
@@ -38,7 +41,11 @@ export class LeagueService {
     return this.http.get<PlayerScoreboardPick[]>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/" + weekNumber + "/" + playerTag + "/scoreboard", httpOptions)
       .pipe(
         tap(response => this.logger.debug(`read (${response.length}) player scoreboard picks`)),
-        catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
+        catchError(error => 
+          { 
+            this.currentPlayerScoreboardPicks = [];
+            return throwError(this.logger.logAndParseHttpError(error)); 
+          })
       );
   }
 
@@ -70,5 +77,33 @@ export class LeagueService {
         tap(response => this.logger.debug(`read (${response.length}) weeks`)),
         catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
       );
+  }
+
+  public setPlayerPick(seasonCode: string, leagueCode: string, weekNumber: number, playerTag: string, gameId: number, pick: PickTypes)
+  {
+    var playerPickUpdate = new PlayerPickUpdate();
+
+    playerPickUpdate.pick = pick;
+
+    // /api/{SeasonCode}/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard/{GameId}/pick
+    return this.http.put<PlayerPick>(
+        environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/" + weekNumber + "/" + playerTag + "/scoreboard/" + gameId + "/pick", 
+        playerPickUpdate, 
+        httpOptions
+      )
+      .subscribe(
+        response => 
+          {
+            // find same game
+            var playerPick = this.currentPlayerScoreboardPicks.find(psp => psp.gameId == gameId);
+            playerPick.pick = pick;
+          },
+        errors => 
+          { 
+            this.currentPlayerScoreboardPicks = [];
+            return throwError(this.logger.logAndParseHttpError(errors));
+          }  
+      );
+     
   }
 }

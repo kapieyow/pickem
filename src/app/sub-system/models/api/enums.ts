@@ -9,7 +9,8 @@ export enum GameStates {
 export enum PickTypes {
     Away = "Away",
     Home = "Home",
-    None = "None"
+    None = "None",
+    Hidden = "Hidden"
 }
 
 export enum PickStates {

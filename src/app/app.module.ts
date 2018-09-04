@@ -7,6 +7,7 @@ import { ButtonsModule } from 'ngx-bootstrap/buttons';
 import { CollapseModule } from 'ngx-bootstrap/collapse'
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { TabsModule } from 'ngx-bootstrap/tabs';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 import { JwtModule } from '@auth0/angular-jwt';
 import { JwtHelperService } from '@auth0/angular-jwt';
@@ -55,6 +56,7 @@ export function tokenGetter() {
     HttpClientModule,
     ModalModule.forRoot(),
     TabsModule.forRoot(),
+    TooltipModule.forRoot(),
   ],
   providers: [ AuthGuard, JwtHelperService, LeagueService, LoggerService, StatusService, UserService ],
   bootstrap: [ AppComponent ]

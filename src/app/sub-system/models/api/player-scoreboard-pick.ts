@@ -18,8 +18,7 @@ export class PlayerScoreboardPick
     homeTeamWins: number;
     gameId: number;
     pick: PickTypes;
-    pickState: PickStates
-    pickToSpreadNeutral: number;
+    pickState: PickStates;
     spread: number;
     spreadDirection: SpreadDirections;
 }
