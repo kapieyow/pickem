@@ -19,7 +19,8 @@ namespace PickEmServer.App
     {
         Away,
         Home,
-        None
+        None,
+        Hidden // THIS SHOULD NEVER be in the database (only for UI hides)
     }
 
     [JsonConverter(typeof(StringEnumConverter))]

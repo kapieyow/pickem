@@ -25,7 +25,6 @@ namespace PickEmServer.Api.Models
         public int GameId { get; internal set; }
         public PickTypes Pick { get; internal set; }
         public PickStates PickState { get; internal set; }
-        public decimal PickToSpreadNeutral { get; internal set; }
         public decimal Spread { get; internal set; }
         public SpreadDirections SpreadDirection { get; internal set; }
     }

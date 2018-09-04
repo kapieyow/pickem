@@ -33,7 +33,7 @@ namespace PickEmServer.Api.Controllers
 
         // POST api/auth/login
         [HttpPost("login")]
-        public async Task<IActionResult> Post([FromBody] UserCredentials credentials)
+        public async Task<IActionResult> Login([FromBody] UserCredentials credentials)
         {
             if (!ModelState.IsValid)
             { 

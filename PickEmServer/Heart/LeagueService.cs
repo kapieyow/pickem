@@ -421,10 +421,14 @@ namespace PickEmServer.Heart
         }
 
         // TODO: this probably should be spread between league and game services?
-        public async Task<List<PlayerScoreboardPick>> ReadPlayerScoreboard(string seasonCode, string leagueCode, int weekNumber, string playerTag)
+        public async Task<List<PlayerScoreboardPick>> ReadPlayerScoreboard(string seasonCode, string leagueCode, int weekNumber, string playerTag, string authenticatedUserName)
         {
             using (var dbSession = _documentStore.QuerySession())
             {
+                // determine if the authenticated user has this player tag (if not hide picks for games not started)
+                var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, leagueCode, authenticatedUserName);
+                bool readingPlayersOwnScoreboard = (authenticatedPlayer.PlayerTag == playerTag);
+                
                 // get league
                 var leagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
 
@@ -493,17 +497,30 @@ namespace PickEmServer.Heart
                         HomeTeamRank = 0, // TODO set
                         HomeTeamScore = gameData.HomeTeam.Score,
                         HomeTeamWins = 0, // TODO set
-                        Pick = playerPickData.Pick,
+                        Pick = CalculatePickState(playerPickData, gameData, readingPlayersOwnScoreboard),
                         PickState = playerPickData.PickStatus,
-                        PickToSpreadNeutral = (playerPickData.Pick == PickTypes.None) ? 0 : ((playerPickData.Pick == PickTypes.Away) ? gameData.AwayTeam.ScoreAfterSpread - gameData.HomeTeam.ScoreAfterSpread : gameData.HomeTeam.ScoreAfterSpread - gameData.AwayTeam.ScoreAfterSpread),
                         Spread = gameData.Spread.PointSpread,
                         SpreadDirection = gameData.Spread.SpreadDirection
                     };
 
                     playerScoreboard.Add(playerScoreboardPick);
+
                 }
 
                 return playerScoreboard;
+            }
+        }
+
+        private PickTypes CalculatePickState(PlayerPickData playerPickData, GameData gameData, bool readingPlayersOwnScoreboard)
+        {
+            if ( !readingPlayersOwnScoreboard && (gameData.GameState == GameStates.SpreadLocked || gameData.GameState == GameStates.SpreadNotSet) )
+            {
+                // pick for another player (not the one logged in) and the game has not started)
+                return PickTypes.Hidden;
+            }
+            else
+            {
+                return playerPickData.Pick;
             }
         }
 
