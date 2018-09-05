@@ -156,6 +156,8 @@ def udpateNcaaGame(pickemGameJson, ncaaSeason, pickemSeason, weekNumber):
 
         if ( ncaaGameState == "cancelled" ):
             gameState = "Cancelled"
+        elif ( ncaaGameState == "canceled" ):
+            gameState = "Cancelled"
         elif ( ncaaGameState == "final" ):
             gameState = "Final"
         elif ( ncaaGameState == "pre" ):
