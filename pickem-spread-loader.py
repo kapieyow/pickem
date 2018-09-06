@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import configparser
 import datetime
 import json
 import requests
@@ -12,10 +13,10 @@ class Jsonable:
 
 
 # "configs"
-VERSION = "0.5.11"
+VERSION = "0.8.12"
 
 PICKEM_COMPONENT_NAME = "Pick'Em Spread Loader"
-PICKEM_SERVER_BASE_URL = "http://localhost:51890/api"
+PICKEM_INI = "pickem.ini"
 PICKEM_LOG_LEVEL_DEBUG = "DEBUG"
 PICKEM_LOG_LEVEL_INFO = "INFO"
 PICKEM_LOG_LEVEL_WARN = "WARN"
@@ -64,6 +65,10 @@ args = parser.parse_args()
 print("----------------------------------------")
 print("  {0:s} - {1:s} ".format(PICKEM_COMPONENT_NAME, VERSION))
 print("----------------------------------------")
+
+configParser = configparser.ConfigParser()
+configParser.read(PICKEM_INI)
+PICKEM_SERVER_BASE_URL = configParser.get("URLS", "PICKEM_SERVER_BASE_URL")
 
 
 # get games for week
