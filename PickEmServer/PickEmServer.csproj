@@ -6,11 +6,8 @@
     <Authors>Streamhead</Authors>
     <Company>Streamhead</Company>
     <Product>Pick'em - Server</Product>
+    <AssemblyVersion>0.8.24.0</AssemblyVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentValidation.AspNetCore" Version="7.3.4" />

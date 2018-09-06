@@ -182,6 +182,14 @@ namespace PickEmServer.Api.Controllers
 
         [Authorize]
         [HttpPut]
+        [Route("api/{SeasonCode}/{LeagueCode}/weeks/current")]
+        public async Task<int> PutCurrentWeek(string SeasonCode, string LeagueCode, [FromBody] int currentWeekNumber)
+        {
+            return await _leagueService.SetCurrentWeek(SeasonCode, LeagueCode, currentWeekNumber);
+        }
+
+        [Authorize]
+        [HttpPut]
         [Route("api/{SeasonCode}/{LeagueCode}/players/{UserName}")]
         public async Task<Player> PutPlayer(string SeasonCode, string LeagueCode, string UserName, [FromBody] PlayerUpdate playerUpdate)
         {
@@ -215,7 +223,7 @@ namespace PickEmServer.Api.Controllers
         [Authorize]
         [HttpGet]
         [Route("api/{SeasonCode}/{LeagueCode}/weeks")]
-        public async Task<List<int>> GetWeekNumbers(string SeasonCode, string LeagueCode)
+        public async Task<LeagueWeeks> GetLeagueWeeks(string SeasonCode, string LeagueCode)
         {
             return await _leagueService.ReadLeagueWeeks(SeasonCode, LeagueCode);
         }

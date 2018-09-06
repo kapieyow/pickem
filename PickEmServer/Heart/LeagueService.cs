@@ -371,6 +371,27 @@ namespace PickEmServer.Heart
             return associatedLeagues.ToList();
         }
 
+        internal async Task<int> SetCurrentWeek(string seasonCode, string leagueCode, int currentWeekNumber)
+        {
+            using (var dbSession = _documentStore.LightweightSession())
+            {
+                var leagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
+
+                var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == currentWeekNumber);
+                if (weekData == null)
+                {
+                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode} does not contain a week: {currentWeekNumber}");
+                }
+
+                leagueData.CurrentWeekRef = currentWeekNumber;
+
+                dbSession.Store(leagueData);
+                dbSession.SaveChanges();
+
+                return currentWeekNumber;
+            }
+        }
+
         public async Task<Player> ReadLeaguePlayer(string seasonCode, string leagueCode, string userName)
         {
             var leagueData = await this.GetLeagueData(seasonCode, leagueCode);
@@ -406,18 +427,21 @@ namespace PickEmServer.Heart
             return resultPlayers;
         }
 
-        public async Task<List<int>> ReadLeagueWeeks(string seasonCode, string leagueCode)
+        public async Task<LeagueWeeks> ReadLeagueWeeks(string seasonCode, string leagueCode)
         {
             var leagueData = await this.GetLeagueData(seasonCode, leagueCode);
 
-            var resultWeeks = new List<int>();
+            var leagueWeeks = new LeagueWeeks();
+            leagueWeeks.WeekNumbers = new List<int>();
+
+            leagueWeeks.CurrentWeekNumber = leagueData.CurrentWeekRef;
 
             foreach (var weekData in leagueData.Weeks)
             {
-                resultWeeks.Add(weekData.WeekNumberRef);
+                leagueWeeks.WeekNumbers.Add(weekData.WeekNumberRef);
             }
 
-            return resultWeeks;
+            return leagueWeeks;
         }
 
         // TODO: this probably should be spread between league and game services?
