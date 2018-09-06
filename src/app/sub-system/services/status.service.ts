@@ -1,4 +1,12 @@
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { environment } from '../../../environments/environment';
+import { Observable, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
+import { ThrowStmt, ERROR_COMPONENT_TYPE } from '@angular/compiler';
+
+import { LoggerService } from './logger.service';
+import { PickEmStatus } from '../models/api/pickem-status';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +23,7 @@ export class StatusService {
   public userName: string;
   public userPlayerTag: string;
 
-  constructor() {
+  constructor(private logger: LoggerService, private http: HttpClient) {
     this.userLoggedIn = false;
 
     // TODO: make work for other seasons
@@ -27,6 +35,15 @@ export class StatusService {
 
   }
 
-  
+  readPickEmStatus(): Observable<PickEmStatus> {
+    // build get URL
+    let readUrl = environment.pickemRestServerBaseUrl  + "/status";
+
+    return this.http.get<PickEmStatus>(readUrl)
+      .pipe(
+          tap(response => this.logger.debug(`read pickem status`)),
+          catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
+        );        
+  }
 
 }

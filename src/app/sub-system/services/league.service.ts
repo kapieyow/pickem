@@ -11,6 +11,7 @@ import { StatusService } from './status.service';
 import { PickTypes, PickStates, GameStates } from '../models/api/enums';
 import { PlayerPick } from '../models/api/player-pick';
 import { PlayerPickUpdate } from '../models/api/player-pick-update';
+import { LeagueWeeks } from '../models/api/league-weeks';
 
 //"Content-Type", "application/json-patch+json"
 const httpOptions = {
@@ -69,12 +70,12 @@ export class LeagueService {
       );
   }
 
-  public readWeeks(seasonCode: string, leagueCode: string) :Observable<number[]>
+  public readWeeks(seasonCode: string, leagueCode: string) :Observable<LeagueWeeks>
   {
     // /api/:SeasonCode/:LeagueCode/weeks
-    return this.http.get<number[]>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/weeks", httpOptions)
+    return this.http.get<LeagueWeeks>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/weeks", httpOptions)
       .pipe(
-        tap(response => this.logger.debug(`read (${response.length}) weeks`)),
+        tap(response => this.logger.debug(`read (${response.weekNumbers.length}) weeks`)),
         catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
       );
   }
