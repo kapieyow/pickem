@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 
 import argparse
+import configparser
 import datetime
 import json
 import requests
 
 # "configs"
-VERSION = "0.3.4"
+VERSION = "0.8.6"
 
 URL_SEASON_TOKEN = "{SeasonCode}"
 URL_WEEK_TOKEN = "{WeekNumber}"
 NCAA_DOMAIN_URL = "http://data.ncaa.com"
 NCAA_BASE_DATA_URL = "http://data.ncaa.com/sites/default/files/data/scoreboard/football/fbs/" + URL_SEASON_TOKEN + "/" + URL_WEEK_TOKEN + "/scoreboard.json"
 PICKEM_COMPONENT_NAME = "Pick'Em NCAA Game Loader"
-PICKEM_SERVER_BASE_URL = "http://localhost:51890/api"
+PICKEM_INI = "pickem-settings.ini"
 PICKEM_LOG_LEVEL_DEBUG = "DEBUG"
 PICKEM_LOG_LEVEL_INFO = "INFO"
 PICKEM_LOG_LEVEL_WARN = "WARN"
@@ -266,6 +267,11 @@ args = parser.parse_args()
 print("----------------------------------------")
 print("  {0:s} - {1:s} ".format(PICKEM_COMPONENT_NAME, VERSION))
 print("----------------------------------------")
+
+configParser = configparser.ConfigParser()
+configParser.read(PICKEM_INI)
+PICKEM_SERVER_BASE_URL = configParser.get("URLS", "PICKEM_SERVER_BASE_URL")
+
 
 gamesModified = 0
 

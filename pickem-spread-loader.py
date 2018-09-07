@@ -16,7 +16,7 @@ class Jsonable:
 VERSION = "0.8.12"
 
 PICKEM_COMPONENT_NAME = "Pick'Em Spread Loader"
-PICKEM_INI = "pickem.ini"
+PICKEM_INI = "pickem-settings.ini"
 PICKEM_LOG_LEVEL_DEBUG = "DEBUG"
 PICKEM_LOG_LEVEL_INFO = "INFO"
 PICKEM_LOG_LEVEL_WARN = "WARN"
