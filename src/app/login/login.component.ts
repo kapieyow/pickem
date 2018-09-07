@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+
+import { LeagueService } from '../sub-system/services/league.service';
 import { UserService } from '../sub-system/services/user.service';
 
 @Component({
@@ -9,7 +11,7 @@ import { UserService } from '../sub-system/services/user.service';
 })
 export class LoginComponent implements OnInit {
 
-  constructor(private router: Router, private userService: UserService) { }
+  constructor(private router: Router, private leagueService: LeagueService, private userService: UserService) { }
 
   inputsInvalid: boolean;
   loginErrors: string[] = [];
@@ -42,6 +44,7 @@ export class LoginComponent implements OnInit {
     this.userService.setupUser(username)
       .subscribe(
         result => {
+          this.leagueService.setupLeagueFilters();
           // user fully setup go to player view
           this.router.navigate(['/player'], { skipLocationChange: true });
         },

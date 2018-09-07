@@ -27,12 +27,10 @@ class StatusValue
 })
 export class TopNavComponent implements OnInit {
 
-  weeks: number[] = [];
-  players: Player[] = [];
   isCollapsed = true;
   StatusValues: StatusValue[] = [];
 
-  constructor(public statusService: StatusService, private leagueService: LeagueService, private router: Router, private userService: UserService, private logger: LoggerService, ) { }
+  constructor(public statusService: StatusService, public leagueService: LeagueService, private router: Router, private userService: UserService, private logger: LoggerService, ) { }
 
   ngOnInit() {
 
@@ -54,25 +52,6 @@ export class TopNavComponent implements OnInit {
           this.StatusValues.push({ FieldName: "Pick'em League", FieldValue: this.statusService.leagueCode });
         }
       )
-
-    // load players
-    this.leagueService.readPlayers(this.statusService.seasonCode, this.statusService.leagueCode)
-      .subscribe(
-        response => { 
-          this.players = response 
-        },
-        errors => { return throwError(this.logger.logAndParseHttpError(errors)); }
-      );
-
-    // load weeks
-    this.leagueService.readWeeks(this.statusService.seasonCode, this.statusService.leagueCode)
-      .subscribe(
-        response => { 
-          this.weeks = response.weekNumbers;
-          this.statusService.weekNumberFilter = response.currentWeekNumber;
-        },
-        errors => { return throwError(this.logger.logAndParseHttpError(errors)); }
-      );
   }
 
   logout ()

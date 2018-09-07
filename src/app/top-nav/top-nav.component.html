@@ -19,7 +19,7 @@
                                     <span class="caret"></span>
                                 </button>
                                 <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-warning" role="menu" aria-labelledby="button-player">
-                                    <li *ngFor="let player of players" role="menuitem" (click)="changePlayer(player.playerTag);">
+                                    <li *ngFor="let player of leagueService.players" role="menuitem" (click)="changePlayer(player.playerTag);">
                                         <a class="dropdown-item">{{ player.playerTag }}</a>
                                     </li>
                                 </ul>
@@ -30,8 +30,8 @@
                                     <span class="caret"></span>
                                 </button>
                                 <ul id="dropdown-week" *dropdownMenu class="dropdown-menu bg-warning" role="menu" aria-labelledby="button-week">
-                                    <li *ngFor="let week of weeks" role="menuitem" (click)="changeWeek(week);">
-                                        <a class="dropdown-item">Week {{ week }}</a>
+                                    <li *ngFor="let weekNumber of leagueService.weekNumbers" role="menuitem" (click)="changeWeek(weekNumber);">
+                                        <a class="dropdown-item">Week {{ weekNumber }}</a>
                                     </li>
                                 </ul>
                             </div>

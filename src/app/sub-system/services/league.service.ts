@@ -22,7 +22,8 @@ const httpOptions = {
 
 export class LeagueService {
 
-  
+  weekNumbers: number[] = [];
+  players: Player[] = [];  
   currentPlayerScoreboardPicks: PlayerScoreboardPick[] = [];
 
   constructor(private logger: LoggerService, private statusService: StatusService, private http: HttpClient) { }
@@ -77,6 +78,27 @@ export class LeagueService {
       .pipe(
         tap(response => this.logger.debug(`read (${response.weekNumbers.length}) weeks`)),
         catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
+      );
+  }
+
+  public setupLeagueFilters()
+  {
+    this.readPlayers(this.statusService.seasonCode, this.statusService.leagueCode)
+      .subscribe(
+        response => { 
+          this.players = response 
+        },
+        errors => { return throwError(this.logger.logAndParseHttpError(errors)); }
+      );
+
+    // load weeks
+    this.readWeeks(this.statusService.seasonCode, this.statusService.leagueCode)
+      .subscribe(
+        response => { 
+          this.weekNumbers = response.weekNumbers;
+          this.statusService.weekNumberFilter = response.currentWeekNumber;
+        },
+        errors => { return throwError(this.logger.logAndParseHttpError(errors)); }
       );
   }
 
