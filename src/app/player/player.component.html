@@ -83,7 +83,7 @@
               <div class="col-md-10 text-nowrap">
                 <img src="assets/team_icons/{{ pick.homeTeamIconFileName }}" width="24" class="mx-1" />
                 <span *ngIf="pick.homeTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.homeTeamRank }}</span>
-                {{ pick.homeTeamLongName }}
+                @ {{ pick.homeTeamLongName }}
                 <span class="font-weight-light text-light px-1">({{ pick.homeTeamWins }}-{{ pick.homeTeamLosses }})</span>
               </div>
               <div class="col-md-2 text-nowrap font-weight-bold text-right">
@@ -112,18 +112,36 @@
         <thead>
           <tr>
             <th scope="col"></th>
-            <th scope="col">Team A
-              <br>Team B</th>
-            <th scope="col">Team C
-              <br>Team D</th>
-            <th scope="col">Team E
-              <br>Team F</th>
-            <th scope="col">Team A
-              <br>Team B</th>
-            <th scope="col">Team C
-              <br>Team D</th>
-            <th scope="col">Team E
-              <br>Team F</th>
+            <th scope="col">
+              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1" style="background-color:green;border-style:solid;border-color:white;border-width:1px;border-radius:3px;"/>
+              <br>
+              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1" style="background-color:red;border-style:solid;border-color:white;border-width:1px;border-radius:3px;"/>
+            </th>
+            <th scope="col">
+              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1" style="border-style:dotted;border-color:red;border-width:1px;border-radius:3px;"/>
+              <br>
+              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1" style="border-style:dotted;border-color:green;border-width:1px;border-radius:3px;"/>
+            </th>
+            <th scope="col">
+              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1"/><span style="background-color:red;border-style:solid;border-color:white;border-width:1px;border-radius:3px;padding:2px;">12</span>
+              <br>
+              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1"/><span style="background-color:green;border-style:solid;border-color:white;border-width:1px;border-radius:3px;padding:2px;">7</span> +5.5
+            </th>
+            <th scope="col">
+              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1"/><span style="border-style:dotted;border-color:red;border-width:1px;border-radius:3px;padding:2px;">12</span>
+              <br>
+              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1"/><span style="border-style:dotted;border-color:green;border-width:1px;border-radius:3px;padding:2px;">7</span> +5.5
+            </th>
+            <th scope="col">
+                <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1"/>12
+                <br>
+                <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1"/><span style="background-color:green;border-style:solid;border-color:white;border-width:1px;border-radius:3px;padding:2px;">7</span>
+              </th>
+              <th scope="col">
+                <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1"/>12
+                <br>
+                <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1"/><span style="border-style:dashed;border-color:green;border-width:1px;border-radius:3px;padding:2px;">7</span>
+              </th>
             <th scope="col">Team A
               <br>Team B</th>
             <th scope="col">Team C
