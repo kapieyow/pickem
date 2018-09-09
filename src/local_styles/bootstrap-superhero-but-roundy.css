@@ -9685,3 +9685,21 @@
     border-color: #8d9dad !important; 
     border-style: solid !important; 
   }
+
+  .pickem-score-won
+  {
+    background-color:green;
+    border-style:solid;
+    border-color:white;
+    border-width:1px;
+    border-radius:3px;
+    padding:2px;
+  }
+  .pickem-score-winning
+  { 
+    border-style:dashed;
+    border-color:green;
+    border-width:1px;
+    border-radius:3px;
+    padding:2px;
+  }
