@@ -7,7 +7,10 @@ namespace PickEmServer.Api.Models
 {
     public class WeekScoreboard
     {
-        // sets of players using same model as players for now
-        public List<PlayerScoreboard> PlayerScoreboards { get; internal set; }
+        // TODO: all built assuming all of these lists are the same length and 
+        // in the same player order
+        public List<string> PlayerTags { get; internal set; }
+        public List<GameScoreboard> GamePickScoreboards { get; internal set; }
+        public List<PlayerWeekWins> PlayerWins { get; internal set; }
     }
 }

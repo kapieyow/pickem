@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace PickEmServer.Api.Models
 {
-    public class PlayerScoreboard
+    public class PlayerWeekWins
     {
-        public List<GameScoreboard> GamePickScoreboards { get; internal set; }
+        public string PlayerTag { get; internal set; }
+        public int Wins { get; internal set; }
     }
 }

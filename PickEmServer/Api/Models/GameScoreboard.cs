@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PickEmServer.Api.Models
 {
-    public class PlayerScoreboardPick
+    public class GameScoreboard
     {
         public string AwayTeamIconFileName { get; internal set; }
         public int AwayTeamLosses { get; internal set; }
@@ -23,9 +23,11 @@ namespace PickEmServer.Api.Models
         public int HomeTeamScore { get; internal set; }
         public int HomeTeamWins { get; internal set; }
         public int GameId { get; internal set; }
-        public PickTypes Pick { get; internal set; }
-        public PickStates PickState { get; internal set; }
         public decimal Spread { get; internal set; }
         public SpreadDirections SpreadDirection { get; internal set; }
+        public GameLeaderTypes Leader { get; internal set; }
+        public GameLeaderTypes LeaderAfterSpread { get; internal set; }
+
+        public List<PickScoreboard> PickScoreboards { get; internal set; }
     }
 }

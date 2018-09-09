@@ -459,45 +459,48 @@ namespace PickEmServer.Heart
             var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, leagueCode, weekNumber);
 
             // get all players and loop over to map for full week
-            var playerTags = leagueWithExtendedData.LeagueData.Players.Select(p => p.PlayerTag);
+            // ordered by week wins descending
+            var playerTags = leagueWithExtendedData.LeagueData
+                    .Weeks.Single(w => w.WeekNumberRef == weekNumber)
+                    .PlayerWeekScores.OrderByDescending(pws => pws.Points)
+                    .ThenBy(pws => pws.PlayerTagRef)
+                    .Select(pws => pws.PlayerTagRef)
+                    ;
 
             var weekScoreboard = new WeekScoreboard();
-            weekScoreboard.PlayerScoreboards = new List<PlayerScoreboard>();
+            weekScoreboard.PlayerTags = playerTags.ToList();
+            weekScoreboard.PlayerWins = new List<PlayerWeekWins>();
+            weekScoreboard.GamePickScoreboards = new List<GameScoreboard>();
 
             foreach (var playerTag in playerTags)
             {
-                var nextPlayerScoreboard = new PlayerScoreboard();
-                nextPlayerScoreboard.PlayerTag = playerTag;
-                nextPlayerScoreboard.PlayerScoreboardPicks = this.MapDataToPlayerPicks(
-                    seasonCode,
-                    leagueCode,
-                    weekNumber,
-                    playerTag,
-                    (authenticatedPlayer.PlayerTag == playerTag),
-                    leagueWithExtendedData
-                    );
-
-                nextPlayerScoreboard.Wins = leagueWithExtendedData.LeagueData
+                var playerWeekWins = new PlayerWeekWins();
+                playerWeekWins.PlayerTag = playerTag;
+                playerWeekWins.Wins = leagueWithExtendedData.LeagueData
                     .Weeks.Single(w => w.WeekNumberRef == weekNumber)
                     .PlayerWeekScores.Single(pws => pws.PlayerTagRef == playerTag)
                     .Points;
 
-                weekScoreboard.PlayerScoreboards.Add(nextPlayerScoreboard);
+                weekScoreboard.PlayerWins.Add(playerWeekWins);
             }
 
+            weekScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(seasonCode, leagueCode, weekNumber, weekScoreboard.PlayerTags, authenticatedPlayer.PlayerTag, leagueWithExtendedData);
             return weekScoreboard;
         }
 
-        // TODO: this probably should be spread between league and game services?
-        public async Task<List<PlayerScoreboardPick>> ReadPlayerScoreboard(string seasonCode, string leagueCode, int weekNumber, string playerTag, string authenticatedUserName)
+        public async Task<PlayerScoreboard> ReadPlayerScoreboard(string seasonCode, string leagueCode, int weekNumber, string playerTag, string authenticatedUserName)
         {
-            // determine if the authenticated user has this player tag (if not hide picks for games not started)
-            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, leagueCode, authenticatedUserName);
-            bool readingPlayersOwnScoreboard = (authenticatedPlayer.PlayerTag == playerTag);
-
             var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, leagueCode, weekNumber);
 
-            return this.MapDataToPlayerPicks(seasonCode, leagueCode, weekNumber, playerTag, readingPlayersOwnScoreboard, leagueWithExtendedData);
+            // determine if the authenticated user has this player tag (if not hide picks for games not started)
+            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, leagueCode, authenticatedUserName);
+            
+
+            var playerScoreboard = new PlayerScoreboard();
+
+            playerScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(seasonCode, leagueCode, weekNumber, new List<string> { playerTag }, authenticatedPlayer.PlayerTag, leagueWithExtendedData);
+
+            return playerScoreboard;
         }
 
         private async Task<LeagueWithGamesAndTeamDataForWeek> ReadLeagueWithWeekGamesExpanded(string seasonCode, string leagueCode, int weekNumber)
@@ -537,10 +540,16 @@ namespace PickEmServer.Heart
 
         }
 
-        private List<PlayerScoreboardPick> MapDataToPlayerPicks(string seasonCode, string leagueCode, int weekNumber, string playerTag, bool readingPlayersOwnScoreboard, LeagueWithGamesAndTeamDataForWeek leagueWithExtendedData)
+        private List<GameScoreboard> MapDataToGameScoreboards(string seasonCode, string leagueCode, int weekNumber, List<string> playerTags, string authenticatedPlayerTag, LeagueWithGamesAndTeamDataForWeek leagueWithExtendedData)
         {
-            var playerScoreboard = new List<PlayerScoreboardPick>();
+            if (playerTags == null || playerTags.Count == 0 )
+            {
+                throw new ArgumentException($"Must have at least 1 player tag playerTags for MapDataToGameScoreboards");
+            }
 
+            var gameScoreboards = new List<GameScoreboard>();
+
+            // game loop 
             foreach (var gameData in leagueWithExtendedData.GameDataForWeek.OrderBy(game => game.GameStart))
             {
                 var weekData = leagueWithExtendedData.LeagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
@@ -555,14 +564,8 @@ namespace PickEmServer.Heart
                     throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber} does not have a game with gameid: {gameData.GameId}");
                 }
 
-                var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef == playerTag);
-                if (playerPickData == null)
-                {
-                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber}, game {gameData.GameId}, has no player pick for {playerTag}. Is {playerTag} in this league?");
-                }
 
-
-                var playerScoreboardPick = new PlayerScoreboardPick
+                var gameScoreboard = new GameScoreboard
                 {
                     AwayTeamIconFileName = leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].icon24FileName,
                     AwayTeamLongName = string.IsNullOrEmpty(leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName) ? gameData.AwayTeam.TeamCodeRef : leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName,
@@ -579,17 +582,68 @@ namespace PickEmServer.Heart
                     HomeTeamRank = 0, // TODO set
                     HomeTeamScore = gameData.HomeTeam.Score,
                     HomeTeamWins = 0, // TODO set
-                    Pick = CalculatePickState(playerPickData, gameData, readingPlayersOwnScoreboard),
-                    PickState = playerPickData.PickStatus,
                     Spread = gameData.Spread.PointSpread,
-                    SpreadDirection = gameData.Spread.SpreadDirection
+                    SpreadDirection = gameData.Spread.SpreadDirection,
+                    Leader = gameData.Leader,
+                    LeaderAfterSpread = gameData.LeaderAfterSpread
                 };
 
-                playerScoreboard.Add(playerScoreboardPick);
+                gameScoreboard.PickScoreboards = new List<PickScoreboard>();
 
+                // playa loop 
+                foreach ( var playerTag in playerTags )
+                {
+                    var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef == playerTag);
+                    if (playerPickData == null)
+                    {
+                        throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber}, game {gameData.GameId}, has no player pick for {playerTag}. Is {playerTag} in this league?");
+                    }
+
+                    bool readingPlayersOwnScoreboard = (authenticatedPlayerTag == playerTag);
+
+                    string pickedTeamIconFileName = null;
+                    string pickedTeamLongName = null;
+
+                    // setup pick team info
+                    switch (playerPickData.Pick)
+                    {
+                        case PickTypes.Away:
+                            pickedTeamIconFileName = gameScoreboard.AwayTeamIconFileName;
+                            pickedTeamLongName = gameScoreboard.AwayTeamLongName;
+                            break;
+
+                        case PickTypes.Hidden:
+                            pickedTeamLongName = "Hidden";
+                            break;
+
+                        case PickTypes.Home:
+                            pickedTeamIconFileName = gameScoreboard.HomeTeamIconFileName;
+                            pickedTeamLongName = gameScoreboard.HomeTeamLongName;
+                            break;
+
+                        case PickTypes.None:
+                            pickedTeamLongName = "None";
+                            break;
+
+                    }
+
+
+                    var playerGamePickScoreboard = new PickScoreboard
+                    {
+                        Pick = CalculatePickState(playerPickData, gameData, readingPlayersOwnScoreboard),
+                        PickState = playerPickData.PickStatus,
+                        PlayerTag = playerTag,
+                        PickedTeamIconFileName = pickedTeamIconFileName,
+                        PickedTeamLongName = pickedTeamLongName
+                    };
+
+                    gameScoreboard.PickScoreboards.Add(playerGamePickScoreboard);
+                }
+
+                gameScoreboards.Add(gameScoreboard);
             }
 
-            return playerScoreboard;
+            return gameScoreboards;
         }
 
         private PickTypes CalculatePickState(PlayerPickData playerPickData, GameData gameData, bool readingPlayersOwnScoreboard)
