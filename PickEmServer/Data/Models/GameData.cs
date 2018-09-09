@@ -19,6 +19,8 @@ namespace PickEmServer.Data.Models
         public TimeSpan TimeClock { get; set; }
         public Boolean NeutralField { get; set; }
         public SpreadData Spread { get; set; }
+        public GameLeaderTypes Leader { get; set; }
+        public GameLeaderTypes LeaderAfterSpread { get; set; }
 
         public GameTeamData AwayTeam { get; set; }
         public GameTeamData HomeTeam { get; set; }

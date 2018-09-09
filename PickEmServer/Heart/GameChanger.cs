@@ -51,7 +51,7 @@ namespace PickEmServer.Heart
             _game.Spread.PointSpread = spreadUpdates.PointSpread;
             _game.Spread.SpreadDirection = spreadUpdates.SpreadDirection;
 
-            this.SynchScoresAfterSpread();
+            this.SynchScoresAndLeadersAfterSpread();
         }
 
         internal void LockSpread()
@@ -88,7 +88,7 @@ namespace PickEmServer.Heart
             if ( _game.AwayTeam.Score != newScore )
             {
                 _game.AwayTeam.Score = newScore;
-                this.SynchScoresAfterSpread();
+                this.SynchScoresAndLeadersAfterSpread();
 
                 // score changed
                 return true;
@@ -102,7 +102,7 @@ namespace PickEmServer.Heart
             if (_game.HomeTeam.Score != newScore)
             {
                 _game.HomeTeam.Score = newScore;
-                this.SynchScoresAfterSpread();
+                this.SynchScoresAndLeadersAfterSpread();
 
                 // score changed
                 return true;
@@ -111,7 +111,7 @@ namespace PickEmServer.Heart
             return false;
         }
 
-        private void SynchScoresAfterSpread()
+        private void SynchScoresAndLeadersAfterSpread()
         {
             //  - game: update score after spread
             switch (_game.Spread.SpreadDirection)
@@ -131,6 +131,33 @@ namespace PickEmServer.Heart
                     _game.HomeTeam.ScoreAfterSpread = _game.HomeTeam.Score + _game.Spread.PointSpread;
                     break;
             }
+
+            if (_game.AwayTeam.Score == _game.HomeTeam.Score)
+            {
+                _game.Leader = GameLeaderTypes.None;
+            }
+            else if (_game.AwayTeam.Score > _game.HomeTeam.Score)
+            {
+                _game.Leader = GameLeaderTypes.Away;
+            }
+            else
+            {
+                _game.Leader = GameLeaderTypes.Home;
+            }
+
+            if (_game.AwayTeam.ScoreAfterSpread == _game.HomeTeam.ScoreAfterSpread)
+            {
+                _game.LeaderAfterSpread = GameLeaderTypes.None;
+            }
+            else if (_game.AwayTeam.ScoreAfterSpread > _game.HomeTeam.ScoreAfterSpread)
+            {
+                _game.LeaderAfterSpread = GameLeaderTypes.Away;
+            }
+            else
+            {
+                _game.LeaderAfterSpread = GameLeaderTypes.Home;
+            }
+
         }
     }
 }

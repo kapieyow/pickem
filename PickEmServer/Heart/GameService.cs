@@ -89,7 +89,9 @@ namespace PickEmServer.Heart
                     AwayTeam = new GameTeamData { TeamCodeRef = newGame.AwayTeamCode, Score = 0, ScoreAfterSpread = 0, Winner = false },
                     HomeTeam = new GameTeamData { TeamCodeRef = newGame.HomeTeamCode, Score = 0, ScoreAfterSpread = 0, Winner = false },
                     // default spread (no data in this input)
-                    Spread = new SpreadData { PointSpread = 0.0M, SpreadDirection = SpreadDirections.None }
+                    Spread = new SpreadData { PointSpread = 0.0M, SpreadDirection = SpreadDirections.None },
+                    Leader = GameLeaderTypes.None,
+                    LeaderAfterSpread = GameLeaderTypes.None
                 };
 
                 dbSession.Store(newGameData);

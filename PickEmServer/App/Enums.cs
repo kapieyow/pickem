@@ -14,6 +14,15 @@ namespace PickEmServer.App
         Cancelled
     }
 
+       
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum GameLeaderTypes
+    {
+        Away,
+        Home,
+        None
+    }
+
     [JsonConverter(typeof(StringEnumConverter))]
     public enum PickTypes
     {
