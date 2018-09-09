@@ -453,37 +453,37 @@ namespace PickEmServer.Heart
 
         public async Task<WeekScoreboard> ReadWeekScoreboard(string seasonCode, string leagueCode, int weekNumber, string authenticatedUserName)
         {
-            //// determine if the authenticated user has this player tag (if not hide picks for games not started)
-            //var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, leagueCode, authenticatedUserName);
-           
-            //var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, leagueCode, weekNumber);
+            // determine if the authenticated user has this player tag (if not hide picks for games not started)
+            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, leagueCode, authenticatedUserName);
 
-            //// get all players and loop over to map for full week
-            //var playerTags = leagueWithExtendedData.LeagueData.Players.Select(p => p.PlayerTag);
+            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, leagueCode, weekNumber);
+
+            // get all players and loop over to map for full week
+            var playerTags = leagueWithExtendedData.LeagueData.Players.Select(p => p.PlayerTag);
 
             var weekScoreboard = new WeekScoreboard();
-            //weekScoreboard.PlayerScoreboards = new List<PlayerScoreboard>();
+            weekScoreboard.PlayerScoreboards = new List<PlayerScoreboard>();
 
-            //foreach ( var playerTag in playerTags )
-            //{
-            //    var nextPlayerScoreboard = new PlayerScoreboard();
-            //    nextPlayerScoreboard.PlayerTag = playerTag;
-            //    nextPlayerScoreboard.PlayerScoreboardPicks = this.MapDataToPlayerPicks(
-            //        seasonCode, 
-            //        leagueCode, 
-            //        weekNumber, 
-            //        playerTag, 
-            //        (authenticatedPlayer.PlayerTag == playerTag), 
-            //        leagueWithExtendedData
-            //        );
+            foreach (var playerTag in playerTags)
+            {
+                var nextPlayerScoreboard = new PlayerScoreboard();
+                nextPlayerScoreboard.PlayerTag = playerTag;
+                nextPlayerScoreboard.PlayerScoreboardPicks = this.MapDataToPlayerPicks(
+                    seasonCode,
+                    leagueCode,
+                    weekNumber,
+                    playerTag,
+                    (authenticatedPlayer.PlayerTag == playerTag),
+                    leagueWithExtendedData
+                    );
 
-            //    nextPlayerScoreboard.Wins = leagueWithExtendedData.LeagueData
-            //        .Weeks.Single(w => w.WeekNumberRef == weekNumber)
-            //        .PlayerWeekScores.Single(pws => pws.PlayerTagRef == playerTag)
-            //        .Points;
+                nextPlayerScoreboard.Wins = leagueWithExtendedData.LeagueData
+                    .Weeks.Single(w => w.WeekNumberRef == weekNumber)
+                    .PlayerWeekScores.Single(pws => pws.PlayerTagRef == playerTag)
+                    .Points;
 
-            //    weekScoreboard.PlayerScoreboards.Add(nextPlayerScoreboard);
-            //}
+                weekScoreboard.PlayerScoreboards.Add(nextPlayerScoreboard);
+            }
 
             return weekScoreboard;
         }
