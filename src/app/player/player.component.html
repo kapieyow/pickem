@@ -6,7 +6,7 @@
     <tab heading="Player" id="tab1">
 
       <!-- row for "no games yet" message -->
-      <div *ngIf="leagueService.currentPlayerScoreboardPicks.length == 0" class="row mx-0 my-1">
+      <div *ngIf="leagueService.playerScoreboard.gamePickScoreboards.length == 0" class="row mx-0 my-1">
         <div class="col-sm-12 px-0">
           <div class="card text-white border-warning mb-3  my-2">
             <div class="card-body">
@@ -19,83 +19,83 @@
       </div>
 
       <!-- picks -->
-      <div *ngFor="let pick of leagueService.currentPlayerScoreboardPicks" class="my-3 border border-light container">
+      <div *ngFor="let gameScoreboard of leagueService.playerScoreboard.gamePickScoreboards" class="my-3 border border-light container">
         <div class="row">
-          <div class="col-md-12 text-white bg-secondary py-1">{{ pick.gameStatusDescription }}</div>
+          <div class="col-md-12 text-white bg-secondary py-1">{{ gameScoreboard.gameStatusDescription }}</div>
         </div>
         <div class="row p-1">
           <div class="col-md-5 p-2" [ngClass]="
               {
-                'pickem-card-locked': pick.pick != 'Away' && (!gamePickableByCurrentPlayer(pick) || pick.pickState != 'None'),
-                'pickem-card-none': pick.pick != 'Away' && gamePickableByCurrentPlayer(pick),
-                'pickem-card-picked': pick.pick == 'Away' && pick.pickState == 'None', 
-                'pickem-card-losing': pick.pick == 'Away' && pick.pickState == 'Losing', 
-                'pickem-card-lost': pick.pick == 'Away' && pick.pickState == 'Lost', 
-                'pickem-card-pushing': pick.pick == 'Away' && pick.pickState == 'Pushing', 
-                'pickem-card-pushed': pick.pick == 'Away' && pick.pickState == 'Pushed', 
-                'pickem-card-winning': pick.pick == 'Away' && pick.pickState == 'Winning', 
-                'pickem-card-won': pick.pick == 'Away' && pick.pickState == 'Won'
-              }" (click)="setPick(pick, 'Away');">
+                'pickem-card-locked': gameScoreboard.pickScoreboards[0].pick != 'Away' && (!gamePickableByCurrentPlayer(gameScoreboard) || gameScoreboard.pickScoreboards[0].pickState != 'None'),
+                'pickem-card-none': gameScoreboard.pickScoreboards[0].pick != 'Away' && gamePickableByCurrentPlayer(gameScoreboard),
+                'pickem-card-picked': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'None', 
+                'pickem-card-losing': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Losing', 
+                'pickem-card-lost': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Lost', 
+                'pickem-card-pushing': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Pushing', 
+                'pickem-card-pushed': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Pushed', 
+                'pickem-card-winning': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Winning', 
+                'pickem-card-won': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Won'
+              }" (click)="setPick(gameScoreboard, 'Away');">
             <div class="row">
               <div class="col-md-10 text-nowrap">
-                <img src="assets/team_icons/{{ pick.awayTeamIconFileName }}" width="24" class="mx-1" />
-                <span *ngIf="pick.awayTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.awayTeamRank }}</span>
-                {{ pick.awayTeamLongName }}
-                <span class="font-weight-light text-light px-1">({{ pick.awayTeamWins }}-{{ pick.awayTeamLosses }})</span>
+                <img src="assets/team_icons/{{ gameScoreboard.awayTeamIconFileName }}" width="24" class="mx-1" />
+                <span *ngIf="gameScoreboard.awayTeamRank > 0" class="font-weight-light text-light px-1">#{{ gameScoreboard.awayTeamRank }}</span>
+                {{ gameScoreboard.awayTeamLongName }}
+                <span class="font-weight-light text-light px-1">({{ gameScoreboard.awayTeamWins }}-{{ gameScoreboard.awayTeamLosses }})</span>
               </div>
               <div class="col-md-2 text-nowrap font-weight-bold text-right">
-                <h4>{{ pick.awayTeamScore }}</h4>
+                <h4>{{ gameScoreboard.awayTeamScore }}</h4>
               </div>
             </div>
-            <div *ngIf="pick.spreadDirection == 'ToAway' && (pick.gameState == 'InGame' || pick.gameState == 'Final')" class="row">
+            <div *ngIf="gameScoreboard.spreadDirection == 'ToAway' && (gameScoreboard.gameState == 'InGame' || gameScoreboard.gameState == 'Final')" class="row">
               <div class="col-md-10 text-nowrap">
                 &nbsp;
               </div>
               <div class="col-md-2 text-nowrap text-right text-light">
-                <div class="b-0 m-0" tooltip="Score after spread" placement="right">{{ pick.awayTeamScore + pick.spread }}</div>
+                <div class="b-0 m-0" tooltip="Score after spread" placement="right">{{ gameScoreboard.awayTeamScore + gameScoreboard.spread }}</div>
               </div>
             </div>
           </div>
           <div class="col-md-2 text-center">spread
-            <div [ngClass]="{'text-warning': pick.gameState == 'SpreadNotSet'}">
-              <span *ngIf="pick.spread == null">?</span>
-              <span *ngIf="pick.spread != null">
-                <span *ngIf="pick.spreadDirection == 'ToAway'" class="font-weight-bold lead">&#8701;</span>
-                {{ pick.spread }}
-                <span *ngIf="pick.gameState == 'SpreadNotSet'">*</span>
-                <span class="font-weight-bold lead" *ngIf="pick.spreadDirection == 'ToHome'">&#8702;</span>
+            <div [ngClass]="{'text-warning': gameScoreboard.gameState == 'SpreadNotSet'}">
+              <span *ngIf="gameScoreboard.spread == null">?</span>
+              <span *ngIf="gameScoreboard.spread != null">
+                <span *ngIf="gameScoreboard.spreadDirection == 'ToAway'" class="font-weight-bold lead">&#8701;</span>
+                {{ gameScoreboard.spread }}
+                <span *ngIf="gameScoreboard.gameState == 'SpreadNotSet'">*</span>
+                <span class="font-weight-bold lead" *ngIf="gameScoreboard.spreadDirection == 'ToHome'">&#8702;</span>
               </span>
             </div>
           </div>
           <div class="col-md-5 p-2" [ngClass]="
               {
-                'pickem-card-locked': pick.pick != 'Home' && (!gamePickableByCurrentPlayer(pick) || pick.pickState != 'None'),
-                'pickem-card-none': pick.pick != 'Home' && gamePickableByCurrentPlayer(pick),
-                'pickem-card-picked': pick.pick == 'Home' && pick.pickState == 'None', 
-                'pickem-card-losing': pick.pick == 'Home' && pick.pickState == 'Losing', 
-                'pickem-card-lost': pick.pick == 'Home' && pick.pickState == 'Lost', 
-                'pickem-card-pushing': pick.pick == 'Home' && pick.pickState == 'Pushing', 
-                'pickem-card-pushed': pick.pick == 'Home' && pick.pickState == 'Pushed', 
-                'pickem-card-winning': pick.pick == 'Home' && pick.pickState == 'Winning', 
-                'pickem-card-won': pick.pick == 'Home' && pick.pickState == 'Won'
-              }" (click)="setPick(pick, 'Home');">
+                'pickem-card-locked': gameScoreboard.pickScoreboards[0].pick != 'Home' && (!gamePickableByCurrentPlayer(gameScoreboard) || gameScoreboard.pickScoreboards[0].pickState != 'None'),
+                'pickem-card-none': gameScoreboard.pickScoreboards[0].pick != 'Home' && gamePickableByCurrentPlayer(gameScoreboard),
+                'pickem-card-picked': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'None', 
+                'pickem-card-losing': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Losing', 
+                'pickem-card-lost': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Lost', 
+                'pickem-card-pushing': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Pushing', 
+                'pickem-card-pushed': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Pushed', 
+                'pickem-card-winning': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Winning', 
+                'pickem-card-won': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Won'
+              }" (click)="setPick(gameScoreboard, 'Home');">
             <div class="row">
               <div class="col-md-10 text-nowrap">
-                <img src="assets/team_icons/{{ pick.homeTeamIconFileName }}" width="24" class="mx-1" />
-                <span *ngIf="pick.homeTeamRank > 0" class="font-weight-light text-light px-1">#{{ pick.homeTeamRank }}</span>
-                @ {{ pick.homeTeamLongName }}
-                <span class="font-weight-light text-light px-1">({{ pick.homeTeamWins }}-{{ pick.homeTeamLosses }})</span>
+                <img src="assets/team_icons/{{ gameScoreboard.homeTeamIconFileName }}" width="24" class="mx-1" />
+                <span *ngIf="gameScoreboard.homeTeamRank > 0" class="font-weight-light text-light px-1">#{{ gameScoreboard.homeTeamRank }}</span>
+                @ {{ gameScoreboard.homeTeamLongName }}
+                <span class="font-weight-light text-light px-1">({{ gameScoreboard.homeTeamWins }}-{{ gameScoreboard.homeTeamLosses }})</span>
               </div>
               <div class="col-md-2 text-nowrap font-weight-bold text-right">
-                <h4>{{ pick.homeTeamScore }}</h4>
+                <h4>{{ gameScoreboard.homeTeamScore }}</h4>
               </div>
             </div>
-            <div *ngIf="pick.spreadDirection == 'ToHome' && (pick.gameState == 'InGame' || pick.gameState == 'Final')" class="row">
+            <div *ngIf="gameScoreboard.spreadDirection == 'ToHome' && (gameScoreboard.gameState == 'InGame' || gameScoreboard.gameState == 'Final')" class="row">
               <div class="col-md-10 text-nowrap">
                 &nbsp;
               </div>
               <div class="col-md-2 text-nowrap text-right text-light">
-                <div class="b-0 m-0" tooltip="Score after spread" placement="right">{{ pick.homeTeamScore + pick.spread }}</div>
+                <div class="b-0 m-0" tooltip="Score after spread" placement="right">{{ gameScoreboard.homeTeamScore + gameScoreboard.spread }}</div>
               </div>
             </div>
           </div>
@@ -103,118 +103,50 @@
       </div>
     </tab>
 
-
-    <!-- week tab -->
+    <!-- week tab   -->
     <tab heading="Week">
       <table class="table table-hover">
         <thead>
           <tr>
             <th scope="col">Game</th>
-            <th scope="col">Player X</th>
-            
-
-            <!--
-            <th scope="col">
-              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1" />12
-              <br>
-              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1" />
-              <span style="background-color:green;border-style:solid;border-color:white;border-width:1px;border-radius:3px;padding:2px;">7</span>
-            </th>
-            <th scope="col">
-              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1" />12
-              <br>
-              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1" />
-              <span style="border-style:dashed;border-color:green;border-width:1px;border-radius:3px;padding:2px;">7</span>
-            </th>
-            <th scope="col">Team A
-              <br>Team B</th>
-            <th scope="col">Team C
-              <br>Team D</th>
-            <th scope="col">Team E
-              <br>Team F</th>
-            <th scope="col">Team A
-              <br>Team B</th>
-            <th scope="col">Total</th>
-            -->
+            <th *ngFor="let playerTag of leagueService.weekScoreboard.playerTags" scope="col">{{ playerTag }}</th>
           </tr>
         </thead>
         <tbody>
           <tr class="table-active">
               <th scope="row">Wins</th>
-              <td>-</td>
+              <td *ngFor="let winBoard of leagueService.weekScoreboard.playerWins" >{{ winBoard.wins }}</td>
           </tr>
-          <tr class="table-default" *ngFor="let game of leagueService.weekScoreboard.playerScoreboards[0].playerScoreboardPicks">
+          <tr class="table-default" *ngFor="let gameScoreboard of leagueService.weekScoreboard.gamePickScoreboards">
             <td scope="col">
-              <img src="assets/team_icons/{{ game.awayTeamIconFileName }}" width="24" class="mx-1" />{{ game.awayTeamScore }}
-              <img src="assets/team_icons/{{ game.homeTeamIconFileName }}" width="24" class="mx-1" />{{ game.homeTeamScore }}
+              <img src="assets/team_icons/{{ gameScoreboard.awayTeamIconFileName }}" title="{{ gameScoreboard.awayTeamLongName }}" width="24" class="mx-1">
+              <span [ngClass]="{ 
+                'pickem-score-won': gameScoreboard.leader == 'Away' && gameScoreboard.gameState == 'Final', 
+                'pickem-score-winning': gameScoreboard.leader == 'Away' && gameScoreboard.pickState == 'InGame' }">{{ gameScoreboard.awayTeamScore }}</span>
+              <img src="assets/team_icons/{{ gameScoreboard.homeTeamIconFileName }}" title="{{ gameScoreboard.homeTeamLongName }}" width="24" class="mx-1" />
+              <span [ngClass]="{ 
+                'pickem-score-won': gameScoreboard.leader == 'Home' && gameScoreboard.gameState == 'Final', 
+                'pickem-score-winning': gameScoreboard.leader == 'Home' && gameScoreboard.pickState == 'InGame' }">{{ gameScoreboard.homeTeamScore }}</span>
             </td>
-            <td>-</td>
+            <td *ngFor="let pickScoreboard of gameScoreboard.pickScoreboards">
+                <img *ngIf="pickScoreboard.pickedTeamIconFileName" src="assets/team_icons/{{ pickScoreboard.pickedTeamIconFileName }}" title="{{ pickScoreboard.pickedTeamLongName }}" width="24" class="mx-1" />
+                <span *ngIf="pickScoreboard.pickState == 'None'">-</span>
+                <!-- locked -->
+                <!-- not picked -->
+                <span *ngIf="pickScoreboard.pickState == 'Losing'" class="pickem-score-losing" title="Losing">L</span>
+                <span *ngIf="pickScoreboard.pickState == 'Lost'" class="pickem-score-lost" title="Lost">L</span>
+                <span *ngIf="pickScoreboard.pickState == 'Pushing'" class="pickem-score-pushing" title="Pushing">X</span>
+                <span *ngIf="pickScoreboard.pickState == 'Pushed'" class="pickem-score-pushed" title="Pushed">X</span>
+                <span *ngIf="pickScoreboard.pickState == 'Winning'" class="pickem-score-winning" title="Winning">W</span>
+                <span *ngIf="pickScoreboard.pickState == 'Won'" class="pickem-score-won" title="Won">W</span>
+            </td>
           </tr>
         </tbody>
-        <!--
-        <tbody>
-          <tr class="table-default">
-            <th scope="row">Barney</th>
-            <td class="text-danger">L</td>
-            <td class="text-success">W</td>
-            <td class="text-success">W</td>
-            <td class="text-danger">L</td>
-            <td class="text-success">W</td>
-            <td>-</td>
-            <td class="text-success">W</td>
-            <td class="text-success">W</td>
-            <td>-</td>
-            <td class="text-danger">L</td>
-            <td>6</td>
-          </tr>
-          <tr class="table-default">
-            <th scope="row">Fred</th>
-            <td class="text-success">W</td>
-            <td class="text-success">W</td>
-            <td class="text-danger">L</td>
-            <td class="text-danger">L</td>
-            <td class="text-success">W</td>
-            <td>-</td>
-            <td class="text-danger">L</td>
-            <td class="text-success">W</td>
-            <td class="text-danger">L</td>
-            <td class="text-danger">L</td>
-            <td>4</td>
-          </tr>
-          <tr class="table-active">
-            <th scope="row">Kapieyow</th>
-            <td class="text-danger">L</td>
-            <td class="text-success">W</td>
-            <td class="text-success">W</td>
-            <td class="text-danger">L</td>
-            <td class="text-success">W</td>
-            <td>-</td>
-            <td class="text-success">W</td>
-            <td class="text-success">W</td>
-            <td>-</td>
-            <td class="text-danger">L</td>
-            <td>6</td>
-          </tr>
-
-          <tr class="table-default">
-            <th scope="row">Wilma</th>
-            <td class="text-danger">L</td>
-            <td class="text-success">W</td>
-            <td class="text-success">W</td>
-            <td class="text-danger">L</td>
-            <td class="text-success">W</td>
-            <td>-</td>
-            <td class="text-success">W</td>
-            <td class="text-success">W</td>
-            <td>-</td>
-            <td class="text-danger">L</td>
-            <td>6</td>
-          </tr>
-
-        </tbody>
-        -->
       </table>
     </tab>
+
+
+    <!-- season scoreboard -->
     <tab heading="Season">
       <table class="table table-hover">
         <thead>

@@ -9686,11 +9686,36 @@
     border-style: solid !important; 
   }
 
-  .pickem-score-won
+  .pickem-score-losing 
   {
-    background-color:green;
+    border-style:dashed;
+    border-color:#990500;
+    border-width:1px;
+    border-radius:3px;
+    padding:2px;
+  }
+  .pickem-score-lost 
+  {
+    background-color:#990500;
     border-style:solid;
-    border-color:white;
+    border-color:#8d9dad;
+    border-width:1px;
+    border-radius:3px;
+    padding:2px;
+  }
+  .pickem-score-pushing 
+  {
+    border-style:dashed;
+    border-color:#868e96;
+    border-width:1px;
+    border-radius:3px;
+    padding:2px;
+  }
+  .pickem-score-pushed 
+  {
+    background-color:#868e96;
+    border-style:solid;
+    border-color:#8d9dad;
     border-width:1px;
     border-radius:3px;
     padding:2px;
@@ -9698,7 +9723,16 @@
   .pickem-score-winning
   { 
     border-style:dashed;
-    border-color:green;
+    border-color:#006400;
+    border-width:1px;
+    border-radius:3px;
+    padding:2px;
+  }
+  .pickem-score-won
+  {
+    background-color:#006400;
+    border-style:solid;
+    border-color:#8d9dad;
     border-width:1px;
     border-radius:3px;
     padding:2px;

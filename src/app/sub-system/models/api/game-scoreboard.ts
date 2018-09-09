@@ -1,6 +1,7 @@
-import { GameStates, PickTypes, PickStates, SpreadDirections } from './enums';
+import { GameLeaderTypes, GameStates, SpreadDirections } from './enums';
+import { PickScoreboard } from './pick-scoreboard';
 
-export class PlayerScoreboardPick
+export class GameScoreboard
 {
     awayTeamIconFileName: string;
     awayTeamLosses: number;
@@ -17,8 +18,10 @@ export class PlayerScoreboardPick
     homeTeamScore: number;
     homeTeamWins: number;
     gameId: number;
-    pick: PickTypes;
-    pickState: PickStates;
     spread: number;
     spreadDirection: SpreadDirections;
+    leader: GameLeaderTypes;
+    leaderAfterSpread: GameLeaderTypes;
+
+    pickScoreboards: PickScoreboard[];
 }

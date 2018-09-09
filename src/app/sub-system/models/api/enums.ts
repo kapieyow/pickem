@@ -5,6 +5,12 @@ export enum GameStates {
     SpreadLocked = "SpreadLocked",
     Cancelled = "Cancelled"
   }
+
+export enum GameLeaderTypes {
+    Away = "Away",
+    Home = "Home",
+    None = "None"
+}
   
 export enum PickTypes {
     Away = "Away",

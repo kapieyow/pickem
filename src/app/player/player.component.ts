@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { PlayerScoreboardPick } from '../sub-system/models/api/player-scoreboard-pick';
+import { GameScoreboard } from '../sub-system/models/api/game-scoreboard';
 import { LeagueService } from '../sub-system/services/league.service';
 import { LoggerService } from '../sub-system/services//logger.service';
 import { StatusService } from '../sub-system/services/status.service';
@@ -35,39 +35,39 @@ export class PlayerComponent implements OnInit {
       this.statusService.weekNumberFilter);
   }
 
-  setPick(playerScoreboardPick: PlayerScoreboardPick, newPick: PickTypes)
+  setPick(gameScoreboard: GameScoreboard, newPick: PickTypes)
   {
-    if ( playerScoreboardPick.pick == newPick )
+    if ( gameScoreboard.pickScoreboards[0].pick == newPick )
     {
-      this.logger.debug(`Game ${playerScoreboardPick.gameId}, already has pick ${newPick} so click ignored`);
+      this.logger.debug(`Game ${gameScoreboard.gameId}, already has pick ${newPick} so click ignored`);
     }
     else
     {
       // only ok to make picks if the game has not started
-      if ( this.gamePickableByCurrentPlayer(playerScoreboardPick) )
+      if ( this.gamePickableByCurrentPlayer(gameScoreboard) )
       {  
-        this.logger.debug(`Game ${playerScoreboardPick.gameId}, pick type ${newPick}`);
+        this.logger.debug(`Game ${gameScoreboard.gameId}, pick type ${newPick}`);
         this.leagueService.setPlayerPick(
             this.statusService.seasonCode, 
             this.statusService.leagueCode, 
             this.statusService.weekNumberFilter,
             this.statusService.userPlayerTag,
-            playerScoreboardPick.gameId,
+            gameScoreboard.gameId,
             newPick
           );
       }
       else
       {
-        this.logger.debug(`Game is not pickable by user (${this.statusService.userPlayerTag}), player filter (${this.statusService.playerTagFilter}), game state  (${playerScoreboardPick.gameState})`);
+        this.logger.debug(`Game is not pickable by user (${this.statusService.userPlayerTag}), player filter (${this.statusService.playerTagFilter}), game state  (${gameScoreboard.gameState})`);
       }
     }
   }
 
-  gamePickableByCurrentPlayer(playerScoreboardPick: PlayerScoreboardPick) : boolean
+  gamePickableByCurrentPlayer(gameScoreboard: GameScoreboard) : boolean
   {
     if ( this.statusService.userPlayerTag == this.statusService.playerTagFilter )
     {
-      switch (playerScoreboardPick.gameState)
+      switch (gameScoreboard.gameState)
       {
         case GameStates.SpreadLocked:
         case GameStates.SpreadNotSet:

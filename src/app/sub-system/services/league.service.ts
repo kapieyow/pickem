@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { ThrowStmt, ERROR_COMPONENT_TYPE } from '@angular/compiler';
 import { Player } from '../models/api/player';
-import { PlayerScoreboardPick } from '../models/api/player-scoreboard-pick';
+import { PlayerScoreboard } from '../models/api/player-scoreboard';
 import { LoggerService } from './logger.service';
 import { StatusService } from './status.service';
 import { PickTypes, PickStates, GameStates } from '../models/api/enums';
@@ -25,7 +25,7 @@ export class LeagueService {
 
   weekNumbers: number[] = [];
   players: Player[] = [];  
-  currentPlayerScoreboardPicks: PlayerScoreboardPick[] = [];
+  playerScoreboard: PlayerScoreboard = new PlayerScoreboard();
   weekScoreboard: WeekScoreboard;
 
   constructor(private logger: LoggerService, private statusService: StatusService, private http: HttpClient) { }
@@ -34,8 +34,8 @@ export class LeagueService {
   {
     this.readPlayerScoreboard(seasonCode, leagueCode, weekNumber, playerTag)
       .subscribe(
-        response => this.currentPlayerScoreboardPicks = response,
-        errors => this.currentPlayerScoreboardPicks = [] // note readPlayerScoreboard already logged whatever barfed.
+        response => this.playerScoreboard = response,
+        errors => this.playerScoreboard = new PlayerScoreboard() // note readPlayerScoreboard already logged whatever barfed.
       );
   }
 
@@ -48,15 +48,15 @@ export class LeagueService {
       );
   }
 
-  public readPlayerScoreboard(seasonCode: string, leagueCode: string, weekNumber: number, playerTag: string): Observable<PlayerScoreboardPick[]>
+  public readPlayerScoreboard(seasonCode: string, leagueCode: string, weekNumber: number, playerTag: string): Observable<PlayerScoreboard>
   {
     //{SeasonCode}/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard
-    return this.http.get<PlayerScoreboardPick[]>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/" + weekNumber + "/" + playerTag + "/scoreboard", httpOptions)
+    return this.http.get<PlayerScoreboard>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/" + weekNumber + "/" + playerTag + "/scoreboard", httpOptions)
       .pipe(
-        tap(response => this.logger.debug(`read (${response.length}) player scoreboard picks`)),
+        tap(response => this.logger.debug(`read (${response.gamePickScoreboards.length}) player scoreboard picks`)),
         catchError(error => 
           { 
-            this.currentPlayerScoreboardPicks = [];
+            this.playerScoreboard = new PlayerScoreboard();
             return throwError(this.logger.logAndParseHttpError(error)); 
           })
       );
@@ -143,12 +143,13 @@ export class LeagueService {
         response => 
           {
             // find same game
-            var playerPick = this.currentPlayerScoreboardPicks.find(psp => psp.gameId == gameId);
-            playerPick.pick = pick;
+            var gamePickScoreboard = this.playerScoreboard.gamePickScoreboards.find(psp => psp.gameId == gameId);
+            var pickScoreboard = gamePickScoreboard.pickScoreboards.find(ps => ps.playerTag == playerTag);
+            pickScoreboard.pick = pick;
           },
         errors => 
           { 
-            this.currentPlayerScoreboardPicks = [];
+            this.playerScoreboard = new PlayerScoreboard();
             return throwError(this.logger.logAndParseHttpError(errors));
           }  
       );

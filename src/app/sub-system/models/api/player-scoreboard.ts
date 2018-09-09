@@ -1,8 +1,8 @@
-import { PlayerScoreboardPick } from './player-scoreboard-pick';
+import { GameScoreboard } from './game-scoreboard';
 
 export class PlayerScoreboard
 {
-    playerTag : string;
-    wins: number;
-    playerScoreboardPicks: PlayerScoreboardPick[];
+    gamePickScoreboards: GameScoreboard[];
+
+    constructor() { this.gamePickScoreboards = []; }
 }
