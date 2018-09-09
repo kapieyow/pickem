@@ -80,5 +80,10 @@ export class TopNavComponent implements OnInit {
       this.statusService.weekNumberFilter,
       this.statusService.playerTagFilter
     );
+
+    this.leagueService.loadWeekScoreboard(
+      this.statusService.seasonCode, 
+      this.statusService.leagueCode, 
+      this.statusService.weekNumberFilter);
   }
 }

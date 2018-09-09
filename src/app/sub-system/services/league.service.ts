@@ -12,6 +12,7 @@ import { PickTypes, PickStates, GameStates } from '../models/api/enums';
 import { PlayerPick } from '../models/api/player-pick';
 import { PlayerPickUpdate } from '../models/api/player-pick-update';
 import { LeagueWeeks } from '../models/api/league-weeks';
+import { WeekScoreboard } from '../models/api/week-scoreboard';
 
 //"Content-Type", "application/json-patch+json"
 const httpOptions = {
@@ -25,6 +26,7 @@ export class LeagueService {
   weekNumbers: number[] = [];
   players: Player[] = [];  
   currentPlayerScoreboardPicks: PlayerScoreboardPick[] = [];
+  weekScoreboard: WeekScoreboard;
 
   constructor(private logger: LoggerService, private statusService: StatusService, private http: HttpClient) { }
 
@@ -34,6 +36,15 @@ export class LeagueService {
       .subscribe(
         response => this.currentPlayerScoreboardPicks = response,
         errors => this.currentPlayerScoreboardPicks = [] // note readPlayerScoreboard already logged whatever barfed.
+      );
+  }
+
+  public loadWeekScoreboard(seasonCode: string, leagueCode: string, weekNumber: number)
+  {
+    this.readWeekScoreboard(seasonCode, leagueCode, weekNumber)
+      .subscribe(
+        response => this.weekScoreboard = response,
+        errors => this.weekScoreboard = null
       );
   }
 
@@ -78,6 +89,20 @@ export class LeagueService {
       .pipe(
         tap(response => this.logger.debug(`read (${response.weekNumbers.length}) weeks`)),
         catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
+      );
+  }
+
+  public readWeekScoreboard(seasonCode: string, leagueCode: string, weekNumber: number): Observable<WeekScoreboard>
+  {
+    // /api/{SeasonCode}/{LeagueCode}/{WeekNumber}/scoreboard
+    return this.http.get<WeekScoreboard>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/" + weekNumber + "/scoreboard", httpOptions)
+      .pipe(
+        tap(response => this.logger.debug(`read week (${weekNumber}) scoreboard for league (${leagueCode})`)),
+        catchError(error => 
+          { 
+            this.weekScoreboard = null;
+            return throwError(this.logger.logAndParseHttpError(error)); 
+          })
       );
   }
 

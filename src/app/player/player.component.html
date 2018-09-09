@@ -106,42 +106,26 @@
 
     <!-- week tab -->
     <tab heading="Week">
-
-
       <table class="table table-hover">
         <thead>
           <tr>
-            <th scope="col"></th>
+            <th scope="col">Game</th>
+            <th scope="col">Player X</th>
+            
+
+            <!--
             <th scope="col">
-              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1" style="background-color:green;border-style:solid;border-color:white;border-width:1px;border-radius:3px;"/>
+              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1" />12
               <br>
-              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1" style="background-color:red;border-style:solid;border-color:white;border-width:1px;border-radius:3px;"/>
+              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1" />
+              <span style="background-color:green;border-style:solid;border-color:white;border-width:1px;border-radius:3px;padding:2px;">7</span>
             </th>
             <th scope="col">
-              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1" style="border-style:dotted;border-color:red;border-width:1px;border-radius:3px;"/>
+              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1" />12
               <br>
-              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1" style="border-style:dotted;border-color:green;border-width:1px;border-radius:3px;"/>
+              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1" />
+              <span style="border-style:dashed;border-color:green;border-width:1px;border-radius:3px;padding:2px;">7</span>
             </th>
-            <th scope="col">
-              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1"/><span style="background-color:red;border-style:solid;border-color:white;border-width:1px;border-radius:3px;padding:2px;">12</span>
-              <br>
-              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1"/><span style="background-color:green;border-style:solid;border-color:white;border-width:1px;border-radius:3px;padding:2px;">7</span> +5.5
-            </th>
-            <th scope="col">
-              <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1"/><span style="border-style:dotted;border-color:red;border-width:1px;border-radius:3px;padding:2px;">12</span>
-              <br>
-              <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1"/><span style="border-style:dotted;border-color:green;border-width:1px;border-radius:3px;padding:2px;">7</span> +5.5
-            </th>
-            <th scope="col">
-                <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1"/>12
-                <br>
-                <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1"/><span style="background-color:green;border-style:solid;border-color:white;border-width:1px;border-radius:3px;padding:2px;">7</span>
-              </th>
-              <th scope="col">
-                <img src="assets/team_icons/mississippi-st.24.png" width="24" class="mx-1"/>12
-                <br>
-                <img src="assets/team_icons/kansas-st.24.png" width="24" class="mx-1"/><span style="border-style:dashed;border-color:green;border-width:1px;border-radius:3px;padding:2px;">7</span>
-              </th>
             <th scope="col">Team A
               <br>Team B</th>
             <th scope="col">Team C
@@ -151,8 +135,23 @@
             <th scope="col">Team A
               <br>Team B</th>
             <th scope="col">Total</th>
+            -->
           </tr>
         </thead>
+        <tbody>
+          <tr class="table-active">
+              <th scope="row">Wins</th>
+              <td>-</td>
+          </tr>
+          <tr class="table-default" *ngFor="let game of leagueService.weekScoreboard.playerScoreboards[0].playerScoreboardPicks">
+            <td scope="col">
+              <img src="assets/team_icons/{{ game.awayTeamIconFileName }}" width="24" class="mx-1" />{{ game.awayTeamScore }}
+              <img src="assets/team_icons/{{ game.homeTeamIconFileName }}" width="24" class="mx-1" />{{ game.homeTeamScore }}
+            </td>
+            <td>-</td>
+          </tr>
+        </tbody>
+        <!--
         <tbody>
           <tr class="table-default">
             <th scope="row">Barney</th>
@@ -213,6 +212,7 @@
           </tr>
 
         </tbody>
+        -->
       </table>
     </tab>
     <tab heading="Season">

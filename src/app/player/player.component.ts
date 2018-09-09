@@ -18,16 +18,21 @@ export class PlayerComponent implements OnInit {
   constructor(public leagueService: LeagueService, private logger: LoggerService, private statusService: StatusService) { }
 
   ngOnInit() {
-    this.getPlayerPicks();
+    this.getScoreboards();
   }
 
-  getPlayerPicks()
+  getScoreboards()
   {
     this.leagueService.loadPlayerScoreboard(
       this.statusService.seasonCode, 
       this.statusService.leagueCode, 
       this.statusService.weekNumberFilter, 
       this.statusService.playerTagFilter);
+
+    this.leagueService.loadWeekScoreboard(
+      this.statusService.seasonCode, 
+      this.statusService.leagueCode, 
+      this.statusService.weekNumberFilter);
   }
 
   setPick(playerScoreboardPick: PlayerScoreboardPick, newPick: PickTypes)
