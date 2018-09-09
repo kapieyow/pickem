@@ -198,6 +198,14 @@ namespace PickEmServer.Api.Controllers
 
         [Authorize]
         [HttpGet]
+        [Route("api/{SeasonCode}/{LeagueCode}/{WeekNumber}/scoreboard")]
+        public async Task<WeekScoreboard> GetWeekScoreboard(string SeasonCode, string LeagueCode, int WeekNumber)
+        {
+            return await _leagueService.ReadWeekScoreboard(SeasonCode, LeagueCode, WeekNumber, User.Identity.Name);
+        }
+
+        [Authorize]
+        [HttpGet]
         [Route("api/{SeasonCode}/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard")]
         public async Task<List<PlayerScoreboardPick>> GetPlayerWeekScoreboard(string SeasonCode, string LeagueCode, int WeekNumber, string PlayerTag)
         {

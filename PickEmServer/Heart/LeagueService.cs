@@ -34,6 +34,13 @@ namespace PickEmServer.Heart
             }
         }
 
+        private class LeagueWithGamesAndTeamDataForWeek
+        {
+            public LeagueData LeagueData { get; set; }
+            public List<GameData> GameDataForWeek { get; set; }
+            public Dictionary<string, TeamData> referencedAwayTeamData { get; set; }
+            public Dictionary<string, TeamData> referencedHomeTeamData { get; set; }
+        }
         public LeagueService(IDocumentStore documentStore, ILogger<LeagueService> logger, ReferenceService referenceService, GameService gameSevice, UserManager<PickEmUser> userManager)
         {
             _documentStore = documentStore;
@@ -444,95 +451,145 @@ namespace PickEmServer.Heart
             return leagueWeeks;
         }
 
+        public async Task<WeekScoreboard> ReadWeekScoreboard(string seasonCode, string leagueCode, int weekNumber, string authenticatedUserName)
+        {
+            // determine if the authenticated user has this player tag (if not hide picks for games not started)
+            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, leagueCode, authenticatedUserName);
+           
+            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, leagueCode, weekNumber);
+
+            // get all players and loop over to map for full week
+            var playerTags = leagueWithExtendedData.LeagueData.Players.Select(p => p.PlayerTag);
+
+            var weekScoreboard = new WeekScoreboard();
+            weekScoreboard.PlayerScoreboards = new List<PlayerScoreboard>();
+
+            foreach ( var playerTag in playerTags )
+            {
+                var nextPlayerScoreboard = new PlayerScoreboard();
+                nextPlayerScoreboard.PlayerTag = playerTag;
+                nextPlayerScoreboard.PlayerScoreboardPicks = this.MapDataToPlayerPicks(
+                    seasonCode, 
+                    leagueCode, 
+                    weekNumber, 
+                    playerTag, 
+                    (authenticatedPlayer.PlayerTag == playerTag), 
+                    leagueWithExtendedData
+                    );
+
+                nextPlayerScoreboard.Wins = leagueWithExtendedData.LeagueData
+                    .Weeks.Single(w => w.WeekNumberRef == weekNumber)
+                    .PlayerWeekScores.Single(pws => pws.PlayerTagRef == playerTag)
+                    .Points;
+
+                weekScoreboard.PlayerScoreboards.Add(nextPlayerScoreboard);
+            }
+
+            return weekScoreboard;
+        }
+
         // TODO: this probably should be spread between league and game services?
         public async Task<List<PlayerScoreboardPick>> ReadPlayerScoreboard(string seasonCode, string leagueCode, int weekNumber, string playerTag, string authenticatedUserName)
         {
+            // determine if the authenticated user has this player tag (if not hide picks for games not started)
+            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, leagueCode, authenticatedUserName);
+            bool readingPlayersOwnScoreboard = (authenticatedPlayer.PlayerTag == playerTag);
+
+            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, leagueCode, weekNumber);
+
+            return this.MapDataToPlayerPicks(seasonCode, leagueCode, weekNumber, playerTag, readingPlayersOwnScoreboard, leagueWithExtendedData);
+        }
+
+        private async Task<LeagueWithGamesAndTeamDataForWeek> ReadLeagueWithWeekGamesExpanded(string seasonCode, string leagueCode, int weekNumber)
+        {
             using (var dbSession = _documentStore.QuerySession())
             {
-                // determine if the authenticated user has this player tag (if not hide picks for games not started)
-                var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, leagueCode, authenticatedUserName);
-                bool readingPlayersOwnScoreboard = (authenticatedPlayer.PlayerTag == playerTag);
-                
+                var leagueWithExtendedData = new LeagueWithGamesAndTeamDataForWeek();
+
                 // get league
-                var leagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
+                leagueWithExtendedData.LeagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
 
                 // get games in league for week
-                var leagueWeek = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
+                var leagueWeek = leagueWithExtendedData.LeagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
 
-                if ( leagueWeek == null )
+                if (leagueWeek == null)
                 {
                     throw new ArgumentException($"League with league code: {leagueCode} does not contain week: {weekNumber}");
                 }
 
                 var gameIdArray = leagueWeek.Games.Select(g => g.GameIdRef).ToArray();
 
-                var reffedAwayTeams = new Dictionary<string, TeamData>();
-                var reffedHomeTeams = new Dictionary<string, TeamData>();
+                leagueWithExtendedData.referencedAwayTeamData = new Dictionary<string, TeamData>();
+                leagueWithExtendedData.referencedHomeTeamData = new Dictionary<string, TeamData>();
 
-                var gamesInLeagueWeek = await dbSession
+                 var gamesForWeek = await dbSession
                     .Query<GameData>()
-                    .Include(g => g.AwayTeam.TeamCodeRef, reffedAwayTeams)
-                    .Include(g => g.HomeTeam.TeamCodeRef, reffedHomeTeams)
+                    .Include(g => g.AwayTeam.TeamCodeRef, leagueWithExtendedData.referencedAwayTeamData)
+                    .Include(g => g.HomeTeam.TeamCodeRef, leagueWithExtendedData.referencedHomeTeamData)
                     .Where(g => g.GameId.IsOneOf(gameIdArray))
                     .ToListAsync()
                     .ConfigureAwait(false);
 
+                leagueWithExtendedData.GameDataForWeek = gamesForWeek.ToList();
 
-                // have whole league and games in param week for league
-                // build scoreboard for input player
+                return leagueWithExtendedData;
+            }
 
-                var playerScoreboard = new List<PlayerScoreboardPick>();
+        }
 
-                foreach ( var gameData in gamesInLeagueWeek.OrderBy(game => game.GameStart) )
+        private List<PlayerScoreboardPick> MapDataToPlayerPicks(string seasonCode, string leagueCode, int weekNumber, string playerTag, bool readingPlayersOwnScoreboard, LeagueWithGamesAndTeamDataForWeek leagueWithExtendedData)
+        {
+            var playerScoreboard = new List<PlayerScoreboardPick>();
+
+            foreach (var gameData in leagueWithExtendedData.GameDataForWeek.OrderBy(game => game.GameStart))
+            {
+                var weekData = leagueWithExtendedData.LeagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
+                if (weekData == null)
                 {
-                    var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
-                    if (weekData == null)
-                    {
-                        throw new ArgumentException($"League: {leagueCode} for season: {seasonCode} does not contain a week: {weekNumber}");
-                    }
-
-                    var pickemGameData = weekData.Games.SingleOrDefault(g => g.GameIdRef == gameData.GameId);
-                    if (pickemGameData == null)
-                    {
-                        throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber} does not have a game with gameid: {gameData.GameId}");
-                    }
-
-                    var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef == playerTag);
-                    if (playerPickData == null)
-                    {
-                        throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber}, game {gameData.GameId}, has no player pick for {playerTag}. Is {playerTag} in this league?");
-                    }
-
-
-                    var playerScoreboardPick = new PlayerScoreboardPick
-                    {
-                        AwayTeamIconFileName = reffedAwayTeams[gameData.AwayTeam.TeamCodeRef].icon24FileName,
-                        AwayTeamLongName = string.IsNullOrEmpty(reffedAwayTeams[gameData.AwayTeam.TeamCodeRef].LongName) ? gameData.AwayTeam.TeamCodeRef : reffedAwayTeams[gameData.AwayTeam.TeamCodeRef].LongName,
-                        AwayTeamLosses = 0, // TODO set
-                        AwayTeamRank = 0, // TODO set
-                        AwayTeamScore = gameData.AwayTeam.Score,
-                        AwayTeamWins = 0, // TODO set
-                        GameId = gameData.GameId,
-                        GameState = gameData.GameState,
-                        GameStatusDescription = _gameSevice.BuildGameDescription(gameData),
-                        HomeTeamIconFileName = reffedHomeTeams[gameData.HomeTeam.TeamCodeRef].icon24FileName,
-                        HomeTeamLongName = string.IsNullOrEmpty(reffedHomeTeams[gameData.HomeTeam.TeamCodeRef].LongName) ? gameData.HomeTeam.TeamCodeRef : reffedHomeTeams[gameData.HomeTeam.TeamCodeRef].LongName,
-                        HomeTeamLosses = 0, // TODO set
-                        HomeTeamRank = 0, // TODO set
-                        HomeTeamScore = gameData.HomeTeam.Score,
-                        HomeTeamWins = 0, // TODO set
-                        Pick = CalculatePickState(playerPickData, gameData, readingPlayersOwnScoreboard),
-                        PickState = playerPickData.PickStatus,
-                        Spread = gameData.Spread.PointSpread,
-                        SpreadDirection = gameData.Spread.SpreadDirection
-                    };
-
-                    playerScoreboard.Add(playerScoreboardPick);
-
+                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode} does not contain a week: {weekNumber}");
                 }
 
-                return playerScoreboard;
+                var pickemGameData = weekData.Games.SingleOrDefault(g => g.GameIdRef == gameData.GameId);
+                if (pickemGameData == null)
+                {
+                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber} does not have a game with gameid: {gameData.GameId}");
+                }
+
+                var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef == playerTag);
+                if (playerPickData == null)
+                {
+                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber}, game {gameData.GameId}, has no player pick for {playerTag}. Is {playerTag} in this league?");
+                }
+
+
+                var playerScoreboardPick = new PlayerScoreboardPick
+                {
+                    AwayTeamIconFileName = leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].icon24FileName,
+                    AwayTeamLongName = string.IsNullOrEmpty(leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName) ? gameData.AwayTeam.TeamCodeRef : leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName,
+                    AwayTeamLosses = 0, // TODO set
+                    AwayTeamRank = 0, // TODO set
+                    AwayTeamScore = gameData.AwayTeam.Score,
+                    AwayTeamWins = 0, // TODO set
+                    GameId = gameData.GameId,
+                    GameState = gameData.GameState,
+                    GameStatusDescription = _gameSevice.BuildGameDescription(gameData),
+                    HomeTeamIconFileName = leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].icon24FileName,
+                    HomeTeamLongName = string.IsNullOrEmpty(leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].LongName) ? gameData.HomeTeam.TeamCodeRef : leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].LongName,
+                    HomeTeamLosses = 0, // TODO set
+                    HomeTeamRank = 0, // TODO set
+                    HomeTeamScore = gameData.HomeTeam.Score,
+                    HomeTeamWins = 0, // TODO set
+                    Pick = CalculatePickState(playerPickData, gameData, readingPlayersOwnScoreboard),
+                    PickState = playerPickData.PickStatus,
+                    Spread = gameData.Spread.PointSpread,
+                    SpreadDirection = gameData.Spread.SpreadDirection
+                };
+
+                playerScoreboard.Add(playerScoreboardPick);
+
             }
+
+            return playerScoreboard;
         }
 
         private PickTypes CalculatePickState(PlayerPickData playerPickData, GameData gameData, bool readingPlayersOwnScoreboard)

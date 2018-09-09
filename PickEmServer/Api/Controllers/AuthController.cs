@@ -71,6 +71,7 @@ namespace PickEmServer.Api.Controllers
                 );
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                _logger.LogInformation($"Login success for user ({credentials.UserName})");
                 return Ok(new { Token = tokenString });
             }
             else
