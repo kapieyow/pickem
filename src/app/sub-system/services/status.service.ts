@@ -19,12 +19,12 @@ export class StatusService {
   public playerTagFilter: string;
 
   // TODO: this is probably terrible. Some other flag to show when active
-  public userLoggedIn: boolean;
+  public userLoggedInAndInitialized: boolean;
   public userName: string;
   public userPlayerTag: string;
 
   constructor(private logger: LoggerService, private http: HttpClient) {
-    this.userLoggedIn = false;
+    this.userLoggedInAndInitialized = false;
 
     // TODO: make work for other seasons
     this.seasonCode = "18";

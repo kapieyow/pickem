@@ -28,7 +28,7 @@ export class UserService {
 
   login (username: string, password: string) : Observable<any>
   {
-    this.statusService.userLoggedIn = false;
+    this.statusService.userLoggedInAndInitialized = false;
 
     let credentials = new UserCredentials();
     credentials.userName = username;
@@ -41,7 +41,6 @@ export class UserService {
             let token = (<any>response).token;
             localStorage.setItem("JWT", token);
             this.statusService.userName = username;
-            this.statusService.userLoggedIn = true;
           }),
         catchError(error =>
           {
@@ -92,7 +91,7 @@ export class UserService {
   logout ()
   {
     localStorage.removeItem("JWT");
-    this.statusService.userLoggedIn = false;
+    this.statusService.userLoggedInAndInitialized = false;
   }
 
   register (userName: string, password: string, email: string) : Observable<User>

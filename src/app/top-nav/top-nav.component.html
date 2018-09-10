@@ -11,7 +11,7 @@
                     </button>
 
                     <div class="collapse navbar-collapse" [collapse]=isCollapsed>
-                        <form class="form-inline my-2 my-lg-0 ml-auto" *ngIf="statusService.userLoggedIn">
+                        <form class="form-inline my-2 my-lg-0 ml-auto" *ngIf="statusService.userLoggedInAndInitialized">
 
                             <div class="btn-group mx-2" dropdown>
                                 <button id="button-player" dropdownToggle type="button" class="btn btn-outline-warning dropdown-toggle" aria-controls="dropdown-player">

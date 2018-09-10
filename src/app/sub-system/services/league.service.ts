@@ -34,8 +34,11 @@ export class LeagueService {
   {
     this.readPlayerScoreboard(seasonCode, leagueCode, weekNumber, playerTag)
       .subscribe(
-        response => this.playerScoreboard = response,
-        errors => this.playerScoreboard = new PlayerScoreboard() // note readPlayerScoreboard already logged whatever barfed.
+          response => { },
+          errors => 
+          {
+            this.playerScoreboard = new PlayerScoreboard();
+          }
       );
   }
 
@@ -43,9 +46,11 @@ export class LeagueService {
   {
     this.readWeekScoreboard(seasonCode, leagueCode, weekNumber)
       .subscribe(
-        response => this.weekScoreboard = response,
-        errors => this.weekScoreboard = null
-      );
+        response => { },
+        errors => 
+        {
+          errors => this.weekScoreboard = null
+        });
   }
 
   public readPlayerScoreboard(seasonCode: string, leagueCode: string, weekNumber: number, playerTag: string): Observable<PlayerScoreboard>
@@ -53,7 +58,11 @@ export class LeagueService {
     //{SeasonCode}/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard
     return this.http.get<PlayerScoreboard>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/" + weekNumber + "/" + playerTag + "/scoreboard", httpOptions)
       .pipe(
-        tap(response => this.logger.debug(`read (${response.gamePickScoreboards.length}) player scoreboard picks`)),
+        tap(response => 
+          { 
+            this.logger.debug(`read (${response.gamePickScoreboards.length}) player scoreboard picks`);
+            this.playerScoreboard = response;
+          }),
         catchError(error => 
           { 
             this.playerScoreboard = new PlayerScoreboard();
@@ -72,22 +81,31 @@ export class LeagueService {
       );
   }
 
-  public readPlayers(seasonCode: string, leagueCode: string) : Observable<Player[]>
+  public loadPlayers(seasonCode: string, leagueCode: string) : Observable<Player[]>
   {
     // /api/:SeasonCode/:LeagueCode/players
     return this.http.get<Player[]>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/players", httpOptions)
       .pipe(
-        tap(response => this.logger.debug(`read (${response.length}) players`)),
+        tap(response => 
+        { 
+          this.players = response;
+          this.logger.debug(`read (${response.length}) players`);
+        }),
         catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
       );
   }
 
-  public readWeeks(seasonCode: string, leagueCode: string) :Observable<LeagueWeeks>
+  public loadWeeks(seasonCode: string, leagueCode: string) :Observable<LeagueWeeks>
   {
     // /api/:SeasonCode/:LeagueCode/weeks
     return this.http.get<LeagueWeeks>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/weeks", httpOptions)
       .pipe(
-        tap(response => this.logger.debug(`read (${response.weekNumbers.length}) weeks`)),
+        tap(response => 
+          {
+            this.weekNumbers = response.weekNumbers;
+            this.statusService.weekNumberFilter = response.currentWeekNumber;
+            this.logger.debug(`read (${response.weekNumbers.length}) weeks`)
+          }),
         catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
       );
   }
@@ -97,33 +115,16 @@ export class LeagueService {
     // /api/{SeasonCode}/{LeagueCode}/{WeekNumber}/scoreboard
     return this.http.get<WeekScoreboard>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/" + weekNumber + "/scoreboard", httpOptions)
       .pipe(
-        tap(response => this.logger.debug(`read week (${weekNumber}) scoreboard for league (${leagueCode})`)),
+        tap(response => 
+          {
+            this.weekScoreboard = response,
+            this.logger.debug(`read week (${weekNumber}) scoreboard for league (${leagueCode})`);
+          }),
         catchError(error => 
           { 
             this.weekScoreboard = null;
             return throwError(this.logger.logAndParseHttpError(error)); 
           })
-      );
-  }
-
-  public setupLeagueFilters()
-  {
-    this.readPlayers(this.statusService.seasonCode, this.statusService.leagueCode)
-      .subscribe(
-        response => { 
-          this.players = response 
-        },
-        errors => { return throwError(this.logger.logAndParseHttpError(errors)); }
-      );
-
-    // load weeks
-    this.readWeeks(this.statusService.seasonCode, this.statusService.leagueCode)
-      .subscribe(
-        response => { 
-          this.weekNumbers = response.weekNumbers;
-          this.statusService.weekNumberFilter = response.currentWeekNumber;
-        },
-        errors => { return throwError(this.logger.logAndParseHttpError(errors)); }
       );
   }
 
