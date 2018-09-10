@@ -114,19 +114,21 @@
         </thead>
         <tbody>
           <tr class="table-active">
-              <th scope="row">Wins</th>
+              <th scope="row">
+
+              </th>
               <td *ngFor="let winBoard of leagueService.weekScoreboard.playerWins" >{{ winBoard.wins }}</td>
           </tr>
           <tr class="table-default" *ngFor="let gameScoreboard of leagueService.weekScoreboard.gamePickScoreboards">
             <td scope="col">
               <img src="assets/team_icons/{{ gameScoreboard.awayTeamIconFileName }}" title="{{ gameScoreboard.awayTeamLongName }}" width="24" class="mx-1">
               <span [ngClass]="{ 
-                'pickem-score-won': gameScoreboard.leader == 'Away' && gameScoreboard.gameState == 'Final', 
-                'pickem-score-winning': gameScoreboard.leader == 'Away' && gameScoreboard.pickState == 'InGame' }">{{ gameScoreboard.awayTeamScore }}</span>
+                'pickem-score-won': gameScoreboard.leaderAfterSpread == 'Away' && gameScoreboard.gameState == 'Final', 
+                'pickem-score-winning': gameScoreboard.leaderAfterSpread == 'Away' && gameScoreboard.pickState == 'InGame' }">{{ gameScoreboard.awayTeamScore }}</span>
               <img src="assets/team_icons/{{ gameScoreboard.homeTeamIconFileName }}" title="{{ gameScoreboard.homeTeamLongName }}" width="24" class="mx-1" />
               <span [ngClass]="{ 
-                'pickem-score-won': gameScoreboard.leader == 'Home' && gameScoreboard.gameState == 'Final', 
-                'pickem-score-winning': gameScoreboard.leader == 'Home' && gameScoreboard.pickState == 'InGame' }">{{ gameScoreboard.homeTeamScore }}</span>
+                'pickem-score-won': gameScoreboard.leaderAfterSpread == 'Home' && gameScoreboard.gameState == 'Final', 
+                'pickem-score-winning': gameScoreboard.leaderAfterSpread == 'Home' && gameScoreboard.pickState == 'InGame' }">{{ gameScoreboard.homeTeamScore }}</span>
             </td>
             <td *ngFor="let pickScoreboard of gameScoreboard.pickScoreboards">
                 <img *ngIf="pickScoreboard.pickedTeamIconFileName" src="assets/team_icons/{{ pickScoreboard.pickedTeamIconFileName }}" title="{{ pickScoreboard.pickedTeamLongName }}" width="24" class="mx-1" />

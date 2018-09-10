@@ -9689,19 +9689,15 @@
   .pickem-score-losing 
   {
     border-style:dashed;
-    border-color:#990500;
+    border-color:#d9534f;
     border-width:1px;
     border-radius:3px;
     padding:2px;
   }
   .pickem-score-lost 
   {
-    background-color:#990500;
-    border-style:solid;
-    border-color:#8d9dad;
-    border-width:1px;
-    border-radius:3px;
-    padding:2px;
+    color:#d9534f;
+    font-weight: bold;
   }
   .pickem-score-pushing 
   {
@@ -9713,27 +9709,19 @@
   }
   .pickem-score-pushed 
   {
-    background-color:#868e96;
-    border-style:solid;
-    border-color:#8d9dad;
-    border-width:1px;
-    border-radius:3px;
-    padding:2px;
+    color:#868e96;
+    font-weight: bold;
   }
   .pickem-score-winning
   { 
     border-style:dashed;
-    border-color:#006400;
+    border-color:#5cb85c;
     border-width:1px;
     border-radius:3px;
     padding:2px;
   }
   .pickem-score-won
   {
-    background-color:#006400;
-    border-style:solid;
-    border-color:#8d9dad;
-    border-width:1px;
-    border-radius:3px;
-    padding:2px;
+    color:#5cb85c;
+    font-weight: bold;
   }
