@@ -35,10 +35,25 @@ namespace PickEmServer.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            string userDefaultLeagueCode = null;
+            if (!userRegistration.DoNotSetDefaultLeague)
+            {
+                if (String.IsNullOrEmpty(userRegistration.DefaultLeagueCode))
+                {
+                    // TODO: should we default "Default"?
+                    userDefaultLeagueCode = "Default";
+                }
+                else
+                {
+                    userDefaultLeagueCode = userRegistration.DefaultLeagueCode;
+                }
+            }
+
             var newPickEmUser = new PickEmUser
             {
                 Email = userRegistration.Email,
-                UserName = userRegistration.UserName
+                UserName = userRegistration.UserName,
+                DefaultLeagueCode = userDefaultLeagueCode
             };
 
             var result = await _userManager.CreateAsync(newPickEmUser, userRegistration.Password);
@@ -48,10 +63,7 @@ namespace PickEmServer.Api.Controllers
 
             if (!userRegistration.DoNotSetDefaultLeague)
             {
-                // TODO this auto adds use to DEFAULT league. Make this better with registration
-                // for specific league etc.
-                // ALSO: allow for player tag to not match user name
-                await _leagueService.AddLeaguePlayer("Default", new LeaguePlayerAdd { PlayerTag = userRegistration.UserName, UserName = userRegistration.UserName });
+                await _leagueService.AddLeaguePlayer(userDefaultLeagueCode, new LeaguePlayerAdd { PlayerTag = userRegistration.UserName, UserName = userRegistration.UserName });
             }
 
             string resultMessage = string.Format("User ({0}) created", userRegistration.UserName);
@@ -60,6 +72,7 @@ namespace PickEmServer.Api.Controllers
 
             User newUser = new User
             {
+                DefaultLeagueCode = userDefaultLeagueCode,
                 Email = userRegistration.Email,
                 UserName = userRegistration.UserName
             };

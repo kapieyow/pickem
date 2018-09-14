@@ -72,7 +72,17 @@ namespace PickEmServer.Api.Controllers
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
                 _logger.LogInformation($"Login success for user ({credentials.UserName})");
-                return Ok(new { Token = tokenString });
+
+
+                var pickemUser = new UserLoggedIn
+                {
+                    DefaultLeagueCode = userToVerify.DefaultLeagueCode,
+                    Email = userToVerify.Email,
+                    UserName = userToVerify.UserName,
+                    Token = tokenString
+                };
+
+                return new OkObjectResult(pickemUser);
             }
             else
             {

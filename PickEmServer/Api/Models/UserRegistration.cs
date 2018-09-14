@@ -14,5 +14,6 @@ namespace PickEmServer.Api.Models
         public string Password { get; set; }
         public string UserName { get; set; }
         public bool DoNotSetDefaultLeague { get; set; }
+        public string DefaultLeagueCode { get; set; }
     }
 }

@@ -77,6 +77,7 @@ namespace PickEmServer.Heart
                 LeagueData newLeagueData = new LeagueData
                 {
                     LeagueCode = newLeague.LeagueCode,
+                    CurrentWeekRef = newLeague.CurrentWeekNumber,
                     LeagueTitle = newLeague.LeagueTitle,
                     PlayerSeasonScores = new List<PlayerScoreSubtotalData>(),
                     Players = new List<LeaguePlayerData>(),
