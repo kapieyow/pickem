@@ -11,6 +11,7 @@ import { environment } from '../../../environments/environment';
 import { LeagueService } from './league.service';
 import { StatusService } from './status.service';
 import { UserRegistration } from '../models/api/user-registration';
+import { UserLoggedIn } from '../models/api/user-logged-in';
 import { User } from '../models/api/user';
 
 
@@ -26,7 +27,7 @@ export class UserService {
 
   constructor(private logger: LoggerService, private http: HttpClient, private statusService: StatusService, private leagueService: LeagueService) { }
 
-  login (username: string, password: string) : Observable<any>
+  login (username: string, password: string) : Observable<UserLoggedIn>
   {
     this.statusService.userLoggedInAndInitialized = false;
 
@@ -34,13 +35,23 @@ export class UserService {
     credentials.userName = username;
     credentials.password = password;
 
-    return this.http.post<UserCredentials>(environment.pickemRestServerBaseUrl + "/auth/login", credentials, httpOptions)
+    return this.http.post<UserLoggedIn>(environment.pickemRestServerBaseUrl + "/auth/login", credentials, httpOptions)
       .pipe(
         tap(response => 
           {
-            let token = (<any>response).token;
+            let token = response.token;
             localStorage.setItem("JWT", token);
             this.statusService.userName = username;
+            
+            if ( response.defaultLeagueCode )
+            {
+              this.statusService.leagueCode = response.defaultLeagueCode;
+            }
+            else
+            {
+              // TODO: unhack this
+              this.statusService.leagueCode = "Default";
+            }
           }),
         catchError(error =>
           {
@@ -94,9 +105,10 @@ export class UserService {
     this.statusService.userLoggedInAndInitialized = false;
   }
 
-  register (userName: string, password: string, email: string) : Observable<User>
+  register (userName: string, password: string, email: string, defaultLeagueCode: string) : Observable<User>
   {
     let userRegistration = new UserRegistration();
+    userRegistration.defaultLeagueCode = defaultLeagueCode;
     userRegistration.email = email;
     userRegistration.password = password;
     userRegistration.userName = userName;

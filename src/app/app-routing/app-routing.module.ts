@@ -11,7 +11,7 @@ import { AuthGuard } from '../sub-system/auth/auth-guard';
 const routes: Routes = [
   { path: '', component: LoginComponent },
   { path: 'player', component: PlayerComponent, canActivate: [AuthGuard] },
-  { path: 'register', component: RegisterComponent  },
+  { path: 'register/:leagueCode', component: RegisterComponent  },
   { path: 'testdriver', component: TestDriverComponent  },
 ];
 

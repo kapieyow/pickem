@@ -28,10 +28,6 @@ export class StatusService {
 
     // TODO: make work for other seasons
     this.seasonCode = "18";
-    // TODO: tighter league handling
-    this.leagueCode = "Default";
-    // TODO: do better
-    this.weekNumberFilter = 1;
 
   }
 

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../sub-system/services/user.service';
+import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { LoggerService } from '../sub-system/services/logger.service';
 
@@ -10,24 +11,26 @@ import { LoggerService } from '../sub-system/services/logger.service';
 })
 export class RegisterComponent implements OnInit {
 
-  constructor(private router: Router, private userService: UserService, private logger: LoggerService) { }
+  constructor(private route: ActivatedRoute, private router: Router, private userService: UserService, private logger: LoggerService) { }
 
   inputsInvalid: boolean = false;
   registrationErrors: string[];
+  leagueCode: string;
 
   ngOnInit() {
+    this.leagueCode = this.route.snapshot.params["leagueCode"];
   }
 
   tryRegistration(userName: string, password: string, email: string) {
 
     this.inputsInvalid = false;
 
-    this.userService.register(userName, password, email)
+    this.userService.register(userName, password, email, this.leagueCode)
       .subscribe(
         result => 
         { 
             this.inputsInvalid = false;
-            this.router.navigate(['/'], { skipLocationChange: true });
+            this.router.navigate(['/']);
         },
         errors => 
           {
