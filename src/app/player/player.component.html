@@ -132,7 +132,8 @@
             </td>
             <td *ngFor="let pickScoreboard of gameScoreboard.pickScoreboards">
                 <img *ngIf="pickScoreboard.pickedTeamIconFileName" src="assets/team_icons/{{ pickScoreboard.pickedTeamIconFileName }}" title="{{ pickScoreboard.pickedTeamLongName }}" width="24" class="mx-1" />
-                <span *ngIf="pickScoreboard.pickState == 'None'">-</span>
+                <span *ngIf="pickScoreboard.pick != 'Hidden' && pickScoreboard.pickState == 'None'">-</span>
+                <span *ngIf="pickScoreboard.pick == 'Hidden'">?</span>
                 <!-- locked -->
                 <!-- not picked -->
                 <span *ngIf="pickScoreboard.pickState == 'Losing'" class="pickem-score-losing" title="Losing">L</span>
