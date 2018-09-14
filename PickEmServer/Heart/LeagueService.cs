@@ -627,14 +627,15 @@ namespace PickEmServer.Heart
 
                     }
 
+                    PickTypes pickType = CalculatePickState(playerPickData, gameData, readingPlayersOwnScoreboard);
 
                     var playerGamePickScoreboard = new PickScoreboard
                     {
-                        Pick = CalculatePickState(playerPickData, gameData, readingPlayersOwnScoreboard),
+                        Pick = pickType,
                         PickState = playerPickData.PickStatus,
                         PlayerTag = playerTag,
-                        PickedTeamIconFileName = pickedTeamIconFileName,
-                        PickedTeamLongName = pickedTeamLongName
+                        PickedTeamIconFileName = ( pickType == PickTypes.Hidden ) ? null : pickedTeamIconFileName,
+                        PickedTeamLongName = ( pickType == PickTypes.Hidden ) ? "Hidden" : pickedTeamLongName
                     };
 
                     gameScoreboard.PickScoreboards.Add(playerGamePickScoreboard);
@@ -648,9 +649,9 @@ namespace PickEmServer.Heart
 
         private PickTypes CalculatePickState(PlayerPickData playerPickData, GameData gameData, bool readingPlayersOwnScoreboard)
         {
-            if ( !readingPlayersOwnScoreboard && (gameData.GameState == GameStates.SpreadLocked || gameData.GameState == GameStates.SpreadNotSet) )
+            if ( !readingPlayersOwnScoreboard && (gameData.GameState == GameStates.SpreadLocked || gameData.GameState == GameStates.SpreadNotSet) && playerPickData.Pick != PickTypes.None )
             {
-                // pick for another player (not the one logged in) and the game has not started)
+                // pick for another player (not the one logged in), the game has not started AND the other player has made a pick
                 return PickTypes.Hidden;
             }
             else
