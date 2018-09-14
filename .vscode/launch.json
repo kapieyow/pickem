@@ -2,6 +2,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "week setup - py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem-setup-week.py",
+            "args": [
+                "-l",
+                "NeOnYa",
+                "-w",
+                "3"
+            ]
+        },
+        {
             "name": "spreada - py",
             "type": "python",
             "request": "launch",

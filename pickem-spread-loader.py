@@ -13,7 +13,7 @@ class Jsonable:
 
 
 # "configs"
-VERSION = "0.8.12"
+VERSION = "0.10.13"
 
 PICKEM_COMPONENT_NAME = "Pick'Em Spread Loader"
 PICKEM_INI = "pickem-settings.ini"
@@ -104,6 +104,11 @@ for divRow in containerDiv.find_all("div", class_="datarow"):
 
 	nextGameSpread.VisitorTeam = thisDataDiv.find_next("span", id="tmv").string
 	nextGameSpread.HomeTeam = thisDataDiv.find_next("span", id="tmh").string
+
+	# Can be used to dump spread names
+	#	print (nextGameSpread.VisitorTeam)
+	#	print (nextGameSpread.HomeTeam)
+
 	# team name may have "(N)" at the end indicating neutral field, if it do, cut it
 	if len(nextGameSpread.HomeTeam) > 5 and nextGameSpread.HomeTeam[-4:] == " (N)":
 		nextGameSpread.HomeTeam = nextGameSpread.HomeTeam[:-4]
@@ -121,6 +126,7 @@ for divRow in containerDiv.find_all("div", class_="datarow"):
 
 	# see if there is a match in the pickem games
 	for pickemGame in pickemGamesForWeek:
+
 		if pickemGame['awayTeam']['team']['theSpreadName'] == nextGameSpread.VisitorTeam and pickemGame['homeTeam']['team']['theSpreadName'] == nextGameSpread.HomeTeam:
 			# matched update pickem spread
 
