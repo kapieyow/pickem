@@ -3,7 +3,7 @@ import os
 import subprocess
 import time
 
-SLEEP_SECONDS = 300
+SLEEP_SECONDS = 120
 
 print("----------------------------------------")
 print("  Pick'em game updating looper")
