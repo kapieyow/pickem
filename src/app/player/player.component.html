@@ -44,7 +44,7 @@
                   {{ gameScoreboard.awayTeamLongName }}
                   <span class="font-weight-light text-light px-1">({{ gameScoreboard.awayTeamWins }}-{{ gameScoreboard.awayTeamLosses }})</span>
                   <br *ngIf="gameScoreboard.spreadDirection == 'ToAway'">
-                  <span *ngIf="gameScoreboard.spreadDirection == 'ToAway'" class="px-3" tooltip="Spread">+{{ gameScoreboard.spread }}</span>
+                  <span *ngIf="gameScoreboard.spreadDirection == 'ToAway'" [ngClass]="{'text-warning': gameScoreboard.gameState == 'SpreadNotSet'}" class="px-3" tooltip="Spread"><span *ngIf="gameScoreboard.gameState == 'SpreadNotSet'">*&nbsp;</span>+{{ gameScoreboard.spread }}</span>
                 </div>
                 <div class="col-sm-2 text-nowrap text-right">
                   <h4 class="font-weight-bold mb-0">{{ gameScoreboard.awayTeamScore }}</h4>
@@ -71,7 +71,7 @@
                   @ {{ gameScoreboard.homeTeamLongName }}
                   <span class="font-weight-light text-light px-1">({{ gameScoreboard.homeTeamWins }}-{{ gameScoreboard.homeTeamLosses }})</span>
                   <br *ngIf="gameScoreboard.spreadDirection == 'ToHome'">
-                  <span *ngIf="gameScoreboard.spreadDirection == 'ToHome'" class="px-3" tooltip="Spread">+{{ gameScoreboard.spread }}</span>
+                  <span *ngIf="gameScoreboard.spreadDirection == 'ToHome'" [ngClass]="{'text-warning': gameScoreboard.gameState == 'SpreadNotSet'}" class="px-3" tooltip="Spread"><span *ngIf="gameScoreboard.gameState == 'SpreadNotSet'">*&nbsp;</span>+{{ gameScoreboard.spread }}</span>
                 </div>
                 <div class="col-sm-2 text-nowrap text-right">
                   <h4 class="font-weight-bold mb-0">{{ gameScoreboard.homeTeamScore }}</h4>
