@@ -37,26 +37,26 @@ export class LoginComponent implements OnInit {
                 {     
                     this.leagueService.loadWeeks(this.statusService.seasonCode, this.statusService.leagueCode).subscribe(response => 
                       { 
-                        this.leagueService.readPlayerScoreboard(
+                        this.leagueService.loadPlayerScoreboard(
                           this.statusService.seasonCode, 
                           this.statusService.leagueCode, 
                           this.statusService.weekNumberFilter,
-                          this.statusService.playerTagFilter).subscribe(response => 
-                          {
-                            this.leagueService.readWeekScoreboard(
-                              this.statusService.seasonCode, 
-                              this.statusService.leagueCode, 
-                              this.statusService.weekNumberFilter).subscribe(response => 
-                              {
-                                // user fully setup go to player view
-                                this.statusService.userLoggedInAndInitialized = true;
-                                this.router.navigate(['/player'], { skipLocationChange: true });
-                              },
-                              errors => { this.inputsInvalid = true; this.loginErrors = errors; }
-                            );
-                          },
-                          errors => { this.inputsInvalid = true; this.loginErrors = errors; }
-                        );
+                          this.statusService.playerTagFilter);
+
+                        this.leagueService.loadWeekScoreboard(
+                          this.statusService.seasonCode, 
+                          this.statusService.leagueCode, 
+                          this.statusService.weekNumberFilter
+                          );
+
+                        this.leagueService.loadLeagueScoreboard(
+                          this.statusService.seasonCode, 
+                          this.statusService.leagueCode
+                          );
+
+                        // user fully setup go to player view
+                        this.statusService.userLoggedInAndInitialized = true;
+                        this.router.navigate(['/player'], { skipLocationChange: true });   
                       },
                       errors => { this.inputsInvalid = true; this.loginErrors = errors; }
                     );

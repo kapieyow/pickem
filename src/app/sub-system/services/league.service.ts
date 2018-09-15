@@ -12,6 +12,7 @@ import { PickTypes, PickStates, GameStates } from '../models/api/enums';
 import { PlayerPick } from '../models/api/player-pick';
 import { PlayerPickUpdate } from '../models/api/player-pick-update';
 import { LeagueWeeks } from '../models/api/league-weeks';
+import { LeagueScoreboard } from '../models/api/league-scoreboard'
 import { WeekScoreboard } from '../models/api/week-scoreboard';
 
 //"Content-Type", "application/json-patch+json"
@@ -25,32 +26,44 @@ export class LeagueService {
 
   weekNumbers: number[] = [];
   players: Player[] = [];  
-  playerScoreboard: PlayerScoreboard = new PlayerScoreboard();
-  weekScoreboard: WeekScoreboard;
+
+  playerScoreboard: PlayerScoreboard = null;
+  weekScoreboard: WeekScoreboard = null;
+  leagueScoreboard: LeagueScoreboard = null;
+
 
   constructor(private logger: LoggerService, private statusService: StatusService, private http: HttpClient) { }
 
+  public loadLeagueScoreboard(seasonCode: string, leagueCode: string)
+  {
+    this.readLeagueScoreboard(seasonCode, leagueCode).subscribe( response => { this.leagueScoreboard = response; } );
+  }
+
   public loadPlayerScoreboard(seasonCode: string, leagueCode: string, weekNumber: number, playerTag: string)
   {
-    this.readPlayerScoreboard(seasonCode, leagueCode, weekNumber, playerTag)
-      .subscribe(
-          response => { },
-          errors => 
-          {
-            this.playerScoreboard = new PlayerScoreboard();
-          }
-      );
+    this.readPlayerScoreboard(seasonCode, leagueCode, weekNumber, playerTag).subscribe( response => { this.playerScoreboard = response; } );
   }
 
   public loadWeekScoreboard(seasonCode: string, leagueCode: string, weekNumber: number)
   {
-    this.readWeekScoreboard(seasonCode, leagueCode, weekNumber)
-      .subscribe(
-        response => { },
-        errors => 
-        {
-          errors => this.weekScoreboard = null
-        });
+    this.readWeekScoreboard(seasonCode, leagueCode, weekNumber).subscribe( response => { this.weekScoreboard = response; } );
+  }
+
+  public readLeagueScoreboard(seasonCode: string, leagueCode: string): Observable<LeagueScoreboard>
+  {
+    // api/{SeasonCode}/{LeagueCode}/scoreboard
+    return this.http.get<LeagueScoreboard>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/scoreboard", httpOptions)
+      .pipe(
+        tap(response => 
+          { 
+            this.logger.debug(`read scoreboard for league (${leagueCode})`);
+          }),
+        catchError(error => 
+          { 
+            this.leagueScoreboard = null;
+            return throwError(this.logger.logAndParseHttpError(error)); 
+          })
+      );
   }
 
   public readPlayerScoreboard(seasonCode: string, leagueCode: string, weekNumber: number, playerTag: string): Observable<PlayerScoreboard>
@@ -61,11 +74,10 @@ export class LeagueService {
         tap(response => 
           { 
             this.logger.debug(`read (${response.gamePickScoreboards.length}) player scoreboard picks`);
-            this.playerScoreboard = response;
           }),
         catchError(error => 
           { 
-            this.playerScoreboard = new PlayerScoreboard();
+            this.playerScoreboard = null;
             return throwError(this.logger.logAndParseHttpError(error)); 
           })
       );
@@ -117,7 +129,6 @@ export class LeagueService {
       .pipe(
         tap(response => 
           {
-            this.weekScoreboard = response,
             this.logger.debug(`read week (${weekNumber}) scoreboard for league (${leagueCode})`);
           }),
         catchError(error => 
