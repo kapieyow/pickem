@@ -504,6 +504,50 @@ namespace PickEmServer.Heart
             return playerScoreboard;
         }
 
+        internal async Task<LeagueScoreboard> ReadLeagueScoreboard(string seasonCode, string leagueCode)
+        {
+            using (var dbSession = _documentStore.QuerySession())
+            {
+                var leagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
+
+                var leagueScoreboard = new LeagueScoreboard();
+                leagueScoreboard.WeekNumbers = leagueData.Weeks.Select(w => w.WeekNumberRef).OrderBy(wn => wn).ToList();
+                leagueScoreboard.PlayerScoreboards = new List<PlayerSeasonScoreboard>();
+
+                // get player tags in "winning" order
+                var playerTags = leagueData
+                   .PlayerSeasonScores.OrderByDescending(pss => pss.Points)
+                   .ThenBy(pss => pss.PlayerTagRef)
+                   .Select(pss => pss.PlayerTagRef)
+                   ;
+
+                foreach ( var playerTag in playerTags )
+                {
+                    var playerSeasonScoreboard = new PlayerSeasonScoreboard();
+                    
+                    playerSeasonScoreboard.PlayerTag = playerTag;
+                    playerSeasonScoreboard.Wins = leagueData.PlayerSeasonScores.Single(pss => pss.PlayerTagRef == playerTag).Points;
+                    playerSeasonScoreboard.WeeklyScores = new List<WeekScore>();
+
+                    foreach ( var week in leagueScoreboard.WeekNumbers )
+                    {
+                        var weekScore = new WeekScore
+                        {
+                            Points = leagueData.Weeks.Single(w => w.WeekNumberRef == week).PlayerWeekScores.Single(pws => pws.PlayerTagRef == playerTag).Points,
+                            WeekNumber = week
+                        };
+
+                        playerSeasonScoreboard.WeeklyScores.Add(weekScore);
+                    }
+
+                    leagueScoreboard.PlayerScoreboards.Add(playerSeasonScoreboard);
+                }
+
+                return leagueScoreboard;
+
+            }
+        }
+
         private async Task<LeagueWithGamesAndTeamDataForWeek> ReadLeagueWithWeekGamesExpanded(string seasonCode, string leagueCode, int weekNumber)
         {
             using (var dbSession = _documentStore.QuerySession())

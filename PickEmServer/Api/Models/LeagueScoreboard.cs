@@ -7,10 +7,7 @@ namespace PickEmServer.Api.Models
 {
     public class LeagueScoreboard
     {
-        public League League { get; internal set; }
-        public Season Season { get; internal set; }
-
-        public List<PlayerSeasonScore> PlayerScores { get; internal set; }
-
+        public List<int> WeekNumbers { get; internal set; }
+        public List<PlayerSeasonScoreboard> PlayerScoreboards { get; internal set; }
     }
 }

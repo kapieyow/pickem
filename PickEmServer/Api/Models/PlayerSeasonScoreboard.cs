@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace PickEmServer.Api.Models
 {
-    public class PlayerSeasonScore
+    public class PlayerSeasonScoreboard
     {
-        public Player Player { get; internal set; }
-        public int Points { get; internal set; }
+        public string PlayerTag { get; internal set; }
+        public int Wins { get; internal set; }
 
         public List<WeekScore> WeeklyScores { get; internal set; }
 
