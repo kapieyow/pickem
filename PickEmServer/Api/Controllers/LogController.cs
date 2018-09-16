@@ -28,9 +28,9 @@ namespace PickEmServer.Api.Controllers
 
         // POST: api/logs
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] LogAdd logAdd)
+        public IActionResult Post([FromBody] LogAdd logAdd)
         {
-            Log newLog = await _logService.AddLog(logAdd);
+            Log newLog = _logService.AddLog(logAdd);
             return new OkObjectResult(newLog);
         }
 

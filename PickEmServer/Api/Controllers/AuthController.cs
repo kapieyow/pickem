@@ -40,7 +40,9 @@ namespace PickEmServer.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            // get the user to verifty
+            // get the user to verify
+            // NOTE: the find is case INsensitive so "Kip" will find "kip"
+            // result is cased correctly for subsequent calls.
             var userToVerify = await _userManager.FindByNameAsync(credentials.UserName);
 
             if (userToVerify == null)
@@ -58,7 +60,7 @@ namespace PickEmServer.Api.Controllers
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, credentials.UserName)
+                    new Claim(ClaimTypes.Name, userToVerify.UserName)
                     // TODO: could add roles here, probably based on user setup in db i.e. kip is god
                 };
 
@@ -71,7 +73,7 @@ namespace PickEmServer.Api.Controllers
                 );
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-                _logger.LogInformation($"Login success for user ({credentials.UserName})");
+                _logger.LogInformation($"Login success for unchecked user ({credentials.UserName}) exact user ({userToVerify.UserName})");
 
 
                 var pickemUser = new UserLoggedIn

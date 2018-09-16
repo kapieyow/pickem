@@ -17,7 +17,8 @@ namespace PickEmServer.Heart
             _documentStore = documentStore;
         }
 
-        public async Task<Log> AddLog (LogAdd logAdd)
+        // note, this puppy is sync
+        public Log AddLog (LogAdd logAdd)
         {
             if ( logAdd == null )
             {
@@ -34,7 +35,7 @@ namespace PickEmServer.Heart
             using (var dbSession = _documentStore.LightweightSession())
             {
                 dbSession.Store(logData);
-                await dbSession.SaveChangesAsync();
+                dbSession.SaveChanges();
 
                 // success return as API "read" object
                 Log newLog = new Log

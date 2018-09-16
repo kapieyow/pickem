@@ -209,7 +209,7 @@ namespace PickEmServer.Heart
 
                     // TODO - avoid direct new up of league service. Cannot IoC do to circlies because game service uses league. What to do?
                     var leagueService = _serviceProvider.GetService<LeagueService>();
-                    var leaguesData = await leagueService.ApplyGameChanges(game, gameChanges, dbSession);
+                    var leaguesData = leagueService.ApplyGameChanges(game, gameChanges, dbSession);
 
                     foreach ( var leagueData in leaguesData )
                     {

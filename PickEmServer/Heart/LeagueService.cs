@@ -97,14 +97,12 @@ namespace PickEmServer.Heart
 
                 dbSession.Store(newLeagueData);
                 dbSession.SaveChanges();
+
+                return this.MapLeagueData(newLeagueData);
             }
-
-            // read back out to return
-            return await this.ReadLeague(newLeague.LeagueCode);
-
         }
 
-        internal async Task<League> AddLeagueGame(string seasonCode, string leagueCode, int weekNumber, LeagueGameAdd newLeagueGame)
+        internal async Task<League> AddLeagueGame(string seasonCode, string uncheckedLeagueCode, int weekNumber, LeagueGameAdd newLeagueGame)
         {
             if (newLeagueGame == null)
             {
@@ -113,30 +111,18 @@ namespace PickEmServer.Heart
 
             using (var dbSession = _documentStore.LightweightSession())
             {
-                var leagueData = dbSession
-                    .Query<LeagueData>()
-                    .Where(l => l.LeagueCode == leagueCode)
-                    .SingleOrDefault();
-
-                if (leagueData == null)
-                {
-                    throw new ArgumentException($"No league exists with league code: {leagueCode}");
-                }
-
-                if (leagueData.SeasonCodeRef != seasonCode)
-                {
-                    throw new ArgumentException($"No league exists with league code: {leagueCode} for season: {seasonCode}");
-                }
+                var leagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                var exactLeagueCode = leagueData.LeagueCode;
 
                 var leagueWeek = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
                 if (leagueWeek == null)
                 {
-                    throw new ArgumentException($"League with league code: {leagueCode} does not contain week: {weekNumber}");
+                    throw new ArgumentException($"League with league code: {exactLeagueCode} does not contain week: {weekNumber}");
                 }
 
                 if (leagueWeek.Games.Exists(g => g.GameIdRef == newLeagueGame.GameId))
                 {
-                    throw new ArgumentException($"League with league code: {leagueCode} already has game with gameid: {newLeagueGame.GameId} for week: {weekNumber}");
+                    throw new ArgumentException($"League with league code: {exactLeagueCode} already has game with gameid: {newLeagueGame.GameId} for week: {weekNumber}");
                 }
 
                 var game = dbSession
@@ -151,7 +137,7 @@ namespace PickEmServer.Heart
 
                 if (game.WeekNumberRef != weekNumber)
                 {
-                    throw new ArgumentException($"Game week must match League week and they do not. League with league code: {leagueCode} has week: {weekNumber}. Game with game id: {newLeagueGame.GameId} has week {game.WeekNumberRef}");
+                    throw new ArgumentException($"Game week must match League week and they do not. League with league code: {exactLeagueCode} has week: {weekNumber}. Game with game id: {newLeagueGame.GameId} has week {game.WeekNumberRef}");
                 }
 
                 // whew we can add this now.
@@ -161,20 +147,23 @@ namespace PickEmServer.Heart
 
                 dbSession.Store(leagueData);
                 dbSession.SaveChanges();
-            }
 
-            // read back out to return
-            return await this.ReadLeague(leagueCode);
+                return this.MapLeagueData(leagueData);
+            }
         }
 
-        internal async Task<League> AddLeaguePlayer(string leagueCode, LeaguePlayerAdd newLeaguePlayer)
+        internal async Task<League> AddLeaguePlayer(string uncheckedLeagueCode, LeaguePlayerAdd newLeaguePlayer)
         {
             if (newLeaguePlayer == null)
             {
                 throw new ArgumentException("No newLeagueGame parameter input for AddLeaguePlayer (is null)");
             }
 
-            if ( await _userManager.FindByNameAsync(newLeaguePlayer.UserName) == null )
+            PickEmUser pickEmUser = null;
+            // NOTE: user manager lookup is case INsensitive. Use the result which is cased exactly.
+            pickEmUser = await _userManager.FindByNameAsync(newLeaguePlayer.UserName);
+
+            if ( pickEmUser == null )
             {
                 throw new ArgumentException($"No user with username (id) : {newLeaguePlayer.UserName}. Cannot add league player"); 
             }
@@ -183,34 +172,34 @@ namespace PickEmServer.Heart
             {
                 var leagueData = dbSession
                     .Query<LeagueData>()
-                    .Where(l => l.LeagueCode == leagueCode)
+                    .Where(l => l.LeagueCode.Equals(uncheckedLeagueCode, StringComparison.Ordinal))
                     .SingleOrDefault();
+                var exactLeagueCode = leagueData.LeagueCode;
 
                 if (leagueData == null)
                 {
-                    throw new ArgumentException($"No league exists with league code: {leagueCode}");
+                    throw new ArgumentException($"No league exists with league code: {exactLeagueCode}");
                 }
 
                 
                 if (leagueData.Players.Exists(p => p.PlayerTag == newLeaguePlayer.PlayerTag))
                 {
-                    throw new ArgumentException($"League with league code: {leagueCode} already has player with player tag: {newLeaguePlayer.PlayerTag}");
+                    throw new ArgumentException($"League with league code: {exactLeagueCode} already has player with player tag: {newLeaguePlayer.PlayerTag}");
                 }
                 
                 // whew we can add this now.
-                leagueData.Players.Add(new LeaguePlayerData { PlayerTag = newLeaguePlayer.PlayerTag, UserNameRef = newLeaguePlayer.UserName });
+                leagueData.Players.Add(new LeaguePlayerData { PlayerTag = newLeaguePlayer.PlayerTag, UserNameRef = pickEmUser.UserName });
 
                 SynchGamesAndPlayers(leagueData);
 
                 dbSession.Store(leagueData);
                 dbSession.SaveChanges();
-            }
 
-            // read back out to return
-            return await this.ReadLeague(leagueCode);
+                return this.MapLeagueData(leagueData);
+            }
         }
 
-        internal async Task<List<LeagueData>> ApplyGameChanges(GameData updatedGame, GameChanges gameChanges, IDocumentSession runningDbSession)
+        internal List<LeagueData> ApplyGameChanges(GameData updatedGame, GameChanges gameChanges, IDocumentSession runningDbSession)
         {
             var leagueGameToMatch = new LeagueGameData { GameIdRef = updatedGame.GameId };
 
@@ -379,16 +368,17 @@ namespace PickEmServer.Heart
             return associatedLeagues.ToList();
         }
 
-        internal async Task<int> SetCurrentWeek(string seasonCode, string leagueCode, int currentWeekNumber)
+        internal async Task<int> SetCurrentWeek(string seasonCode, string uncheckedLeagueCode, int currentWeekNumber)
         {
             using (var dbSession = _documentStore.LightweightSession())
             {
-                var leagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
+                var leagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                var exactLeagueCode = leagueData.LeagueCode;
 
                 var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == currentWeekNumber);
                 if (weekData == null)
                 {
-                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode} does not contain a week: {currentWeekNumber}");
+                    throw new ArgumentException($"League: {exactLeagueCode} for season: {seasonCode} does not contain a week: {currentWeekNumber}");
                 }
 
                 leagueData.CurrentWeekRef = currentWeekNumber;
@@ -400,14 +390,15 @@ namespace PickEmServer.Heart
             }
         }
 
-        public async Task<Player> ReadLeaguePlayer(string seasonCode, string leagueCode, string userName)
+        public async Task<Player> ReadLeaguePlayer(string seasonCode, string uncheckedLeagueCode, string uncheckedUserName)
         {
-            var leagueData = await this.GetLeagueData(seasonCode, leagueCode);
+            var leagueData = await this.GetLeagueData(seasonCode, uncheckedLeagueCode);
+            var exactLeagueCode = leagueData.LeagueCode;
 
-            var playerData = leagueData.Players.SingleOrDefault(p => p.UserNameRef == userName);
+            var playerData = leagueData.Players.SingleOrDefault(p => p.UserNameRef.Equals(uncheckedUserName, StringComparison.OrdinalIgnoreCase));
             if ( playerData == null )
             {
-                throw new ArgumentException($"User name: {userName} is not references in league: {leagueCode}, season: {seasonCode}");
+                throw new ArgumentException($"User name: {uncheckedUserName} is not references in league: {exactLeagueCode}, season: {seasonCode}");
             }
 
             return new Player
@@ -417,9 +408,10 @@ namespace PickEmServer.Heart
             };
         }
 
-        public async Task<List<Player>> ReadLeaguePlayers(string seasonCode, string leagueCode)
+        public async Task<List<Player>> ReadLeaguePlayers(string seasonCode, string uncheckedLeagueCode)
         {
-            var leagueData = await this.GetLeagueData(seasonCode, leagueCode);
+            var leagueData = await this.GetLeagueData(seasonCode, uncheckedLeagueCode);
+            var exactLeagueCode = leagueData.LeagueCode;
 
             var resultPlayers = new List<Player>();
 
@@ -432,12 +424,13 @@ namespace PickEmServer.Heart
                 });
             }
 
-            return resultPlayers;
+            return resultPlayers.OrderBy(p => p.PlayerTag).ToList();
         }
 
-        public async Task<LeagueWeeks> ReadLeagueWeeks(string seasonCode, string leagueCode)
+        public async Task<LeagueWeeks> ReadLeagueWeeks(string seasonCode, string uncheckedLeagueCode)
         {
-            var leagueData = await this.GetLeagueData(seasonCode, leagueCode);
+            var leagueData = await this.GetLeagueData(seasonCode, uncheckedLeagueCode);
+            var exactLeagueCode = leagueData.LeagueCode;
 
             var leagueWeeks = new LeagueWeeks();
             leagueWeeks.WeekNumbers = new List<int>();
@@ -452,12 +445,13 @@ namespace PickEmServer.Heart
             return leagueWeeks;
         }
 
-        public async Task<WeekScoreboard> ReadWeekScoreboard(string seasonCode, string leagueCode, int weekNumber, string authenticatedUserName)
+        public async Task<WeekScoreboard> ReadWeekScoreboard(string seasonCode, string uncheckedLeagueCode, int weekNumber, string uncheckedAuthenticatedUserName)
         {
             // determine if the authenticated user has this player tag (if not hide picks for games not started)
-            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, leagueCode, authenticatedUserName);
+            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, uncheckedLeagueCode, uncheckedAuthenticatedUserName);
 
-            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, leagueCode, weekNumber);
+            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, uncheckedLeagueCode, weekNumber);
+            var exactLeagueCode = leagueWithExtendedData.LeagueData.LeagueCode;
 
             // get all players and loop over to map for full week
             // ordered by week wins descending
@@ -485,30 +479,30 @@ namespace PickEmServer.Heart
                 weekScoreboard.PlayerWins.Add(playerWeekWins);
             }
 
-            weekScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(seasonCode, leagueCode, weekNumber, weekScoreboard.PlayerTags, authenticatedPlayer.PlayerTag, leagueWithExtendedData);
+            weekScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(seasonCode, exactLeagueCode, weekNumber, weekScoreboard.PlayerTags, authenticatedPlayer.PlayerTag, leagueWithExtendedData);
             return weekScoreboard;
         }
 
-        public async Task<PlayerScoreboard> ReadPlayerScoreboard(string seasonCode, string leagueCode, int weekNumber, string playerTag, string authenticatedUserName)
+        public async Task<PlayerScoreboard> ReadPlayerScoreboard(string seasonCode, string uncheckedLeagueCode, int weekNumber, string uncheckedPlayerTag, string uncheckedAuthenticatedUserName)
         {
-            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, leagueCode, weekNumber);
+            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, uncheckedLeagueCode, weekNumber);
+            var exactLeagueCode = leagueWithExtendedData.LeagueData.LeagueCode;
 
             // determine if the authenticated user has this player tag (if not hide picks for games not started)
-            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, leagueCode, authenticatedUserName);
+            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, exactLeagueCode, uncheckedAuthenticatedUserName);
             
-
             var playerScoreboard = new PlayerScoreboard();
 
-            playerScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(seasonCode, leagueCode, weekNumber, new List<string> { playerTag }, authenticatedPlayer.PlayerTag, leagueWithExtendedData);
+            playerScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(seasonCode, exactLeagueCode, weekNumber, new List<string> { uncheckedPlayerTag }, authenticatedPlayer.PlayerTag, leagueWithExtendedData);
 
             return playerScoreboard;
         }
 
-        internal async Task<LeagueScoreboard> ReadLeagueScoreboard(string seasonCode, string leagueCode)
+        internal async Task<LeagueScoreboard> ReadLeagueScoreboard(string seasonCode, string uncheckedLeagueCode)
         {
             using (var dbSession = _documentStore.QuerySession())
             {
-                var leagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
+                var leagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
 
                 var leagueScoreboard = new LeagueScoreboard();
                 leagueScoreboard.WeekNumbers = leagueData.Weeks.Select(w => w.WeekNumberRef).OrderBy(wn => wn).ToList();
@@ -548,21 +542,22 @@ namespace PickEmServer.Heart
             }
         }
 
-        private async Task<LeagueWithGamesAndTeamDataForWeek> ReadLeagueWithWeekGamesExpanded(string seasonCode, string leagueCode, int weekNumber)
+        private async Task<LeagueWithGamesAndTeamDataForWeek> ReadLeagueWithWeekGamesExpanded(string seasonCode, string uncheckedLeagueCode, int weekNumber)
         {
             using (var dbSession = _documentStore.QuerySession())
             {
                 var leagueWithExtendedData = new LeagueWithGamesAndTeamDataForWeek();
 
                 // get league
-                leagueWithExtendedData.LeagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
+                leagueWithExtendedData.LeagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                var exactLeagueCode = leagueWithExtendedData.LeagueData.LeagueCode;
 
                 // get games in league for week
                 var leagueWeek = leagueWithExtendedData.LeagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
 
                 if (leagueWeek == null)
                 {
-                    throw new ArgumentException($"League with league code: {leagueCode} does not contain week: {weekNumber}");
+                    throw new ArgumentException($"League with league code: {exactLeagueCode} does not contain week: {weekNumber}");
                 }
 
                 var gameIdArray = leagueWeek.Games.Select(g => g.GameIdRef).ToArray();
@@ -585,11 +580,11 @@ namespace PickEmServer.Heart
 
         }
 
-        private List<GameScoreboard> MapDataToGameScoreboards(string seasonCode, string leagueCode, int weekNumber, List<string> playerTags, string authenticatedPlayerTag, LeagueWithGamesAndTeamDataForWeek leagueWithExtendedData)
+        private List<GameScoreboard> MapDataToGameScoreboards(string seasonCode, string leagueCode, int weekNumber, List<string> uncheckedPlayerTags, string authenticatedPlayerTag, LeagueWithGamesAndTeamDataForWeek leagueWithExtendedData)
         {
-            if (playerTags == null || playerTags.Count == 0 )
+            if (uncheckedPlayerTags == null || uncheckedPlayerTags.Count == 0 )
             {
-                throw new ArgumentException($"Must have at least 1 player tag playerTags for MapDataToGameScoreboards");
+                throw new ArgumentException($"Must have at least 1 player tag uncheckedPlayerTags for MapDataToGameScoreboards");
             }
 
             var gameScoreboards = new List<GameScoreboard>();
@@ -636,15 +631,15 @@ namespace PickEmServer.Heart
                 gameScoreboard.PickScoreboards = new List<PickScoreboard>();
 
                 // playa loop 
-                foreach ( var playerTag in playerTags )
+                foreach ( var uncheckedPlayerTag in uncheckedPlayerTags)
                 {
-                    var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef == playerTag);
+                    var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef.Equals(uncheckedPlayerTag, StringComparison.OrdinalIgnoreCase));
                     if (playerPickData == null)
                     {
-                        throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber}, game {gameData.GameId}, has no player pick for {playerTag}. Is {playerTag} in this league?");
+                        throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber}, game {gameData.GameId}, has no player pick for {uncheckedPlayerTag}. Is {uncheckedPlayerTag} in this league?");
                     }
 
-                    bool readingPlayersOwnScoreboard = (authenticatedPlayerTag == playerTag);
+                    bool readingPlayersOwnScoreboard = (authenticatedPlayerTag == playerPickData.PlayerTagRef);
 
                     string pickedTeamIconFileName = null;
                     string pickedTeamLongName = null;
@@ -678,7 +673,7 @@ namespace PickEmServer.Heart
                     {
                         Pick = pickType,
                         PickState = playerPickData.PickStatus,
-                        PlayerTag = playerTag,
+                        PlayerTag = playerPickData.PlayerTagRef,
                         PickedTeamIconFileName = ( pickType == PickTypes.Hidden ) ? null : pickedTeamIconFileName,
                         PickedTeamLongName = ( pickType == PickTypes.Hidden ) ? "Hidden" : pickedTeamLongName
                     };
@@ -705,7 +700,7 @@ namespace PickEmServer.Heart
             }
         }
 
-        internal async Task<Player> SetPlayer(string seasonCode, string leagueCode, string userName, PlayerUpdate playerUpdate)
+        internal async Task<Player> SetPlayer(string seasonCode, string uncheckedLeagueCode, string uncheckedUserName, PlayerUpdate playerUpdate)
         {
             if (playerUpdate == null)
             {
@@ -714,12 +709,13 @@ namespace PickEmServer.Heart
 
             using (var dbSession = _documentStore.LightweightSession())
             {
-                var leagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
+                var leagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                var exactLeagueCode = leagueData.LeagueCode;
 
-                var playerData = leagueData.Players.SingleOrDefault(p => p.UserNameRef == userName);
+                var playerData = leagueData.Players.SingleOrDefault(p => p.UserNameRef.Equals(uncheckedUserName, StringComparison.OrdinalIgnoreCase));
                 if (playerData == null)
                 {
-                    throw new ArgumentException($"User name: {userName} is not references in league: {leagueCode}, season: {seasonCode}");
+                    throw new ArgumentException($"User name: {uncheckedUserName} is not references in league: {exactLeagueCode}, season: {seasonCode}");
                 }
 
                 var originalPlayerTag = playerData.PlayerTag;
@@ -744,11 +740,11 @@ namespace PickEmServer.Heart
                 dbSession.Store(leagueData);
                 dbSession.SaveChanges();
 
-                return await this.ReadLeaguePlayer(seasonCode, leagueCode, userName);
+                return await this.ReadLeaguePlayer(seasonCode, exactLeagueCode, playerData.UserNameRef);
             }
         }
 
-        internal async Task<PlayerPick> SetPlayerPick(string seasonCode, string leagueCode, int weekNumber, string playerTag, int gameId, PlayerPickUpdate newPlayerPick)
+        internal async Task<PlayerPick> SetPlayerPick(string seasonCode, string uncheckedLeagueCode, int weekNumber, string uncheckedPlayerTag, int gameId, PlayerPickUpdate newPlayerPick)
         {
             if (newPlayerPick == null)
             {
@@ -757,24 +753,25 @@ namespace PickEmServer.Heart
 
             using (var dbSession = _documentStore.LightweightSession())
             {
-                var leagueData = await this.GetLeagueData(dbSession, seasonCode, leagueCode);
+                var leagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                var exactLeagueCode = leagueData.LeagueCode;
 
                 var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
                 if (weekData == null)
                 {
-                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode} does not contain a week: {weekNumber}");
+                    throw new ArgumentException($"League: {exactLeagueCode} for season: {seasonCode} does not contain a week: {weekNumber}");
                 }
 
                 var pickemGameData = weekData.Games.SingleOrDefault(g => g.GameIdRef == gameId);
                 if (pickemGameData == null)
                 {
-                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber} does not have a game with gameid: {gameId}");
+                    throw new ArgumentException($"League: {exactLeagueCode} for season: {seasonCode}, week: {weekNumber} does not have a game with gameid: {gameId}");
                 }
 
-                var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef == playerTag);
+                var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef.Equals(uncheckedPlayerTag, StringComparison.OrdinalIgnoreCase));
                 if (playerPickData == null)
                 {
-                    throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber}, game {gameId}, has no player pick for {playerTag}. Is {playerTag} in this league?");
+                    throw new ArgumentException($"League: {exactLeagueCode} for season: {seasonCode}, week: {weekNumber}, game {gameId}, has no player pick for {uncheckedPlayerTag}. Is {uncheckedPlayerTag} in this league?");
                 }
 
                 // get associated game to make sure the player can update the pick
@@ -785,7 +782,7 @@ namespace PickEmServer.Heart
                     case GameStates.Cancelled:
                     case GameStates.Final:
                     case GameStates.InGame:
-                        throw new Exception($"Player: {playerTag} in league: {leagueCode} cannot make a pick for game: {gameId} because the game is in the following game state: {gameData.GameState}");
+                        throw new Exception($"Player: {playerPickData.PlayerTagRef} in league: {exactLeagueCode} cannot make a pick for game: {gameId} because the game is in the following game state: {gameData.GameState}");
                 }
 
                 playerPickData.Pick = newPlayerPick.Pick;
@@ -797,51 +794,46 @@ namespace PickEmServer.Heart
             }
         }
 
-        private async Task<LeagueData> GetLeagueData(string seasonCode, string leagueCode)
+        private async Task<LeagueData> GetLeagueData(string seasonCode, string uncheckedLeagueCode)
         {
             using (var dbSession = _documentStore.QuerySession())
             {
-                return await GetLeagueData(dbSession, seasonCode, leagueCode);
+                return await GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
             }
         }
 
-        private async Task<LeagueData> GetLeagueData(IQuerySession runningDocumentSession, string seasonCode, string leagueCode)
+        private async Task<LeagueData> GetLeagueData(IQuerySession runningDocumentSession, string seasonCode, string uncheckedLeagueCode)
         {
+            // trim inputs
+            seasonCode = seasonCode.Trim();
+            uncheckedLeagueCode = uncheckedLeagueCode.Trim();
+
             var leagueData = await runningDocumentSession
                 .Query<LeagueData>()
-                .Where(l => l.LeagueCode == leagueCode && l.SeasonCodeRef == seasonCode)
+                .Where(
+                    l => l.LeagueCode.Equals(uncheckedLeagueCode, StringComparison.OrdinalIgnoreCase) // league insensitive search
+                    && 
+                    l.SeasonCodeRef == seasonCode)
                 .SingleOrDefaultAsync()
                 .ConfigureAwait(false);
 
             if (leagueData == null)
             {
-                throw new ArgumentException($"No league exists with league code: {leagueCode} for season: {seasonCode}");
+                throw new ArgumentException($"No league exists with league code: {uncheckedLeagueCode} for season: {seasonCode}");
             }
 
             return leagueData;
         }
 
-        private async Task<League> ReadLeague(string leagueCode)
+        private League MapLeagueData(LeagueData leagueData)
         {
-            using (var dbSession = _documentStore.QuerySession())
+            return new League
             {
-                var leagueData = await dbSession
-                    .Query<LeagueData>()
-                    .Where(l => l.LeagueCode == leagueCode)
-                    .SingleAsync()
-                    .ConfigureAwait(false);
-
-                // TODO: fill in other league data to API
-                League apiLeague = new League
-                {
-                    LeagueCode = leagueData.LeagueCode,
-                    LeagueTitle = leagueData.LeagueTitle
-                };
-
-                return apiLeague;
-            }
+                LeagueCode = leagueData.LeagueCode,
+                LeagueTitle = leagueData.LeagueTitle
+            };
         }
-
+       
         private void SynchGamesAndPlayers(LeagueData leagueData)
         {
             // TODO: is this a pig with cartisian-o-rama?
