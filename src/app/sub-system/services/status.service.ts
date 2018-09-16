@@ -31,6 +31,17 @@ export class StatusService {
 
   }
 
+  clearAllSessionState()
+  {
+    localStorage.removeItem("JWT");
+    this.userLoggedInAndInitialized = false;
+    this.userName = null;
+    this.userPlayerTag = null;
+    this.leagueCode = null;
+    this.playerTagFilter = null;
+    this.weekNumberFilter = null;
+  }
+
   readPickEmStatus(): Observable<PickEmStatus> {
     // build get URL
     let readUrl = environment.pickemRestServerBaseUrl  + "/status";

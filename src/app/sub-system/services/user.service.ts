@@ -27,12 +27,12 @@ export class UserService {
 
   constructor(private logger: LoggerService, private http: HttpClient, private statusService: StatusService, private leagueService: LeagueService) { }
 
-  login (username: string, password: string) : Observable<UserLoggedIn>
+  login (uncheckedUsername: string, password: string) : Observable<UserLoggedIn>
   {
     this.statusService.userLoggedInAndInitialized = false;
 
     let credentials = new UserCredentials();
-    credentials.userName = username;
+    credentials.userName = uncheckedUsername;
     credentials.password = password;
 
     return this.http.post<UserLoggedIn>(environment.pickemRestServerBaseUrl + "/auth/login", credentials, httpOptions)
@@ -41,7 +41,7 @@ export class UserService {
           {
             let token = response.token;
             localStorage.setItem("JWT", token);
-            this.statusService.userName = username;
+            this.statusService.userName = response.userName;
             
             if ( response.defaultLeagueCode )
             {
@@ -101,8 +101,7 @@ export class UserService {
 
   logout ()
   {
-    localStorage.removeItem("JWT");
-    this.statusService.userLoggedInAndInitialized = false;
+    this.statusService.clearAllSessionState();
   }
 
   register (userName: string, password: string, email: string, defaultLeagueCode: string) : Observable<User>

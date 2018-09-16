@@ -65,6 +65,27 @@
                     <div class="col-sm-4">{{ statusValue.FieldName }}</div>
                     <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusValue.FieldValue }}</div>
                 </div>
+
+                <div class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">Pick'em Season</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusService.seasonCode }}</div>
+                </div>
+                <div class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">Pick'em League</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusService.leagueCode }}</div>
+                </div>
+                <div class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">Pick'em Player Tag for League</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusService.userPlayerTag }}</div>
+                </div>
+                <div class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">Pick'em Week Number Filter</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusService.weekNumberFilter }}</div>
+                </div>
+                <div class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">Pick'em Player Tag Filter</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusService.playerTagFilter }}</div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-warning" (click)="statusDialog.hide()">Cancel</button>

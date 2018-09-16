@@ -22,6 +22,10 @@ export class LoginComponent implements OnInit {
 
   tryLogin(username: string, password: string) {
 
+    // trim inputs
+    username = username.trim();
+    password = password.trim();
+
     this.inputsInvalid = false;
 
     // TODO: oof. this is rough, nested... so all will return before going to player
@@ -31,7 +35,7 @@ export class LoginComponent implements OnInit {
         // result will be true if succesful. If false is 401, bad pwd. All other issues are thrown.
         this.inputsInvalid = false;
         
-        this.userService.setupUser(username).subscribe(response => 
+        this.userService.setupUser(response.userName).subscribe(response => 
           {
               this.leagueService.loadPlayers(this.statusService.seasonCode, this.statusService.leagueCode).subscribe(response => 
                 {     

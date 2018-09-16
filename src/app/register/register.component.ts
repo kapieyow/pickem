@@ -25,6 +25,11 @@ export class RegisterComponent implements OnInit {
 
     this.inputsInvalid = false;
 
+    // trim inputs
+    email = email.trim();
+    userName = userName.trim();
+    password = password.trim();
+
     this.userService.register(userName, password, email, this.leagueCode)
       .subscribe(
         result => 
