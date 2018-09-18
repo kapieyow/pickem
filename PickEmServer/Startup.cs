@@ -43,6 +43,7 @@ namespace PickEmServer
             services.AddScoped<LogService>();
             services.AddScoped<PickemDatabaseLoggerProvider>();
             services.AddScoped<ReferenceService>();
+            services.AddScoped<TeamService>();
 
             // Get JWT options from app settings
             var jwtAppSettingOptions = Configuration.GetSection(nameof(JwtIssuerOptions));

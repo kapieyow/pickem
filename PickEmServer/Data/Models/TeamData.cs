@@ -1,4 +1,5 @@
 ﻿using Marten.Schema;
+using System.Collections.Generic;
 
 namespace PickEmServer.Data.Models
 {
@@ -11,5 +12,7 @@ namespace PickEmServer.Data.Models
         public string NcaaNameSeo { get; set; }
         public string theSpreadName { get; set; }
         public string icon24FileName { get; set; }
+
+        public List<TeamSeasonStats> Seasons { get; set; }
     }
 }

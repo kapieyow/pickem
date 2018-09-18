@@ -604,24 +604,27 @@ namespace PickEmServer.Heart
                     throw new ArgumentException($"League: {leagueCode} for season: {seasonCode}, week: {weekNumber} does not have a game with gameid: {gameData.GameId}");
                 }
 
+                var awayTeamWeekStats = this.FindTeamWeekStats(leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef], seasonCode, weekNumber);
+                var homeTeamWeekStats = this.FindTeamWeekStats(leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef], seasonCode, weekNumber);
+
 
                 var gameScoreboard = new GameScoreboard
                 {
                     AwayTeamIconFileName = leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].icon24FileName,
                     AwayTeamLongName = string.IsNullOrEmpty(leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName) ? gameData.AwayTeam.TeamCodeRef : leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName,
-                    AwayTeamLosses = 0, // TODO set
-                    AwayTeamRank = 0, // TODO set
+                    AwayTeamLosses = awayTeamWeekStats?.Losses ?? 0,
+                    AwayTeamRank = awayTeamWeekStats?.FbsRank ?? 0,
                     AwayTeamScore = gameData.AwayTeam.Score,
-                    AwayTeamWins = 0, // TODO set
+                    AwayTeamWins = awayTeamWeekStats?.Wins ?? 0,
                     GameId = gameData.GameId,
                     GameState = gameData.GameState,
                     GameStatusDescription = _gameSevice.BuildGameDescription(gameData),
                     HomeTeamIconFileName = leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].icon24FileName,
                     HomeTeamLongName = string.IsNullOrEmpty(leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].LongName) ? gameData.HomeTeam.TeamCodeRef : leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].LongName,
-                    HomeTeamLosses = 0, // TODO set
-                    HomeTeamRank = 0, // TODO set
+                    HomeTeamLosses = homeTeamWeekStats?.Losses ?? 0,
+                    HomeTeamRank = homeTeamWeekStats?.FbsRank ?? 0,
                     HomeTeamScore = gameData.HomeTeam.Score,
-                    HomeTeamWins = 0, // TODO set
+                    HomeTeamWins = homeTeamWeekStats?.Wins ?? 0,
                     Spread = gameData.Spread.PointSpread,
                     SpreadDirection = gameData.Spread.SpreadDirection,
                     Leader = gameData.Leader,
@@ -698,6 +701,24 @@ namespace PickEmServer.Heart
             {
                 return playerPickData.Pick;
             }
+        }
+
+        private TeamWeekStats FindTeamWeekStats(TeamData teamData, string seasonCode, int weekNumber)
+        {
+            if ( teamData.Seasons == null )
+            {
+                return null;
+            }
+
+            var teamSeason = teamData.Seasons.SingleOrDefault(s => s.SeasonCodeRef == seasonCode);
+
+            if ( teamSeason == null )
+            {
+                return null;
+            }
+
+            return teamSeason.WeekStats.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
+
         }
 
         internal async Task<Player> SetPlayer(string seasonCode, string uncheckedLeagueCode, string uncheckedUserName, PlayerUpdate playerUpdate)
