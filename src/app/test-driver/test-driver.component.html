@@ -2,6 +2,13 @@
   test-driver works!
 </p>
 <div>
+  change to league code <input #league type="text" class="form-control" id="league" placeholder="Enter League Code">
+  <br>
+  <button class="btn btn-outline-danger my-2 my-sm-0 ml-sm-3" (click)="changeToLeague(league.value)">Change League</button>
+  <br>
+  <br>
+</div>
+<div>
   <input #messageInput type="text" class="form-control" id="messageInput" placeholder="Enter log message">
   <br>
   <button class="btn btn-outline-secondary my-2 my-sm-0 ml-sm-3" (click)="debug(messageInput.value)">Log Debug</button>
