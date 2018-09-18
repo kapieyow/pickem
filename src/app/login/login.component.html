@@ -2,7 +2,7 @@
 <div class="card border-secondary mb-3">
   <div class="card-header">Login</div>
   <div class="card-body">
-    <form>
+    <form (keyup.enter)="tryLogin(userNameInput.value, passwordInput.value)">
       <fieldset>
         <div class="form-group">
           <label for="userNameInput">User Name</label>

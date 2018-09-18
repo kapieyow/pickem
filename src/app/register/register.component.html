@@ -1,5 +1,5 @@
 <div class="p-3">
-  <form>
+  <form (keyup.enter)="tryRegistration(userNameInput.value, passwordInput.value, emailInput.value)">
     <fieldset>
       <legend>User Registration</legend>
       <p class="text-info">Welcome to the NCAAM Pick 'em user registration. Enter the information below to play.</p>
