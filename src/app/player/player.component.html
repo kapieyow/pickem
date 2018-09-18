@@ -22,7 +22,7 @@
       <div *ngIf="leagueService.playerScoreboard">
         <div *ngFor="let gameScoreboard of leagueService.playerScoreboard.gamePickScoreboards" class="my-3 border border-light container">
           <div class="row">
-            <div class="col-md-12 text-white bg-secondary py-1">{{ gameScoreboard.gameStatusDescription }}</div>
+            <div class="col-12 text-white bg-secondary py-1">{{ gameScoreboard.gameStatusDescription }}</div>
           </div>
           <div class="row p-1">
             <div class="col-md-6 p-2" [ngClass]="
@@ -38,7 +38,7 @@
                   'pickem-card-won': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Won'
                 }" (click)="setPick(gameScoreboard, 'Away');">
               <div class="row">
-                <div class="col-sm-10 text-nowrap">
+                <div class="col-10 text-nowrap">
                   <img src="assets/team_icons/{{ gameScoreboard.awayTeamIconFileName }}" width="24" class="mx-1" />
                   <span *ngIf="gameScoreboard.awayTeamRank > 0" class="font-weight-light text-light px-1">#{{ gameScoreboard.awayTeamRank }}</span>
                   {{ gameScoreboard.awayTeamLongName }}
@@ -46,7 +46,7 @@
                   <br *ngIf="gameScoreboard.spreadDirection == 'ToAway'">
                   <span *ngIf="gameScoreboard.spreadDirection == 'ToAway'" [ngClass]="{'text-warning': gameScoreboard.gameState == 'SpreadNotSet'}" class="px-3" tooltip="Spread"><span *ngIf="gameScoreboard.gameState == 'SpreadNotSet'">*&nbsp;</span>+{{ gameScoreboard.spread }}</span>
                 </div>
-                <div class="col-sm-2 text-nowrap text-right">
+                <div class="col-2 text-nowrap text-right">
                   <h4 class="font-weight-bold mb-0">{{ gameScoreboard.awayTeamScore }}</h4>
                   <span *ngIf="gameScoreboard.spreadDirection == 'ToAway' && (gameScoreboard.gameState == 'InGame' || gameScoreboard.gameState == 'Final')" tooltip="Score after spread">{{ gameScoreboard.awayTeamScore + gameScoreboard.spread }}</span>
                 </div>
@@ -65,7 +65,7 @@
                   'pickem-card-won': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Won'
                 }" (click)="setPick(gameScoreboard, 'Home');">
               <div class="row">
-                <div class="col-sm-10 text-nowrap">
+                <div class="col-10 text-nowrap">
                   <img src="assets/team_icons/{{ gameScoreboard.homeTeamIconFileName }}" width="24" class="mx-1" />
                   <span *ngIf="gameScoreboard.homeTeamRank > 0" class="font-weight-light text-light px-1">#{{ gameScoreboard.homeTeamRank }}</span>
                   @ {{ gameScoreboard.homeTeamLongName }}
@@ -73,7 +73,7 @@
                   <br *ngIf="gameScoreboard.spreadDirection == 'ToHome'">
                   <span *ngIf="gameScoreboard.spreadDirection == 'ToHome'" [ngClass]="{'text-warning': gameScoreboard.gameState == 'SpreadNotSet'}" class="px-3" tooltip="Spread"><span *ngIf="gameScoreboard.gameState == 'SpreadNotSet'">*&nbsp;</span>+{{ gameScoreboard.spread }}</span>
                 </div>
-                <div class="col-sm-2 text-nowrap text-right">
+                <div class="col-2 text-nowrap text-right">
                   <h4 class="font-weight-bold mb-0">{{ gameScoreboard.homeTeamScore }}</h4>
                   <span *ngIf="gameScoreboard.spreadDirection == 'ToHome' && (gameScoreboard.gameState == 'InGame' || gameScoreboard.gameState == 'Final')" tooltip="Score after spread">{{ gameScoreboard.homeTeamScore + gameScoreboard.spread }}</span>
                 </div>
