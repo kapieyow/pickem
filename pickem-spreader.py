@@ -13,7 +13,7 @@ class Jsonable:
 
 
 # "configs"
-VERSION = "0.10.13"
+VERSION = "1.10.14"
 
 PICKEM_COMPONENT_NAME = "Pick'Em Spread Loader"
 PICKEM_INI = "pickem-settings.ini"
@@ -93,6 +93,14 @@ def updateSpreads(pickemGamesForWeek):
 
 		nextGameSpread.VisitorTeam = thisDataDiv.find_next("span", id="tmv").string
 		nextGameSpread.HomeTeam = thisDataDiv.find_next("span", id="tmh").string
+
+		# HACK-O on *nix we get weird text for "Texas A&M" comes through "Texas A&M;" with the semicolon
+		# TODO fix this. Better call in BeautifulSoup?
+		if (nextGameSpread.VisitorTeam[-1:] == ";"):
+			nextGameSpread.VisitorTeam = nextGameSpread.VisitorTeam[:-1]
+
+		if (nextGameSpread.HomeTeam[-1:] == ";"):
+			nextGameSpread.HomeTeam = nextGameSpread.HomeTeam[:-1]
 
 		# Can be used to dump spread names
 		#	print (nextGameSpread.VisitorTeam)
