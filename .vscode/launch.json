@@ -26,6 +26,18 @@
             ]
         },
         {
+            "name": "team updater - py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem-team-updater.py",
+            "args": [
+                "-ps",
+                "18",
+                "-w",
+                "4"
+            ]
+        },
+        {
             "name": "updater 18/1 - py",
             "type": "python",
             "request": "launch",

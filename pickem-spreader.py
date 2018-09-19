@@ -13,7 +13,7 @@ class Jsonable:
 
 
 # "configs"
-VERSION = "1.10.14"
+VERSION = "1.2.14"
 
 PICKEM_COMPONENT_NAME = "Pick'Em Spread Loader"
 PICKEM_INI = "pickem-settings.ini"
