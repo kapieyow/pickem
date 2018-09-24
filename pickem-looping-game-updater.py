@@ -12,10 +12,10 @@ print("----------------------------------------")
 while(True):
     if (os.name == 'nt'):
         # windoze no ./
-        subprocess.call("pickem-game-syncher.py -ns 2018 -ps 18 -w 4 -a update", shell=True)
+        subprocess.call("pickem-game-syncher.py -ns 2018 -ps 18 -w 5 -a update", shell=True)
     else:
         #nix
-        subprocess.call("./pickem-game-syncher.py -ns 2018 -ps 18 -w 4 -a update", shell=True)
+        subprocess.call("./pickem-game-syncher.py -ns 2018 -ps 18 -w 5 -a update", shell=True)
         
     print("-- snoozing " + str(SLEEP_SECONDS) + " seconds")
     time.sleep(SLEEP_SECONDS)
