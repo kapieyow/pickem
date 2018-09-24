@@ -1,2 +1,2 @@
-ng build -c production --base-href /p/
+ng build -c production --base-href /
 pause
