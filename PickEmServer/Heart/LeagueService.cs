@@ -596,7 +596,7 @@ namespace PickEmServer.Heart
             var gameScoreboards = new List<GameScoreboard>();
 
             // game loop 
-            foreach (var gameData in leagueWithExtendedData.GameDataForWeek.OrderBy(game => game.GameStart))
+            foreach (var gameData in leagueWithExtendedData.GameDataForWeek.OrderBy(game => game.GameStart).ThenBy(game => game.AwayTeam.TeamCodeRef))
             {
                 var weekData = leagueWithExtendedData.LeagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
                 if (weekData == null)
