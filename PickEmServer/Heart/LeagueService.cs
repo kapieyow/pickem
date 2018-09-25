@@ -111,7 +111,7 @@ namespace PickEmServer.Heart
 
             using (var dbSession = _documentStore.LightweightSession())
             {
-                var leagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
                 var exactLeagueCode = leagueData.LeagueCode;
 
                 var leagueWeek = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
@@ -372,7 +372,7 @@ namespace PickEmServer.Heart
         {
             using (var dbSession = _documentStore.LightweightSession())
             {
-                var leagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
                 var exactLeagueCode = leagueData.LeagueCode;
 
                 var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == currentWeekNumber);
@@ -390,9 +390,15 @@ namespace PickEmServer.Heart
             }
         }
 
+        public async Task<League> ReadLeague(string uncheckedLeagueCode)
+        {
+            var leagueData = await this.GetLeagueData(uncheckedLeagueCode);
+            return MapLeagueData(leagueData);
+        }
+
         public async Task<Player> ReadLeaguePlayer(string seasonCode, string uncheckedLeagueCode, string uncheckedUserName)
         {
-            var leagueData = await this.GetLeagueData(seasonCode, uncheckedLeagueCode);
+            var leagueData = await this.GetLeagueData(uncheckedLeagueCode);
             var exactLeagueCode = leagueData.LeagueCode;
 
             var playerData = leagueData.Players.SingleOrDefault(p => p.UserNameRef.Equals(uncheckedUserName, StringComparison.OrdinalIgnoreCase));
@@ -410,7 +416,7 @@ namespace PickEmServer.Heart
 
         public async Task<List<Player>> ReadLeaguePlayers(string seasonCode, string uncheckedLeagueCode)
         {
-            var leagueData = await this.GetLeagueData(seasonCode, uncheckedLeagueCode);
+            var leagueData = await this.GetLeagueData(uncheckedLeagueCode);
             var exactLeagueCode = leagueData.LeagueCode;
 
             var resultPlayers = new List<Player>();
@@ -429,7 +435,7 @@ namespace PickEmServer.Heart
 
         public async Task<LeagueWeeks> ReadLeagueWeeks(string seasonCode, string uncheckedLeagueCode)
         {
-            var leagueData = await this.GetLeagueData(seasonCode, uncheckedLeagueCode);
+            var leagueData = await this.GetLeagueData(uncheckedLeagueCode);
             var exactLeagueCode = leagueData.LeagueCode;
 
             var leagueWeeks = new LeagueWeeks();
@@ -502,7 +508,7 @@ namespace PickEmServer.Heart
         {
             using (var dbSession = _documentStore.QuerySession())
             {
-                var leagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
 
                 var leagueScoreboard = new LeagueScoreboard();
                 leagueScoreboard.WeekNumbers = leagueData.Weeks.Select(w => w.WeekNumberRef).OrderBy(wn => wn).ToList();
@@ -549,7 +555,7 @@ namespace PickEmServer.Heart
                 var leagueWithExtendedData = new LeagueWithGamesAndTeamDataForWeek();
 
                 // get league
-                leagueWithExtendedData.LeagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                leagueWithExtendedData.LeagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
                 var exactLeagueCode = leagueWithExtendedData.LeagueData.LeagueCode;
 
                 // get games in league for week
@@ -730,7 +736,7 @@ namespace PickEmServer.Heart
 
             using (var dbSession = _documentStore.LightweightSession())
             {
-                var leagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
                 var exactLeagueCode = leagueData.LeagueCode;
 
                 var playerData = leagueData.Players.SingleOrDefault(p => p.UserNameRef.Equals(uncheckedUserName, StringComparison.OrdinalIgnoreCase));
@@ -774,7 +780,7 @@ namespace PickEmServer.Heart
 
             using (var dbSession = _documentStore.LightweightSession())
             {
-                var leagueData = await this.GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
                 var exactLeagueCode = leagueData.LeagueCode;
 
                 var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
@@ -815,32 +821,28 @@ namespace PickEmServer.Heart
             }
         }
 
-        private async Task<LeagueData> GetLeagueData(string seasonCode, string uncheckedLeagueCode)
+        private async Task<LeagueData> GetLeagueData(string uncheckedLeagueCode)
         {
             using (var dbSession = _documentStore.QuerySession())
             {
-                return await GetLeagueData(dbSession, seasonCode, uncheckedLeagueCode);
+                return await GetLeagueData(dbSession, uncheckedLeagueCode);
             }
         }
 
-        private async Task<LeagueData> GetLeagueData(IQuerySession runningDocumentSession, string seasonCode, string uncheckedLeagueCode)
+        private async Task<LeagueData> GetLeagueData(IQuerySession runningDocumentSession, string uncheckedLeagueCode)
         {
             // trim inputs
-            seasonCode = seasonCode.Trim();
             uncheckedLeagueCode = uncheckedLeagueCode.Trim();
 
             var leagueData = await runningDocumentSession
                 .Query<LeagueData>()
-                .Where(
-                    l => l.LeagueCode.Equals(uncheckedLeagueCode, StringComparison.OrdinalIgnoreCase) // league insensitive search
-                    && 
-                    l.SeasonCodeRef == seasonCode)
+                .Where(l => l.LeagueCode.Equals(uncheckedLeagueCode, StringComparison.OrdinalIgnoreCase)) // league insensitive search
                 .SingleOrDefaultAsync()
                 .ConfigureAwait(false);
 
             if (leagueData == null)
             {
-                throw new ArgumentException($"No league exists with league code: {uncheckedLeagueCode} for season: {seasonCode}");
+                throw new ArgumentException($"No league exists with league code: {uncheckedLeagueCode}");
             }
 
             return leagueData;

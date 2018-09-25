@@ -40,12 +40,14 @@ namespace PickEmServer.Api.Controllers
             {
                 if (String.IsNullOrEmpty(userRegistration.DefaultLeagueCode))
                 {
-                    // TODO: should we default "Default"?
-                    userDefaultLeagueCode = "Default";
+                    return new BadRequestObjectResult($"Setting default league, but none passed in");
                 }
                 else
                 {
                     userDefaultLeagueCode = userRegistration.DefaultLeagueCode;
+                    var league = await this._leagueService.ReadLeague(userDefaultLeagueCode);
+                    // this verifies the exact league casing
+                    userDefaultLeagueCode = league.LeagueCode;
                 }
             }
 
