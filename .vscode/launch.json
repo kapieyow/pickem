@@ -38,7 +38,7 @@
             ]
         },
         {
-            "name": "updater 18/1 - py",
+            "name": "updater s18 w5 - py",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/pickem-game-syncher.py",
@@ -48,7 +48,7 @@
                 "-ps",
                 "18",
                 "-w",
-                "1",
+                "5",
                 "-a",
                 "update"
             ]

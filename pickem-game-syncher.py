@@ -5,9 +5,10 @@ import configparser
 import datetime
 import json
 import requests
+import time
 
 # "configs"
-VERSION = "0.8.6"
+VERSION = "1.4.10"
 
 URL_SEASON_TOKEN = "{SeasonCode}"
 URL_WEEK_TOKEN = "{WeekNumber}"
@@ -124,7 +125,7 @@ def readPickemGames(pickemSeasonCode, weekNumber):
     return response.json()
 
 
-def udpateNcaaGame(pickemGameJson, ncaaSeason, pickemSeason, weekNumber):
+def udpateNcaaGameFromDefaultSource(pickemGameJson, ncaaSeason, pickemSeason, weekNumber):
 
     # TODO making several URL assumptions here e.g. "fbs"
     url = NCAA_DOMAIN_URL + "/sites/default/files/data/game/football/fbs/" + str(ncaaSeason) + "/"
@@ -174,7 +175,7 @@ def udpateNcaaGame(pickemGameJson, ncaaSeason, pickemSeason, weekNumber):
             log(PICKEM_LOG_LEVEL_WARN, "Unhandled NCAA game state (" + ncaaGameState + ") defaulting to InGame. " + url)
             gameState = "InGame"
         
-        gameStart = extractGameStart(responseJson)
+        gameStart = extractGameStart(responseJson['startTimeEpoch'])
         lastUpdated = responseJson['updatedTimestamp']
         currentPeriod = responseJson['currentPeriod']
         ncaaTimeClock = responseJson['timeclock']
@@ -216,24 +217,101 @@ def udpateNcaaGame(pickemGameJson, ncaaSeason, pickemSeason, weekNumber):
 
         return True
 
+def udpateNcaaGameFromCasablanca(pickemGameJson, ncaaSeason, pickemSeason, weekNumber):
 
-def extractGameStart(ncaaJson):
-    gameStart = ncaaJson['startDate'] + "T" 
-    startTime = ncaaJson['startTime']
+    # TODO making several URL assumptions here e.g. "fbs"
+    url = NCAA_DOMAIN_URL + "/casablanca/game/football/fbs/" + str(ncaaSeason) + "/"
 
-    # TODO better time handling. Example value "10:15 PM ET"
-    # dt = datetime.datetime()
-    timeParts = ncaaJson['startTime'].split(" ")
-    hourMins = timeParts[0].split(":")
-    if ( startTime == "TBA" ):
-        gameStart = gameStart + "00:00:00"
-    elif ( hourMins[0] == "12" and timeParts[1] == "AM" ):
-        gameStart = gameStart + "00:" + hourMins[1] + ":00"
-    elif ( hourMins[0] != "12" and timeParts[1] == "PM" ):
-        gameStart = gameStart + str(int(hourMins[0]) + 12) + ":" + hourMins[1] + ":00"
+    # TODO fix this terrible "date" parsing. Example date value "2017-09-02T19:30:00"
+    dateParts = pickemGameJson['gameStart'].split("T")[0].split("-")
+
+    # append month/day
+    url = url + dateParts[1] + "/" + dateParts[2] + "/"
+    # append away team ncaa code "-" home team ncaa code
+    url = url + pickemGameJson['awayTeam']['team']['teamCode'] + "-" + pickemGameJson['homeTeam']['team']['teamCode'] + "/"
+    url = url + "gameInfo.json"
+
+    try:
+        response = requests.get(url, headers={'Content-Type': 'application/json'})
+    except:
+        log(PICKEM_LOG_LEVEL_ERROR, "HTTP Read timeout *probably*: " + url)
+        return False
+
+    if(not response.ok):
+        log(PICKEM_LOG_LEVEL_ERROR, "FAILED READ: " + url + " HTTP CODE: " + str(response.status_code))
+        return False
+
     else:
-        gameStart = gameStart + hourMins[0] + ":" + hourMins[1] + ":00"
+        responseJson = response.json()
 
+        # game state
+        ncaaGameState = responseJson['status']['gameState'] # pre, cancelled, final, TODO??
+        gameState = "NOT_SET_YET" # SpreadNotSet, SpreadSet, InGame, Final, Cancelled
+
+        if ( ncaaGameState == "cancelled" ):
+            gameState = "Cancelled"
+        elif ( ncaaGameState == "canceled" ):
+            gameState = "Cancelled"
+        elif ( ncaaGameState == "final" ):
+            gameState = "Final"
+        elif ( ncaaGameState == "pre" ):
+            # game has not started don't mess with spread set or not status
+            gameState = pickemGameJson['gameState']
+        elif ( ncaaGameState == "live" ):
+            gameState = "InGame"
+        elif ( ncaaGameState == "delayed" ):
+            # TODO - handle Delayed 
+            gameState = "InGame"
+        else:
+            # In game?
+            log(PICKEM_LOG_LEVEL_WARN, "Unhandled NCAA game state (" + ncaaGameState + ") defaulting to InGame. " + url)
+            gameState = "InGame"
+        
+        gameStart = extractGameStart(responseJson['status']['startTimeEpoch'])
+        lastUpdated = responseJson['status']['updatedTimestamp']
+        currentPeriod = responseJson['status']['currentPeriod']
+        ncaaTimeClock = responseJson['status']['clock']
+        timeClock = parseTimeClock(ncaaTimeClock)
+        ncaaAwayTeamScore = responseJson['away']['score']
+
+        if ( ncaaAwayTeamScore == "" ):
+            awayTeamScore = 0
+        else:
+            awayTeamScore = int(ncaaAwayTeamScore)
+
+        ncaaHomeTeamScore = responseJson['home']['score']
+        if ( ncaaHomeTeamScore == "" ):
+            homeTeamScore = 0
+        else:
+            homeTeamScore = int(ncaaHomeTeamScore)
+
+        # /api/private/{SeasonCode}/{WeekNumber}/games/{GameId}
+        pickemGamePutUrl = PICKEM_SERVER_BASE_URL + "/private/" + str(pickemSeason) + "/" + str(weekNumber) + "/games/" + str(pickemGameJson['gameId'])
+        print(pickemGamePutUrl)
+        #    {
+        #        "lastUpdated": "2018-08-21T23:10:04.783Z",
+        #        "gameState": "SpreadNotSet",
+        #        "gameStart": "2018-08-21T23:10:04.783Z",
+        #        "currentPeriod": "string",
+        #        "timeClock": "string",
+        #        "awayTeamScore": 0,
+        #        "homeTeamScore": 0
+        #    }
+        gameData = '{"lastUpdated": "' + lastUpdated + '","gameState": "' + gameState + '", "gameStart": "' + gameStart + '", "currentPeriod": "' + currentPeriod + '", "timeClock": "' + timeClock + '", "awayTeamScore": "' + str(awayTeamScore) + '", "homeTeamScore": "' + str(homeTeamScore) + '"}'
+        response = requests.put(pickemGamePutUrl, data=gameData, headers={'Content-Type': 'application/json'})
+
+        if(not response.ok):
+            log(PICKEM_LOG_LEVEL_ERROR, "FAILED PUT: " + url + " HTTP CODE: " + str(response.status_code))
+            return False
+        else:
+            print("SUCCESS PUT: " + url)
+            return True
+
+        return True
+
+def extractGameStart(startTimeEpoch):
+    epochStartInt = int(startTimeEpoch)
+    gameStart = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epochStartInt))
     return gameStart
 
 
@@ -262,6 +340,7 @@ parser.add_argument('-ns', '--ncaa_season', type=int, required=True, help='NCAA 
 parser.add_argument('-ps', '--pickem_season', type=int, required=True, help='PickEm season in YY e.g. 17')
 parser.add_argument('-w', '--week', type=int, required=True, help='Week in ## e.g. 07')
 parser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
+parser.add_argument('-s', '--source', required=True, choices=['ncaaDefault', 'ncaaCasablanca'])
 args = parser.parse_args()
 
 print("----------------------------------------")
@@ -290,8 +369,12 @@ elif ( args.action == "update" or args.action == "u" ):
     pickemGames = readPickemGames(args.pickem_season, args.week)
 
     for pickemGame in pickemGames:
-        if ( udpateNcaaGame(pickemGame, args.ncaa_season, args.pickem_season, args.week) ):
-            gamesModified += 1
+        if ( args.source == 'ncaaDefault' ):
+            if ( udpateNcaaGameFromDefaultSource(pickemGame, args.ncaa_season, args.pickem_season, args.week) ):
+                gamesModified += 1
+        else:
+            if ( udpateNcaaGameFromCasablanca(pickemGame, args.ncaa_season, args.pickem_season, args.week) ):
+                gamesModified += 1
 
     log(PICKEM_LOG_LEVEL_INFO, "Updated (" + str(gamesModified) + ") games for NCAA season (" + str(args.ncaa_season) + ") week (" + str(args.week) + ")")
 
