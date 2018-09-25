@@ -9618,7 +9618,7 @@
     background-color:inherit !important; 
     border-width:2px !important; 
     border-radius: 0.25rem !important; 
-    border-color: #f0ad4e !important; 
+    border-color: #fff !important; 
     border-style: solid !important; 
   }
   .pickem-card-locked 
@@ -9634,7 +9634,7 @@
     background-color:inherit !important; 
     border-width:2px !important; 
     border-radius: 0.25rem !important; 
-    border-color: #fff !important; 
+    border-color: #f0ad4e !important; 
     border-style: solid  ; 
   }
   .pickem-card-losing 
