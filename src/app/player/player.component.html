@@ -101,7 +101,7 @@
               <td *ngFor="let winBoard of leagueService.weekScoreboard.playerWins" >{{ winBoard.wins }}</td>
           </tr>
           <tr class="table-default" *ngFor="let gameScoreboard of leagueService.weekScoreboard.gamePickScoreboards">
-            <td scope="col">
+            <td scope="col text-nowrap">
               <img src="assets/team_icons/{{ gameScoreboard.awayTeamIconFileName }}" title="{{ gameScoreboard.awayTeamLongName }}" width="24" class="mx-1">
               <span [ngClass]="{ 
                 'pickem-score-won': gameScoreboard.leaderAfterSpread == 'Away' && gameScoreboard.gameState == 'Final', 
@@ -111,7 +111,7 @@
                 'pickem-score-won': gameScoreboard.leaderAfterSpread == 'Home' && gameScoreboard.gameState == 'Final', 
                 'pickem-score-winning': gameScoreboard.leaderAfterSpread == 'Home' && gameScoreboard.pickState == 'InGame' }">{{ gameScoreboard.homeTeamScore }}</span>
             </td>
-            <td *ngFor="let pickScoreboard of gameScoreboard.pickScoreboards">
+            <td *ngFor="let pickScoreboard of gameScoreboard.pickScoreboards" class="text-nowrap">
                 <img *ngIf="pickScoreboard.pickedTeamIconFileName" src="assets/team_icons/{{ pickScoreboard.pickedTeamIconFileName }}" title="{{ pickScoreboard.pickedTeamLongName }}" width="24" class="mx-1" />
                 <span *ngIf="pickScoreboard.pick != 'Hidden' && pickScoreboard.pickState == 'None'">-</span>
                 <span *ngIf="pickScoreboard.pick == 'Hidden'">?</span>
