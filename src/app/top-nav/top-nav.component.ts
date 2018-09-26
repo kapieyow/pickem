@@ -70,6 +70,51 @@ export class TopNavComponent implements OnInit {
     this.reloadScoreboards();
   }
 
+  changeLeague(league: string)
+  {
+    this.statusService.leagueCode = league;
+
+    this.leagueService.playerScoreboard = null;
+    this.leagueService.weekScoreboard = null;
+    this.leagueService.leagueScoreboard = null;
+
+    this.userService.setupUser(this.statusService.userName).subscribe(response => 
+      {
+        this.leagueService.loadPlayers(this.statusService.seasonCode, this.statusService.leagueCode).subscribe(response => 
+          {     
+              this.leagueService.loadWeeks(this.statusService.seasonCode, this.statusService.leagueCode).subscribe(response => 
+                { 
+                  this.leagueService.loadPlayerScoreboard(
+                    this.statusService.seasonCode, 
+                    this.statusService.leagueCode, 
+                    this.statusService.weekNumberFilter,
+                    this.statusService.playerTagFilter);
+
+                  this.leagueService.loadWeekScoreboard(
+                    this.statusService.seasonCode, 
+                    this.statusService.leagueCode, 
+                    this.statusService.weekNumberFilter
+                    );
+
+                  this.leagueService.loadLeagueScoreboard(
+                    this.statusService.seasonCode, 
+                    this.statusService.leagueCode
+                    );
+
+                  // user fully setup go to player view
+                  this.statusService.userLoggedInAndInitialized = true;
+                  // this.router.navigate(['/player'], { skipLocationChange: true });   
+                },
+                errors => { this.logger.error(errors); }
+              );
+          },
+          errors => { this.logger.error(errors); }
+        );
+      },
+      errors => { this.logger.error(errors); }
+    );  
+  }
+
   reloadScoreboards()
   {
     this.leagueService.loadPlayerScoreboard(

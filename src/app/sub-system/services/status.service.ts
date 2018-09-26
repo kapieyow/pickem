@@ -6,6 +6,7 @@ import { tap, catchError } from 'rxjs/operators';
 import { ThrowStmt, ERROR_COMPONENT_TYPE } from '@angular/compiler';
 
 import { LoggerService } from './logger.service';
+import { League } from '../models/api/league';
 import { PickEmStatus } from '../models/api/pickem-status';
 
 @Injectable({
@@ -22,6 +23,7 @@ export class StatusService {
   public userLoggedInAndInitialized: boolean;
   public userName: string;
   public userPlayerTag: string;
+  public userLeagues: League[];
 
   constructor(private logger: LoggerService, private http: HttpClient) {
     this.userLoggedInAndInitialized = false;

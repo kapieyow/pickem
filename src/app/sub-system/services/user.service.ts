@@ -46,6 +46,7 @@ export class UserService {
             if ( response.defaultLeagueCode )
             {
               this.statusService.leagueCode = response.defaultLeagueCode;
+              this.statusService.userLeagues = response.leagues;
             }
             else
             {
