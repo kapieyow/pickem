@@ -20,7 +20,8 @@ export class LoggerService {
   debug(logMessage: string)
   {
     console.debug(logMessage);
-    this.postToServer("DEBUG", logMessage);
+    // TODO: configure this somewhere
+    //  this.postToServer("DEBUG", logMessage);
   }
 
   info(logMessage: string)

@@ -5,7 +5,7 @@
 
             <div class="bs-component">
                 <nav class="navbar navbar-expand-md navbar-dark bg-primary">
-                    <a class="navbar-brand" href="javascript:return null;" (click)="statusDialog.show();">NCAAF - Pick'em</a>
+                    <a class="navbar-brand" href="javascript:return null;" (click)="statusDialog.show();">NCAAF - Pick<span [ngClass]="{ 'text-warning' : refreshInProcess }">'</span>em</a>
                     <button class="navbar-toggler" type="button" (click)="isCollapsed = !isCollapsed" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
@@ -13,7 +13,7 @@
                     <div class="collapse navbar-collapse" [collapse]=isCollapsed>
                         <form class="form-inline my-2 my-lg-0 ml-auto" *ngIf="statusService.userLoggedInAndInitialized">
 
-                            <div *ngIf="statusService.userLeagues && statusService.userLeagues.length > 1" class="btn-group mx-2" dropdown>
+                            <div *ngIf="statusService.userLeagues && statusService.userLeagues.length > 1" class="btn-group" dropdown>
                                 <button id="button-player" dropdownToggle type="button" class="btn btn-outline-warning dropdown-toggle" aria-controls="dropdown-player">
                                     {{ statusService.leagueCode }}
                                     <span class="caret"></span>

@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '../../../node_modules/@angular/router';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { of } from 'rxjs/observable/of';
+import { interval } from "rxjs/internal/observable/interval";
+import { startWith, switchMap } from "rxjs/operators";
 
 import { environment } from '../../environments/environment';
 import { VERSION } from '../../environments/version';
@@ -8,6 +12,9 @@ import { VERSION } from '../../environments/version';
 import { StatusService } from '../sub-system/services/status.service';
 import { UserService } from '../sub-system/services/user.service';
 import { Player } from '../sub-system/models/api/player';
+import { LeagueScoreboard } from '../sub-system/models/api/league-scoreboard';
+import { PlayerScoreboard } from '../sub-system/models/api/player-scoreboard';
+import { WeekScoreboard } from '../sub-system/models/api/week-scoreboard';
 import { LeagueService } from '../sub-system/services/league.service';
 import { LoggerService } from '../sub-system/services//logger.service';
 
@@ -19,6 +26,13 @@ class StatusValue
   FieldName: string;
 }
 
+class Scoreboards
+{
+  leagueScoreboard: LeagueScoreboard;
+  playerScoreboard: PlayerScoreboard; 
+  weekScoreboard: WeekScoreboard;
+}
+
 
 @Component({
   selector: 'app-top-nav',
@@ -28,6 +42,7 @@ class StatusValue
 export class TopNavComponent implements OnInit {
 
   isCollapsed = true;
+  refreshInProcess = false;
   StatusValues: StatusValue[] = [];
 
   constructor(public statusService: StatusService, public leagueService: LeagueService, private router: Router, private userService: UserService, private logger: LoggerService, ) { }
@@ -50,6 +65,23 @@ export class TopNavComponent implements OnInit {
           this.StatusValues.push({ FieldName: "Web Version", FieldValue: VERSION.version });
         }
       )
+
+    // polling refresh
+    interval(60000)
+    .pipe(
+      startWith(60000),
+      switchMap(() => {
+        this.refreshInProcess = true;
+        this.logger.debug("scoreboard poll");
+        return this.readScoreboards();
+      })
+    )
+    .subscribe(responses => {
+      this.leagueService.leagueScoreboard = responses.leagueScoreboard;
+      this.leagueService.playerScoreboard = responses.playerScoreboard;
+      this.leagueService.weekScoreboard = responses.weekScoreboard;
+      this.refreshInProcess = false;
+    });
   }
 
   logout ()
@@ -73,11 +105,13 @@ export class TopNavComponent implements OnInit {
   changeLeague(league: string)
   {
     this.statusService.leagueCode = league;
+    this.refreshInProcess = true;
 
     this.leagueService.playerScoreboard = null;
     this.leagueService.weekScoreboard = null;
     this.leagueService.leagueScoreboard = null;
 
+    // TODO: move all this to a central location? league service?
     this.userService.setupUser(this.statusService.userName).subscribe(response => 
       {
         this.leagueService.loadPlayers(this.statusService.seasonCode, this.statusService.leagueCode).subscribe(response => 
@@ -103,7 +137,7 @@ export class TopNavComponent implements OnInit {
 
                   // user fully setup go to player view
                   this.statusService.userLoggedInAndInitialized = true;
-                  // this.router.navigate(['/player'], { skipLocationChange: true });   
+                  this.refreshInProcess = false;  
                 },
                 errors => { this.logger.error(errors); }
               );
@@ -115,22 +149,51 @@ export class TopNavComponent implements OnInit {
     );  
   }
 
+  readScoreboards(): Observable<Scoreboards>
+  {
+
+    if ( this.statusService.userLoggedInAndInitialized ) 
+    {
+      // TODO: move all this to a central location? league service?
+      return forkJoin(
+        this.leagueService.readLeagueScoreboard(
+          this.statusService.seasonCode, 
+          this.statusService.leagueCode
+        ),
+        this.leagueService.readPlayerScoreboard(
+          this.statusService.seasonCode, 
+          this.statusService.leagueCode,
+          this.statusService.weekNumberFilter,
+          this.statusService.playerTagFilter
+        ),
+        this.leagueService.readWeekScoreboard(
+          this.statusService.seasonCode, 
+          this.statusService.leagueCode, 
+          this.statusService.weekNumberFilter
+        )
+      ).pipe(
+        map(([leagueScoreboard, playerScoreboard, weekScoreboard]) => {
+          // forkJoin returns an array of values, here we map those values to an object
+          return { leagueScoreboard, playerScoreboard, weekScoreboard };
+        })
+      );
+    }
+    else
+    {
+      return of(new Scoreboards());
+    }
+  }
+
   reloadScoreboards()
   {
-    this.leagueService.loadPlayerScoreboard(
-      this.statusService.seasonCode, 
-      this.statusService.leagueCode,
-      this.statusService.weekNumberFilter,
-      this.statusService.playerTagFilter
-    );
+    this.refreshInProcess = true;
 
-    this.leagueService.loadWeekScoreboard(
-      this.statusService.seasonCode, 
-      this.statusService.leagueCode, 
-      this.statusService.weekNumberFilter);
+    this.readScoreboards().subscribe( responses => {
+      this.leagueService.leagueScoreboard = responses.leagueScoreboard;
+      this.leagueService.playerScoreboard = responses.playerScoreboard;
+      this.leagueService.weekScoreboard = responses.weekScoreboard;
+      this.refreshInProcess = false;
+    })
 
-    this.leagueService.loadLeagueScoreboard(
-      this.statusService.seasonCode, 
-      this.statusService.leagueCode);
   }
 }
