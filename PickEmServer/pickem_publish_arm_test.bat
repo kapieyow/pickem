@@ -1,6 +1,6 @@
 ﻿REM base version - udpate this one
 REM  0.8.X - web and server "running" first running release to test
-SET ASSM_VERSION=1.4.34-linarm
+SET ASSM_VERSION=1.5.35-linarm
 
 REM append date-time
 SET ASSM_VERSION=%ASSM_VERSION%-%date:~4,2%-%date:~7,2%-%date:~10,4%-%time:~0,2%%time:~3,2%%time:~6,2%

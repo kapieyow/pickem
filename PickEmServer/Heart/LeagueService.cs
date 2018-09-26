@@ -163,9 +163,9 @@ namespace PickEmServer.Heart
             // NOTE: user manager lookup is case INsensitive. Use the result which is cased exactly.
             pickEmUser = await _userManager.FindByNameAsync(newLeaguePlayer.UserName);
 
-            if ( pickEmUser == null )
+            if (pickEmUser == null)
             {
-                throw new ArgumentException($"No user with username (id) : {newLeaguePlayer.UserName}. Cannot add league player"); 
+                throw new ArgumentException($"No user with username (id) : {newLeaguePlayer.UserName}. Cannot add league player");
             }
 
             using (var dbSession = _documentStore.LightweightSession())
@@ -181,12 +181,12 @@ namespace PickEmServer.Heart
                     throw new ArgumentException($"No league exists with league code: {exactLeagueCode}");
                 }
 
-                
+
                 if (leagueData.Players.Exists(p => p.PlayerTag == newLeaguePlayer.PlayerTag))
                 {
                     throw new ArgumentException($"League with league code: {exactLeagueCode} already has player with player tag: {newLeaguePlayer.PlayerTag}");
                 }
-                
+
                 // whew we can add this now.
                 leagueData.Players.Add(new LeaguePlayerData { PlayerTag = newLeaguePlayer.PlayerTag, UserNameRef = pickEmUser.UserName });
 
@@ -206,7 +206,7 @@ namespace PickEmServer.Heart
             // TODO: is there a better way to do this, native to Marten? Failed with the following
             //      .Where(l => l.Weeks.Any(w => w.Games.Any(g => g.GameIdRef == updatedGame.GameId)))
             //  .Where(l => l.Weeks.Any(w => w.Games.Contains(leagueGameToMatch, new LeagueGameComparer())))
-            var directSql = 
+            var directSql =
                 $@"SELECT 
                     jsonb_pretty(l.data)
                 FROM
@@ -219,10 +219,10 @@ namespace PickEmServer.Heart
 
             var associatedLeagues = runningDbSession.Query<LeagueData>(directSql).ToList();
 
-            foreach ( var leagueData in associatedLeagues )
+            foreach (var leagueData in associatedLeagues)
             {
                 // Checking both change flags and updating player picks. 
-                if ( gameChanges.ScoreChanged || gameChanges.GameStateChanged )
+                if (gameChanges.ScoreChanged || gameChanges.GameStateChanged)
                 {
                     // game score changed : update pick status(es) for related games
                     // TODO: ToArray is dumb. There will only be one. How to in Linq?
@@ -356,9 +356,9 @@ namespace PickEmServer.Heart
                     }
                 }
 
-                if ( gameChanges.GameStateChanged )
+                if (gameChanges.GameStateChanged)
                 {
-                    if ( updatedGame.GameState == GameStates.Final || updatedGame.GameState == GameStates.Cancelled )
+                    if (updatedGame.GameState == GameStates.Final || updatedGame.GameState == GameStates.Cancelled)
                     {
                         this.SynchScoreboards(leagueData);
                     }
@@ -402,7 +402,7 @@ namespace PickEmServer.Heart
             var exactLeagueCode = leagueData.LeagueCode;
 
             var playerData = leagueData.Players.SingleOrDefault(p => p.UserNameRef.Equals(uncheckedUserName, StringComparison.OrdinalIgnoreCase));
-            if ( playerData == null )
+            if (playerData == null)
             {
                 throw new ArgumentException($"User name: {uncheckedUserName} is not references in league: {exactLeagueCode}, season: {seasonCode}");
             }
@@ -421,7 +421,7 @@ namespace PickEmServer.Heart
 
             var resultPlayers = new List<Player>();
 
-            foreach ( var playerData in leagueData.Players )
+            foreach (var playerData in leagueData.Players)
             {
                 resultPlayers.Add(new Player
                 {
@@ -496,13 +496,31 @@ namespace PickEmServer.Heart
 
             // determine if the authenticated user has this player tag (if not hide picks for games not started)
             var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, exactLeagueCode, uncheckedAuthenticatedUserName);
-            
+
             var playerScoreboard = new PlayerScoreboard();
 
             playerScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(seasonCode, exactLeagueCode, weekNumber, new List<string> { uncheckedPlayerTag }, authenticatedPlayer.PlayerTag, leagueWithExtendedData);
 
             return playerScoreboard;
         }
+
+        public async Task<List<League>> ReadUserLeagues(string userName)
+        {
+            using (var dbSession = _documentStore.QuerySession())
+            {
+                var leagueData = await dbSession
+                    .Query<LeagueData>()
+                    .Where(l => l.Players.Any(p => p.UserNameRef == userName))
+                    .ToListAsync()
+                    .ConfigureAwait(false);
+
+                return leagueData
+                    .Select(ld => MapLeagueData(ld))
+                    .OrderBy(l => l.LeagueTitle)
+                    .ToList();
+            }
+        }
+
 
         internal async Task<LeagueScoreboard> ReadLeagueScoreboard(string seasonCode, string uncheckedLeagueCode)
         {

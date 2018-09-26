@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using PickEmServer.Api.Models;
 using PickEmServer.App;
 using PickEmServer.App.Models;
+using PickEmServer.Heart;
 using PickEmServer.Jwt.Models;
 
 namespace PickEmServer.Api.Controllers
@@ -22,11 +23,13 @@ namespace PickEmServer.Api.Controllers
     {
         private readonly ILogger<AuthController> _logger;
         private readonly JwtIssuerOptions _jwtOptions;
+        private readonly LeagueService _leagueService;
         private readonly UserManager<PickEmUser> _userManager;
 
-        public AuthController(UserManager<PickEmUser> userManager, IOptions<JwtIssuerOptions> jwtOptions, ILogger<AuthController> logger)
+        public AuthController(UserManager<PickEmUser> userManager, LeagueService leagueService, IOptions<JwtIssuerOptions> jwtOptions, ILogger<AuthController> logger)
         {
             _userManager = userManager;
+            _leagueService = leagueService;
             _logger = logger;
             _jwtOptions = jwtOptions.Value;
         }
@@ -75,13 +78,15 @@ namespace PickEmServer.Api.Controllers
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
                 _logger.LogInformation($"Login success for unchecked user ({credentials.UserName}) exact user ({userToVerify.UserName})");
 
+                var userLeagues = await _leagueService.ReadUserLeagues(userToVerify.UserName);
 
                 var pickemUser = new UserLoggedIn
                 {
                     DefaultLeagueCode = userToVerify.DefaultLeagueCode,
                     Email = userToVerify.Email,
                     UserName = userToVerify.UserName,
-                    Token = tokenString
+                    Token = tokenString,
+                    Leagues = userLeagues
                 };
 
                 return new OkObjectResult(pickemUser);

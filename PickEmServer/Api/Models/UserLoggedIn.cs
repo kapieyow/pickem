@@ -11,5 +11,7 @@ namespace PickEmServer.Api.Models
         public string Email { get; internal set; }
         public string UserName { get; internal set; }
         public string Token { get; internal set; }
+
+        public List<League> Leagues { get; internal set; }
     }
 }
