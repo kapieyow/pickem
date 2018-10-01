@@ -1,6 +1,20 @@
 {
     "version": "0.2.0",
     "configurations": [
+
+        {
+            "name": "new synch_games",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem.py",
+            "args": [
+                "synch_games",
+                "-a",
+                "update",
+                "-s",
+                "ncaaCasablanca"
+            ]
+        },
         {
             "name": "week setup - py",
             "type": "python",
