@@ -8,6 +8,7 @@ import requests
 import time
 import pickemLogger
 import pickemApiClient
+import pickemSynchGames
 
 # "configs"
 VERSION = "1.6.12"
@@ -22,8 +23,8 @@ class Settings:
     PickemServerBaseUrl = ""
     # from server
     PickemWeekNumber = 0
-    PickemSeasonCode = "18" # TODO - really read these from server
-    PickemNcaaSeasonCode = "2018" # TODO - really read these from server
+    PickemSeasonCode = ""
+    PickemNcaaSeasonCode = ""
 
 settings = Settings()
 
@@ -36,6 +37,9 @@ def setupWeek(args):
 
 def synchGames(args):
     logger.debug("synch games")
+
+    synchGamesHandler = pickemSynchGames.PickemSynchGamesHandler(apiClient, logger)
+    synchGamesHandler.Run(args.action, args.source, settings.PickemNcaaSeasonCode, settings.PickemSeasonCode, settings.PickemWeekNumber)
 
 def updateSpreads(args):
     logger.debug("update spreads")
