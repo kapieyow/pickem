@@ -115,7 +115,6 @@ export class LeagueService {
         tap(response => 
           {
             this.weekNumbers = response.weekNumbers;
-            this.statusService.weekNumberFilter = response.currentWeekNumber;
             this.logger.debug(`read (${response.weekNumbers.length}) weeks`)
           }),
         catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )

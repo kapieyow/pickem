@@ -29,16 +29,18 @@ export class LoginComponent implements OnInit {
     this.inputsInvalid = false;
 
     // TODO: oof. this is rough, nested... so all will return before going to player
-    // probably should do async awaits and change the calls to return Promises with no data etc.
+    // probably should do async awaits and change the calls to return Promises instead of observables.
     this.userService.login(username, password).subscribe(response => 
       {
         // result will be true if succesful. If false is 401, bad pwd. All other issues are thrown.
         this.inputsInvalid = false;
         
-        this.userService.setupUser(response.userName).subscribe(response => 
+        this.userService.setupUser(response.userName).subscribe(response =>  
           {
-              this.leagueService.loadPlayers(this.statusService.seasonCode, this.statusService.leagueCode).subscribe(response => 
-                {     
+            this.statusService.loadSystemSettings().subscribe(response =>
+              {
+                this.leagueService.loadPlayers(this.statusService.seasonCode, this.statusService.leagueCode).subscribe(response => 
+                  {     
                     this.leagueService.loadWeeks(this.statusService.seasonCode, this.statusService.leagueCode).subscribe(response => 
                       { 
                         this.leagueService.loadPlayerScoreboard(
@@ -64,15 +66,17 @@ export class LoginComponent implements OnInit {
                       },
                       errors => { this.inputsInvalid = true; this.loginErrors = errors; }
                     );
-                },
-                errors => { this.inputsInvalid = true; this.loginErrors = errors; }
-              );
-            },
-            errors => { this.inputsInvalid = true; this.loginErrors = errors; }
-          );
+                  },
+                  errors => { this.inputsInvalid = true; this.loginErrors = errors; }
+                );
+              },
+              errors => { this.inputsInvalid = true; this.loginErrors = errors; }
+            );
+          },
+          errors => { this.inputsInvalid = true; this.loginErrors = errors; }
+        );
       },
       errors => { this.inputsInvalid = true; this.loginErrors = errors; }
     );
-
-  }
+  } 
 }

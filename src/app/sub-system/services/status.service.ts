@@ -8,6 +8,12 @@ import { ThrowStmt, ERROR_COMPONENT_TYPE } from '@angular/compiler';
 import { LoggerService } from './logger.service';
 import { League } from '../models/api/league';
 import { PickEmStatus } from '../models/api/pickem-status';
+import { SystemSettings } from '../models/api/system-settings';
+
+//"Content-Type", "application/json-patch+json"
+const httpOptions = {
+  headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+};
 
 @Injectable({
   providedIn: 'root',
@@ -27,10 +33,6 @@ export class StatusService {
 
   constructor(private logger: LoggerService, private http: HttpClient) {
     this.userLoggedInAndInitialized = false;
-
-    // TODO: make work for other seasons
-    this.seasonCode = "18";
-
   }
 
   clearAllSessionState()
@@ -51,8 +53,23 @@ export class StatusService {
     return this.http.get<PickEmStatus>(readUrl)
       .pipe(
           tap(response => this.logger.debug(`read pickem status`)),
-          catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
+          catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); })
         );        
   }
 
+  loadSystemSettings(): Observable<SystemSettings> {
+    // build get URL
+    let readUrl = environment.pickemRestServerBaseUrl  + "/settings";
+
+    return this.http.get<SystemSettings>(readUrl, httpOptions)
+      .pipe(
+        tap(response => 
+          {
+            this.logger.debug(`read system settings`);
+            this.weekNumberFilter = response.currentWeekRef;
+            this.seasonCode = response.seasonCodeRef;
+          }),
+        catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); })
+      );
+  }
 }
