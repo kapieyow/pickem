@@ -77,7 +77,6 @@ namespace PickEmServer.Heart
                 LeagueData newLeagueData = new LeagueData
                 {
                     LeagueCode = newLeague.LeagueCode,
-                    CurrentWeekRef = newLeague.CurrentWeekNumber,
                     LeagueTitle = newLeague.LeagueTitle,
                     PlayerSeasonScores = new List<PlayerScoreSubtotalData>(),
                     Players = new List<LeaguePlayerData>(),
@@ -368,28 +367,6 @@ namespace PickEmServer.Heart
             return associatedLeagues.ToList();
         }
 
-        internal async Task<int> SetCurrentWeek(string seasonCode, string uncheckedLeagueCode, int currentWeekNumber)
-        {
-            using (var dbSession = _documentStore.LightweightSession())
-            {
-                var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
-                var exactLeagueCode = leagueData.LeagueCode;
-
-                var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == currentWeekNumber);
-                if (weekData == null)
-                {
-                    throw new ArgumentException($"League: {exactLeagueCode} for season: {seasonCode} does not contain a week: {currentWeekNumber}");
-                }
-
-                leagueData.CurrentWeekRef = currentWeekNumber;
-
-                dbSession.Store(leagueData);
-                dbSession.SaveChanges();
-
-                return currentWeekNumber;
-            }
-        }
-
         public async Task<League> ReadLeague(string uncheckedLeagueCode)
         {
             var leagueData = await this.GetLeagueData(uncheckedLeagueCode);
@@ -440,8 +417,6 @@ namespace PickEmServer.Heart
 
             var leagueWeeks = new LeagueWeeks();
             leagueWeeks.WeekNumbers = new List<int>();
-
-            leagueWeeks.CurrentWeekNumber = leagueData.CurrentWeekRef;
 
             foreach (var weekData in leagueData.Weeks)
             {

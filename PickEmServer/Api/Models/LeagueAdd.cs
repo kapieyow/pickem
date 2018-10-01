@@ -9,7 +9,6 @@ namespace PickEmServer.Api.Models
     {
         public string LeagueCode { get; set; }
         public string LeagueTitle { get; set; }
-        public int CurrentWeekNumber { get; set; }
 
         public List<int> WeekNumbers { get; set; }
     }

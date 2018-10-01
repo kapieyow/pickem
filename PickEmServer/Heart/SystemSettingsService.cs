@@ -11,7 +11,7 @@ namespace PickEmServer.Heart
     public class SystemSettingsService
     {
         private readonly IDocumentStore _documentStore;
-        private const int SYSTEM_SETTINGS_ID = 0;
+        private const int SYSTEM_SETTINGS_ID = 1; // there is only one
 
         public SystemSettingsService(IDocumentStore documentStore)
         {
