@@ -13,7 +13,7 @@ class Jsonable:
 
 
 # "configs"
-VERSION = "1.2.14"
+VERSION = "1.5.15-B"
 
 PICKEM_COMPONENT_NAME = "Pick'Em Spread Loader"
 PICKEM_INI = "pickem-settings.ini"
@@ -71,15 +71,13 @@ def updateSpreads(pickemGamesForWeek):
 	contentTable = soup.find("div", id="pb")
 	containerDiv = contentTable.find("div", recursive=False)
 
-	# set load time only once so all inserts have the same run time
-	loaderRunTime = datetime.datetime.now()
-
 	spreadsGameCount = 0
 	updatedPickemGameCount = 0
 
 	# Loop on "rows" one for each game
 	for divRow in containerDiv.find_all("div", class_="datarow"):
 		nextGameSpread = Jsonable()
+		neutralFieldGame = False
 
 		# date and time in first child div
 		thisDataDiv = divRow.div
@@ -109,6 +107,7 @@ def updateSpreads(pickemGamesForWeek):
 		# team name may have "(N)" at the end indicating neutral field, if it do, cut it
 		if len(nextGameSpread.HomeTeam) > 5 and nextGameSpread.HomeTeam[-4:] == " (N)":
 			nextGameSpread.HomeTeam = nextGameSpread.HomeTeam[:-4]
+			neutralFieldGame = True
 
 		# spread in two "columns" (divs) over
 		thisDataDiv = thisDataDiv.next_sibling.next_sibling
@@ -124,7 +123,21 @@ def updateSpreads(pickemGamesForWeek):
 		# see if there is a match in the pickem games
 		for pickemGame in pickemGamesForWeek:
 
-			if pickemGame['awayTeam']['team']['theSpreadName'] == nextGameSpread.VisitorTeam and pickemGame['homeTeam']['team']['theSpreadName'] == nextGameSpread.HomeTeam:
+			foundMatchingGame = False
+			ncaaAndSpreadTeamsReversed = False # indicates if the home/away teams don't match between NCAA and spread data. Occurs with neutral site games sometimes.
+
+			# NOTE: in neautral field cases the "home/away" teams don't always match
+			# between NCAA data (pickem game source) and the spread data
+			# this check is to see if they are reversed and if so, flip them in the data
+			if neutralFieldGame and pickemGame['awayTeam']['team']['theSpreadName'] == nextGameSpread.HomeTeam and pickemGame['homeTeam']['team']['theSpreadName'] == nextGameSpread.VisitorTeam:
+				foundMatchingGame = True
+				ncaaAndSpreadTeamsReversed = True
+
+			elif pickemGame['awayTeam']['team']['theSpreadName'] == nextGameSpread.VisitorTeam and pickemGame['homeTeam']['team']['theSpreadName'] == nextGameSpread.HomeTeam:
+				foundMatchingGame = True
+				ncaaAndSpreadTeamsReversed = False
+
+			if foundMatchingGame:
 				# matched update pickem spread
 
 				gameId = pickemGame['gameId']
@@ -137,10 +150,16 @@ def updateSpreads(pickemGamesForWeek):
 					spreadDirection = "None"
 					absSpread = "0"
 				elif ( nextGameSpread.SpreadToVisitor[:1] == "-" ):
-					spreadDirection = "ToHome"
+					if ncaaAndSpreadTeamsReversed:
+						spreadDirection = "ToAway"	
+					else:
+						spreadDirection = "ToHome"
 					absSpread = nextGameSpread.SpreadToVisitor[1:]
 				else:
-					spreadDirection = "ToAway"
+					if ncaaAndSpreadTeamsReversed:
+						spreadDirection = "ToHome"	
+					else:
+						spreadDirection = "ToAway"
 					absSpread = nextGameSpread.SpreadToVisitor[1:]
 
 				postData = '''
