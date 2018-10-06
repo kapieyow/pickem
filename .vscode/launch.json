@@ -10,9 +10,7 @@
             "args": [
                 "synch_games",
                 "-a",
-                "update",
-                "-s",
-                "ncaaCasablanca"
+                "update"
             ]
         },
         {

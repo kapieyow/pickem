@@ -14,7 +14,6 @@ import pickemSynchGames
 VERSION = "1.6.12"
 PICKEM_INI = "pickem-settings.ini"
 
-
 # globals
 class Settings:
     # from INI
@@ -27,6 +26,7 @@ class Settings:
     PickemNcaaSeasonCode = ""
 
 settings = Settings()
+apiClient = None
 
 
 #=====================================
@@ -39,7 +39,16 @@ def synchGames(args):
     logger.debug("synch games")
 
     synchGamesHandler = pickemSynchGames.PickemSynchGamesHandler(apiClient, logger)
-    synchGamesHandler.Run(args.action, args.source, settings.PickemNcaaSeasonCode, settings.PickemSeasonCode, settings.PickemWeekNumber)
+
+    if ( args.loop_every_sec == None ):
+        synchGamesHandler.Run(args.action, settings.PickemNcaaSeasonCode, settings.PickemSeasonCode, settings.PickemWeekNumber)
+    else:
+        runCount = 0
+        while(True): # for eva .. eva?
+            synchGamesHandler.Run(args.action, settings.PickemNcaaSeasonCode, settings.PickemSeasonCode, settings.PickemWeekNumber)
+            runCount = runCount + 1
+            logger.debug("-- Run #" + str(runCount) + " complete. Snoozing " + str(args.loop_every_sec) + " seconds")
+            time.sleep(args.loop_every_sec)
 
 def updateSpreads(args):
     logger.debug("update spreads")
@@ -58,9 +67,9 @@ def loadIniConfig(iniFile, settingsContainer):
     settingsContainer.PickemAdminPassword = configParser.get("ADMIN", "PICKEM_ADMIN_PASSWORD")
     settingsContainer.PickemServerBaseUrl = configParser.get("URLS", "PICKEM_SERVER_BASE_URL")
 
-def setServerSettings(apiClient, settingsContainer):
+def setServerSettings(pickemApiClient, settingsContainer):
     # TODO current week not linked to league?
-    systemSettings = apiClient.readSystemSettings()
+    systemSettings = pickemApiClient.readSystemSettings()
     settingsContainer.PickemWeekNumber = systemSettings['currentWeekRef']
     settingsContainer.PickemSeasonCode = systemSettings['seasonCodeRef']
     settingsContainer.PickemNcaaSeasonCode = systemSettings['ncaaSeasonCodeRef']
@@ -79,12 +88,8 @@ def setupArgumentParsers():
     # -- synch_games sub-command
     argParserSetupWeek = subArgParsers.add_parser('synch_games')
     argParserSetupWeek.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
-    argParserSetupWeek.add_argument('-s', '--source', required=True, choices=['ncaaDefault', 'ncaaCasablanca'])
-    #parser.add_argument('-ns', '--ncaa_season', type=int, required=True, help='NCAA season in YYYY e.g. 2017')
-    #parser.add_argument('-ps', '--pickem_season', type=int, required=True, help='PickEm season in YY e.g. 17')
-    #parser.add_argument('-w', '--week', type=int, required=True, help='Week in ## e.g. 07')
+    argParserSetupWeek.add_argument('-le', '--loop_every_sec', type=int, required=False)
     argParserSetupWeek.set_defaults(func=synchGames)
-
 
     # -- update_spreads sub-command
     argParserSetupWeek = subArgParsers.add_parser('update_spreads')
@@ -123,6 +128,7 @@ if ( hasattr(args, 'func') ):
     apiClient.authenticate(settings.PickemAdminUsername, settings.PickemAdminPassword)
     setServerSettings(apiClient, settings)
 
+    logger.debug(json.dumps(settings.__dict__))
 
     args.func(args)
 
