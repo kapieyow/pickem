@@ -32,8 +32,19 @@ apiClient = None
 #=====================================
 # sub command methods
 #=====================================
+def setLeagueGames(args):
+    gamesSet = 0
+
+    for gameId in args.gameids:
+        apiClient.setLeagueGame(args.league, args.week, gameId)
+        gamesSet = gamesSet + 1
+
+    logger.debug("Set (" + str(gamesSet) + ") games for league (" + args.league + ") in week (" + str(args.week) + ")")
+
 def setupWeek(args):
-    logger.debug("setup week, w = " + str(args.week) + " l = " + args.league)
+    logger.debug("setup week, w = " + str(args.week))
+    apiClient.updateSettingWeek(args.week)
+    logger.debug("Week set to: " + str(args.week))
 
 def synchGames(args):
     logger.debug("synch games")
@@ -79,29 +90,35 @@ def setupArgumentParsers():
     argParser = argparse.ArgumentParser()
     subArgParsers = argParser.add_subparsers()
 
+    # -- set_league_games sub-command
+    subParser = subArgParsers.add_parser('set_league_games')
+    subParser.add_argument('-l', '--league', required=True, help='League code')
+    subParser.add_argument('-w', '--week', type=int, required=True, help='Week in # e.g. 7')
+    subParser.add_argument('-gids', '--gameids', required=True, nargs='+', type=int)
+    subParser.set_defaults(func=setLeagueGames)
+
     # -- setup_week sub-command
-    argParserSetupWeek = subArgParsers.add_parser('setup_week')
-    argParserSetupWeek.add_argument('-l', '--league', required=True, help='League code')
-    argParserSetupWeek.add_argument('-w', '--week', type=int, required=True, help='Week in # e.g. 7')
-    argParserSetupWeek.set_defaults(func=setupWeek)
+    subParser = subArgParsers.add_parser('setup_week')
+    subParser.add_argument('-w', '--week', type=int, required=True, help='Week in # e.g. 7')
+    subParser.set_defaults(func=setupWeek)
 
     # -- synch_games sub-command
-    argParserSetupWeek = subArgParsers.add_parser('synch_games')
-    argParserSetupWeek.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
-    argParserSetupWeek.add_argument('-le', '--loop_every_sec', type=int, required=False)
-    argParserSetupWeek.set_defaults(func=synchGames)
+    subParser = subArgParsers.add_parser('synch_games')
+    subParser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
+    subParser.add_argument('-le', '--loop_every_sec', type=int, required=False)
+    subParser.set_defaults(func=synchGames)
 
     # -- update_spreads sub-command
-    argParserSetupWeek = subArgParsers.add_parser('update_spreads')
-    argParserSetupWeek.add_argument('-a', '--action', required=True, choices=['update', 'u', 'lock', 'l'])
+    subParser = subArgParsers.add_parser('update_spreads')
+    subParser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'lock', 'l'])
     #parser.add_argument('-ps', '--pickem_season', type=int, required=True, help='PickEm season in YY e.g. 17')
     #parser.add_argument('-w', '--week', type=int, required=True, help='Week in ## e.g. 07')
-    argParserSetupWeek.set_defaults(func=updateTeams)
+    subParser.set_defaults(func=updateTeams)
 
     # -- update_teams sub-command
-    argParserSetupWeek = subArgParsers.add_parser('update_teams')
+    subParser = subArgParsers.add_parser('update_teams')
     # parser.add_argument('-ps', '--pickem_season', type=int, required=True, help='PickEm season in YY e.g. 17')
-    argParserSetupWeek.set_defaults(func=updateTeams)
+    subParser.set_defaults(func=updateTeams)
 
     return argParser
 

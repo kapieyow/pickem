@@ -30,7 +30,6 @@ class PickemApiClient:
         url = self.pickemServerBaseUrl + "/settings"
         return self.getApi(url, self.jwt)
 
-
     def insertGame(
         self, 
         pickemSeasonCode, 
@@ -53,7 +52,10 @@ class PickemApiClient:
         gameData = '{"gameId": "' + gameId + '","gameStart": "' + gameStart + '", "neutralField": "' + neutralField + '", "awayTeamCode": "' + awayTeamCode + '", "homeTeamCode": "' + homeTeamCode + '"}'
         self.postToApi(pickemGamePostUrl, gameData, self.jwt)
 
-
+    def setLeagueGame(self, leagueCode, weekNumber, gameId):
+        leagueGameUrl = self.pickemServerBaseUrl + "/18/" + leagueCode + "/" + str(weekNumber) + "/games"
+        self.postToApi(leagueGameUrl, "{ 'gameId': " + str(gameId) + " }", self.jwt)
+        
     def updateGame(
         self, 
         pickemSeasonCode, 
@@ -81,6 +83,11 @@ class PickemApiClient:
         #    }
         gameData = '{"lastUpdated": "' + lastUpdated + '","gameState": "' + gameState + '", "gameStart": "' + gameStart + '", "currentPeriod": "' + currentPeriod + '", "timeClock": "' + timeClock + '", "awayTeamScore": "' + str(awayTeamScore) + '", "homeTeamScore": "' + str(homeTeamScore) + '"}'
         self.putToApi(pickemGamePutUrl, gameData, self.jwt)
+
+    def updateSettingWeek(self, weekNumber):
+        settingsUrl = self.pickemServerBaseUrl + "/settings"
+        settingsData = '{"currentWeekRef":' + str(weekNumber) + '}'
+        self.putToApi(settingsUrl, settingsData, self.jwt)
 
     #============================================
     #  generic HTTP methods

@@ -14,6 +14,24 @@
             ]
         },
         {
+            "name": "new set_league_games",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem.py",
+            "args": [
+                "set_league_games",
+                "-l",
+                "BUS",
+                "-w",
+                "7",
+                "-gids",
+                "2953684",
+                "2954451",
+                "2953394",
+                "2953905"
+            ]
+        },
+        {
             "name": "week setup - py",
             "type": "python",
             "request": "launch",
