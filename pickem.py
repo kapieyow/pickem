@@ -9,9 +9,10 @@ import time
 import pickemLogger
 import pickemApiClient
 import pickemSynchGames
+import pickemUpdateSpreads
 
 # "configs"
-VERSION = "1.6.12"
+VERSION = "1.6.16"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals
@@ -36,19 +37,16 @@ def setLeagueGames(args):
     gamesSet = 0
 
     for gameId in args.gameids:
-        apiClient.setLeagueGame(args.league, args.week, gameId)
+        apiClient.setLeagueGame(args.league, settings.PickemWeekNumber, gameId)
         gamesSet = gamesSet + 1
 
-    logger.debug("Set (" + str(gamesSet) + ") games for league (" + args.league + ") in week (" + str(args.week) + ")")
+    logger.debug("Set (" + str(gamesSet) + ") games for league (" + args.league + ") in week (" + str(settings.PickemWeekNumber) + ")")
 
 def setupWeek(args):
-    logger.debug("setup week, w = " + str(args.week))
     apiClient.updateSettingWeek(args.week)
     logger.debug("Week set to: " + str(args.week))
 
 def synchGames(args):
-    logger.debug("synch games")
-
     synchGamesHandler = pickemSynchGames.PickemSynchGamesHandler(apiClient, logger)
 
     if ( args.loop_every_sec == None ):
@@ -62,7 +60,8 @@ def synchGames(args):
             time.sleep(args.loop_every_sec)
 
 def updateSpreads(args):
-    logger.debug("update spreads")
+    synchGamesHandler = pickemUpdateSpreads.PickemUpdateSpreadsHandler(apiClient, logger)
+    synchGamesHandler.Run(args.action, settings.PickemSeasonCode, settings.PickemWeekNumber)
 
 def updateTeams(args):
     logger.debug("update teams")
@@ -93,7 +92,6 @@ def setupArgumentParsers():
     # -- set_league_games sub-command
     subParser = subArgParsers.add_parser('set_league_games')
     subParser.add_argument('-l', '--league', required=True, help='League code')
-    subParser.add_argument('-w', '--week', type=int, required=True, help='Week in # e.g. 7')
     subParser.add_argument('-gids', '--gameids', required=True, nargs='+', type=int)
     subParser.set_defaults(func=setLeagueGames)
 
@@ -105,15 +103,13 @@ def setupArgumentParsers():
     # -- synch_games sub-command
     subParser = subArgParsers.add_parser('synch_games')
     subParser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
-    subParser.add_argument('-le', '--loop_every_sec', type=int, required=False)
+    subParser.add_argument('-les', '--loop_every_sec', type=int, required=False)
     subParser.set_defaults(func=synchGames)
 
     # -- update_spreads sub-command
     subParser = subArgParsers.add_parser('update_spreads')
     subParser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'lock', 'l'])
-    #parser.add_argument('-ps', '--pickem_season', type=int, required=True, help='PickEm season in YY e.g. 17')
-    #parser.add_argument('-w', '--week', type=int, required=True, help='Week in ## e.g. 07')
-    subParser.set_defaults(func=updateTeams)
+    subParser.set_defaults(func=updateSpreads)
 
     # -- update_teams sub-command
     subParser = subArgParsers.add_parser('update_teams')

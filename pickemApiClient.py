@@ -21,14 +21,10 @@ class PickemApiClient:
 
         self.jwt = responseJson['token']
 
-    def readPickemGamesAnyLeague(self, pickemSeasonCode, weekNumber):
-        pickemAllGamesUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games_in_any_league"
-        return self.getApi(pickemAllGamesUrl, self.jwt)
-
-    def readSystemSettings(self):
-        # http://:BaseUrl/api/settings
-        url = self.pickemServerBaseUrl + "/settings"
-        return self.getApi(url, self.jwt)
+    def lockSpread(self, pickemSeasonCode, weekNumber, gameId):
+        # api/private/{SeasonCode}/{WeekNumber}/games/{GameId}/spread/lock 
+        spreadLockPutUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games/" + str(gameId) + "/spread/lock"
+        self.putToApi(spreadLockPutUrl, "", self.jwt)
 
     def insertGame(
         self, 
@@ -52,6 +48,15 @@ class PickemApiClient:
         gameData = '{"gameId": "' + gameId + '","gameStart": "' + gameStart + '", "neutralField": "' + neutralField + '", "awayTeamCode": "' + awayTeamCode + '", "homeTeamCode": "' + homeTeamCode + '"}'
         self.postToApi(pickemGamePostUrl, gameData, self.jwt)
 
+    def readPickemGamesAnyLeague(self, pickemSeasonCode, weekNumber):
+        pickemAllGamesUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games_in_any_league"
+        return self.getApi(pickemAllGamesUrl, self.jwt)
+
+    def readSystemSettings(self):
+        # http://:BaseUrl/api/settings
+        url = self.pickemServerBaseUrl + "/settings"
+        return self.getApi(url, self.jwt)
+        
     def setLeagueGame(self, leagueCode, weekNumber, gameId):
         leagueGameUrl = self.pickemServerBaseUrl + "/18/" + leagueCode + "/" + str(weekNumber) + "/games"
         self.postToApi(leagueGameUrl, "{ 'gameId': " + str(gameId) + " }", self.jwt)
@@ -88,6 +93,16 @@ class PickemApiClient:
         settingsUrl = self.pickemServerBaseUrl + "/settings"
         settingsData = '{"currentWeekRef":' + str(weekNumber) + '}'
         self.putToApi(settingsUrl, settingsData, self.jwt)
+
+    def updateSpread(self, pickemSeasonCode, weekNumber, gameId, spreadDirection, absSpread):
+        spreadPutUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games/" + str(gameId) + "/spread"
+        putData = '''
+        {
+            "spreadDirection": "''' + spreadDirection + '''",
+            "pointSpread": "''' + absSpread + '''"
+        }
+        '''
+        self.putToApi(spreadPutUrl, putData, self.jwt)
 
     #============================================
     #  generic HTTP methods
