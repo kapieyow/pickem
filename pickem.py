@@ -10,9 +10,10 @@ import pickemLogger
 import pickemApiClient
 import pickemSynchGames
 import pickemUpdateSpreads
+import pickemUpdateTeams
 
 # "configs"
-VERSION = "1.6.16"
+VERSION = "1.6.17"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals
@@ -64,7 +65,8 @@ def updateSpreads(args):
     synchGamesHandler.Run(args.action, settings.PickemSeasonCode, settings.PickemWeekNumber)
 
 def updateTeams(args):
-    logger.debug("update teams")
+    updateTeamsHandler = pickemUpdateTeams.PickemUpdateSpreadsHandler(apiClient, logger)
+    updateTeamsHandler.Run(settings.PickemSeasonCode, settings.PickemWeekNumber)
 
 
 #=====================================
@@ -143,6 +145,7 @@ if ( hasattr(args, 'func') ):
 
     logger.debug(json.dumps(settings.__dict__))
 
+    # this runs the function in parser's set_defaults()
     args.func(args)
 
 else:

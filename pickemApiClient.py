@@ -22,7 +22,6 @@ class PickemApiClient:
         self.jwt = responseJson['token']
 
     def lockSpread(self, pickemSeasonCode, weekNumber, gameId):
-        # api/private/{SeasonCode}/{WeekNumber}/games/{GameId}/spread/lock 
         spreadLockPutUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games/" + str(gameId) + "/spread/lock"
         self.putToApi(spreadLockPutUrl, "", self.jwt)
 
@@ -52,8 +51,10 @@ class PickemApiClient:
         pickemAllGamesUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games_in_any_league"
         return self.getApi(pickemAllGamesUrl, self.jwt)
 
+    def readPickemTeams(self):
+        return self.getApi(self.pickemServerBaseUrl + "/teams", self.jwt)
+
     def readSystemSettings(self):
-        # http://:BaseUrl/api/settings
         url = self.pickemServerBaseUrl + "/settings"
         return self.getApi(url, self.jwt)
         
@@ -75,7 +76,6 @@ class PickemApiClient:
         homeTeamScore
         ):
 
-        # /api/private/{SeasonCode}/{WeekNumber}/games/{GameId}
         pickemGamePutUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games/" + str(gameId)
         #    {
         #        "lastUpdated": "2018-08-21T23:10:04.783Z",
@@ -103,6 +103,18 @@ class PickemApiClient:
         }
         '''
         self.putToApi(spreadPutUrl, putData, self.jwt)
+
+    def updateTeam(self, teamCode, pickemSeasonCode, weekNumber, wins, losses, fbsRank):
+        apiUrl = self.pickemServerBaseUrl + "/teams/" + teamCode + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/stats"
+        putData = '''
+        {
+            "wins": ''' + str(wins) + ''',
+            "losses": ''' + str(losses) + ''',
+            "fbsRank": ''' + str(fbsRank) + '''
+        }
+        '''
+        self.putToApi(apiUrl, putData, self.jwt)
+
 
     #============================================
     #  generic HTTP methods
