@@ -20,7 +20,6 @@ class PickemUpdateSpreadsHandler:
         self.logger = logger
 
     def Run(self, actionCode, pickemSeason, weekNumber):
-
         # read pickem games used (so not all NCAA games)
         pickemGamesForWeek = self.apiClient.readPickemGamesAnyLeague(pickemSeason, weekNumber)
 
@@ -104,7 +103,7 @@ class PickemUpdateSpreadsHandler:
                 foundMatchingGame = False
                 ncaaAndSpreadTeamsReversed = False # indicates if the home/away teams don't match between NCAA and spread data. Occurs with neutral site games sometimes.
 
-                # NOTE: in neautral field cases the "home/away" teams don't always match
+                # NOTE: in neutral field cases the "home/away" teams don't always match
                 # between NCAA data (pickem game source) and the spread data
                 # this check is to see if they are reversed and if so, flip them in the data
                 if neutralFieldGame and pickemGame['awayTeam']['team']['theSpreadName'] == nextGameSpread.HomeTeam and pickemGame['homeTeam']['team']['theSpreadName'] == nextGameSpread.VisitorTeam:

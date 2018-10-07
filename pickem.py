@@ -115,7 +115,6 @@ def setupArgumentParsers():
 
     # -- update_teams sub-command
     subParser = subArgParsers.add_parser('update_teams')
-    # parser.add_argument('-ps', '--pickem_season', type=int, required=True, help='PickEm season in YY e.g. 17')
     subParser.set_defaults(func=updateTeams)
 
     return argParser
@@ -134,16 +133,12 @@ argParser = setupArgumentParsers()
 args = argParser.parse_args()
 if ( hasattr(args, 'func') ):
 
-    # build logger
     logger = pickemLogger.Logger(settings.PickemServerBaseUrl, args.func.__name__)
-    # build api client
     apiClient = pickemApiClient.PickemApiClient(settings.PickemServerBaseUrl, logger)
 
     # login
     apiClient.authenticate(settings.PickemAdminUsername, settings.PickemAdminPassword)
     setServerSettings(apiClient, settings)
-
-    logger.debug(json.dumps(settings.__dict__))
 
     # this runs the function in parser's set_defaults()
     args.func(args)
