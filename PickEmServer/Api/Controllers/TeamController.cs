@@ -26,7 +26,7 @@ namespace PickEmServer.Api.Controllers
             return await _teamService.ReadTeams();
         }
 
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpPut]
         [Route("api/teams/{TeamCode}/{SeasonCode}/{WeekNumber}/stats")]
         public async Task<Team> PutTeamStats(string TeamCode, string SeasonCode, int WeekNumber, [FromBody] TeamStatsUpdate teamStatsUpdate)

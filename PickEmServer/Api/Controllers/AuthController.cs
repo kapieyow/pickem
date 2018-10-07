@@ -64,8 +64,12 @@ namespace PickEmServer.Api.Controllers
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, userToVerify.UserName)
-                    // TODO: could add roles here, probably based on user setup in db i.e. kip is god
                 };
+                // TODO probably would be better to use a role manager etc, but none are available for Marten/Postgres yet.
+                if ( userToVerify.IsAGod)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, Consts.CLAIM_GOD));
+                }
 
                 var token = new JwtSecurityToken(
                     issuer: _jwtOptions.Issuer,

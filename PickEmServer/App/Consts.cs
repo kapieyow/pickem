@@ -8,5 +8,6 @@ namespace PickEmServer.App
     public static class Consts
     {
         public const string SECRET_KEY = "FJ(&4rjiklfvawse9745r2jkifgdsJFJF"; // TODO: get this from somewhere secure
+        public const string CLAIM_GOD = "God";
     }
 }

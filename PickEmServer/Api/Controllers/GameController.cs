@@ -20,7 +20,7 @@ namespace PickEmServer.Api.Controllers
             _gameService = gameService;
         }
 
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpGet]
         [Route("api/{SeasonCode}/{WeekNumber}/games_in_any_league")]
         public async Task<List<Game>> ReadGamesInAnyLeague(string SeasonCode, int WeekNumber)
@@ -28,7 +28,7 @@ namespace PickEmServer.Api.Controllers
             return await _gameService.ReadGamesInAnyLeague(SeasonCode, WeekNumber);
         }
 
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpGet]
         [Route("api/{SeasonCode}/{WeekNumber}/games")]
         public async Task<List<Game>> ReadGames(string SeasonCode, int WeekNumber)
@@ -36,7 +36,7 @@ namespace PickEmServer.Api.Controllers
             return await _gameService.ReadGames(SeasonCode, WeekNumber);
         }
 
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpPost]
         [Route("api/{SeasonCode}/{WeekNumber}/games")]
         public async Task<Game> AddGame(string SeasonCode, int WeekNumber, [FromBody] GameAdd newGame)
@@ -44,7 +44,7 @@ namespace PickEmServer.Api.Controllers
             return await _gameService.AddGame(SeasonCode, WeekNumber, newGame);
         }
 
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpPut]
         [Route("api/{SeasonCode}/{WeekNumber}/games/{GameId}")]
         public async Task<Game> UpdateGame(string SeasonCode, int WeekNumber, int GameId, [FromBody] GameUpdate gameUpdates)
@@ -52,7 +52,7 @@ namespace PickEmServer.Api.Controllers
             return await _gameService.UpdateGame(SeasonCode, WeekNumber, GameId, gameUpdates);
         }
 
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpPut]
         [Route("api/{SeasonCode}/{WeekNumber}/games/{GameId}/spread")]
         public async Task<Game> UpdateSpread(string SeasonCode, int WeekNumber, int GameId, [FromBody] SpreadUpdate spreadUpdates)
@@ -60,7 +60,7 @@ namespace PickEmServer.Api.Controllers
             return await _gameService.UpdateSpread(SeasonCode, WeekNumber, GameId, spreadUpdates);
         }
 
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpPut]
         [Route("api/{SeasonCode}/{WeekNumber}/games/{GameId}/spread/lock")]
         public async Task<Game> UpdateSpread(string SeasonCode, int WeekNumber, int GameId)

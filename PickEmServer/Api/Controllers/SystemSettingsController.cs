@@ -28,7 +28,7 @@ namespace PickEmServer.Api.Controllers
             return await _systemSettingsService.ReadSystemSettings();
         }
     
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpPut]
         [Route("api/settings")]
         public async Task<SystemSettings> UpdateSystemSettings([FromBody] SystemSettingsUpdate systemSettingsUpdate)

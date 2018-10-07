@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PickEmServer.Api.Models;
 using PickEmServer.App;
+using PickEmServer.App.Models;
 using PickEmServer.Heart;
 
 namespace PickEmServer.Api.Controllers
@@ -16,7 +18,7 @@ namespace PickEmServer.Api.Controllers
     {
         private readonly LeagueService _leagueService;
 
-        public LeagueController(LeagueService leagueService)
+        public LeagueController(UserManager<PickEmUser> userManager, LeagueService leagueService)
         {
             _leagueService = leagueService;
         }
@@ -45,7 +47,7 @@ namespace PickEmServer.Api.Controllers
             return await _leagueService.ReadLeaguePlayer(SeasonCode, LeagueCode, UserName);
         }
 
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpPut]
         [Route("api/{SeasonCode}/{LeagueCode}/players/{UserName}")]
         public async Task<Player> PutPlayer(string SeasonCode, string LeagueCode, string UserName, [FromBody] PlayerUpdate playerUpdate)
@@ -72,12 +74,22 @@ namespace PickEmServer.Api.Controllers
         [Authorize]
         [HttpPut]
         [Route("api/{SeasonCode}/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard/{GameId}/pick")]
-        public async Task<PlayerPick> PutPlayerPick(string SeasonCode, string LeagueCode, int WeekNumber, string PlayerTag, int GameId, [FromBody] PlayerPickUpdate newPlayerPick)
+        public async Task<IActionResult> PutPlayerPick(string SeasonCode, string LeagueCode, int WeekNumber, string PlayerTag, int GameId, [FromBody] PlayerPickUpdate newPlayerPick)
         {
-            return await _leagueService.SetPlayerPick(SeasonCode, LeagueCode, WeekNumber, PlayerTag, GameId, newPlayerPick);
+            var leaguePlayer = await _leagueService.ReadLeaguePlayer(SeasonCode, LeagueCode, this.User.Identity.Name);
+
+            if (leaguePlayer.PlayerTag.Equals(PlayerTag, StringComparison.OrdinalIgnoreCase))
+            {
+                var playerPickResult =  await _leagueService.SetPlayerPick(SeasonCode, LeagueCode, WeekNumber, PlayerTag, GameId, newPlayerPick);
+                return new OkObjectResult(playerPickResult);
+            }
+            else
+            {
+                return new UnauthorizedResult();
+            }
         }
 
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpPost]
         [Route("api/{SeasonCode}/{LeagueCode}/players")]
         public async Task<League> AddLeaguePlayer(string LeagueCode, [FromBody] LeaguePlayerAdd newLeaguePlayer)
@@ -101,7 +113,7 @@ namespace PickEmServer.Api.Controllers
             return await _leagueService.AddLeague(SeasonCode,  newLeague);
         }
 
-        [Authorize]
+        [Authorize(Policy = "IsAGod")]
         [HttpPost]
         [Route("api/{SeasonCode}/{LeagueCode}/{weekNumber}/games")]
         public async Task<League> AddLeagueGame(string SeasonCode, string LeagueCode, int weekNumber, [FromBody] LeagueGameAdd newLeagueGame)
