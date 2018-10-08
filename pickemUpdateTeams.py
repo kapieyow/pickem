@@ -33,6 +33,19 @@ class PickemUpdateSpreadsHandler:
         self.__loadNcaaFbsRankings(ncaaTeamStats, pickemTeams, TEAM_FBS_AP_RANKINGS_URL)
         self.__updatePickemWithStats(pickemSeason, weekNumber, ncaaTeamStats, pickemTeams)
 
+    def __cleanNcaaTeamName(self, teamNameFromNcaaSite):
+        # some teams have the vote count at the end like Clemson (99)
+        # this dumps the parens
+        teamNameFromNcaaSite = teamNameFromNcaaSite.split(" (")[0]
+
+        # HACK-O on *nix we get weird text for "Texas A&M" comes through "Texas A&M;" with the semicolon
+        # TODO fix this. Better call in BeautifulSoup?
+        if (teamNameFromNcaaSite[-1:] == ";"):
+            teamNameFromNcaaSite = teamNameFromNcaaSite[:-1]
+
+        return teamNameFromNcaaSite
+
+
     def __loadFbsTeamWinLose(self, ncaaTeamStats, url):
         fbsHtml = self.apiClient.getHtml(url)
         soup = BeautifulSoup(fbsHtml, "html.parser")
@@ -105,9 +118,8 @@ class PickemUpdateSpreadsHandler:
 
             teamTd = rankTd.find_next("td")
             teamName = teamTd.text
-            # some teams have the vote count at the end like Clemson (99)
-            # this dumps the parens
-            teamName = teamName.split(" (")[0]
+            
+            teamName = self.__cleanNcaaTeamName(teamName)
 
             pickemTeam = self.__findPickemTeamByLongName(pickemTeams, teamName)
 
@@ -136,4 +148,4 @@ class PickemUpdateSpreadsHandler:
                 self.apiClient.updateTeam(teamCode, seasonNumber, weekNumber, teamStats.wins, teamStats.losses, teamStats.fbsRank)
                 updatedTeamCount = updatedTeamCount + 1
 
-        self.logger.warn("Updated (" + str(updatedTeamCount) + ") pickem team's stats")
+        self.logger.debug("Updated (" + str(updatedTeamCount) + ") pickem team's stats")
