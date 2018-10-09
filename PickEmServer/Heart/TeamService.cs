@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Marten;
 using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
+using PickEmServer.App;
+using PickEmServer.App.Models;
 using PickEmServer.Data.Models;
 
 namespace PickEmServer.Heart
@@ -13,11 +15,13 @@ namespace PickEmServer.Heart
     {
         private readonly IDocumentStore _documentStore;
         private readonly ILogger<TeamService> _logger;
+        private readonly PickemEventer _pickemEventer;
 
-        public TeamService(IDocumentStore documentStore, ILogger<TeamService> logger)
+        public TeamService(IDocumentStore documentStore, ILogger<TeamService> logger, PickemEventer pickemEventer)
         {
             _documentStore = documentStore;
             _logger = logger;
+            _pickemEventer = pickemEventer;
         }
 
         internal async Task<List<Team>> ReadTeams()
@@ -84,6 +88,10 @@ namespace PickEmServer.Heart
 
                 dbSession.Store(teamData);
                 dbSession.SaveChanges();
+
+                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.TeamStatsChanged, seasonCode, weekNumber);
+                pickemEvent.DynamicKeys.teamCode = teamData.TeamCode;
+                _pickemEventer.Emit(pickemEvent);
 
                 return MapTeamData(teamData);
             }

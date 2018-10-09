@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,7 @@ using PickEmServer.App.Models;
 using PickEmServer.Heart;
 using PickEmServer.Jwt.Models;
 using PickEmServer.Middleware;
+using PickEmServer.WebSockets;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace PickEmServer
@@ -46,6 +48,8 @@ namespace PickEmServer
             services.AddScoped<ReferenceService>();
             services.AddScoped<SystemSettingsService>();
             services.AddScoped<TeamService>();
+            services.AddSingleton<SuperWebSocketPoolManager>();
+            services.AddSingleton<PickemEventer>();
 
             // Get JWT options from app settings
             var jwtAppSettingOptions = Configuration.GetSection(nameof(JwtIssuerOptions));
@@ -131,13 +135,19 @@ namespace PickEmServer
 
             app.UseAuthentication();
 
-            if (env.IsDevelopment())
-            {
-                // JSON output exception output
-                app.UseMiddleware(typeof(JsonOutputErrorHandlingMiddleware));
-            }
-
+            // JSON output exception output
+            app.UseMiddleware(typeof(JsonOutputErrorHandlingMiddleware));
+         
             app.UseStaticFiles();
+
+            var webSocketOptions = new WebSocketOptions()
+            {
+                KeepAliveInterval = TimeSpan.FromSeconds(Consts.WEB_SOCKET_KEEP_ALIVE_SECONDS),
+                ReceiveBufferSize = Consts.WEB_SOCKET_BUFFER_SIZE
+            };
+            app.UseWebSockets(webSocketOptions);
+
+            app.UseMiddleware<SuperWebSocketMiddleware>();
 
             // allow requests from any origin
             app.UseCors(builder =>

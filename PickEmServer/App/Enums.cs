@@ -24,6 +24,20 @@ namespace PickEmServer.App
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
+    public enum PickemSystemEventTypes
+    {
+        GameChanged,
+        LeagueGameAdded,
+        LeaguePlayerAdded,
+        PlayerChanged,
+        PlayerPickChanged,
+        SpreadLocked,
+        SpreadUpdated,
+        SystemSettingsChanged,
+        TeamStatsChanged,
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum PickTypes
     {
         Away,
