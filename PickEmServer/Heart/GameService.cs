@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PickEmServer.Api.Models;
 using PickEmServer.App;
+using PickEmServer.App.Models;
 using PickEmServer.Data.Models;
 using System;
 using System.Collections.Generic;
@@ -18,12 +19,14 @@ namespace PickEmServer.Heart
         private readonly IDocumentStore _documentStore;
         private readonly ILogger<GameService> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly PickemEventer _pickemEventer;
         private readonly ReferenceService _referenceSevice;
 
-        public GameService(IDocumentStore documentStore, ILogger<GameService> logger, ReferenceService referenceSevice, IServiceProvider serviceProvider)
+        public GameService(IDocumentStore documentStore, ILogger<GameService> logger, PickemEventer pickemEventer, ReferenceService referenceSevice, IServiceProvider serviceProvider)
         {
             _documentStore = documentStore;
             _logger = logger;
+            _pickemEventer = pickemEventer;
             _referenceSevice = referenceSevice;
             _serviceProvider = serviceProvider;
         }
@@ -148,6 +151,9 @@ namespace PickEmServer.Heart
                 gameChanger.LockSpread();
                 dbSession.Store(game);
                 dbSession.SaveChanges();
+
+                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.SpreadLocked, seasonCode, weekNumber, gameId);
+                _pickemEventer.Emit(pickemEvent);
             }
 
             // read back out to return
@@ -203,21 +209,39 @@ namespace PickEmServer.Heart
                 var gameChanges = gameChanger.ApplyChanges(gameUpdates);
                 dbSession.Store(game);
 
+                var leagueCodesAffected = new List<string>();
+
                 if ( gameChanges.GameStateChanged || gameChanges.ScoreChanged )
                 {
                     // score and/or game state changed, let all the leagues know.
 
-                    // TODO - avoid direct new up of league service. Cannot IoC do to circlies because game service uses league. What to do?
+                    // TODO - avoid direct new up of league service. Cannot IoC due to circlies because game service uses league. What to do?
                     var leagueService = _serviceProvider.GetService<LeagueService>();
                     var leaguesData = leagueService.ApplyGameChanges(game, gameChanges, dbSession);
 
                     foreach ( var leagueData in leaguesData )
                     {
                         dbSession.Store(leagueData);
+                        leagueCodesAffected.Add(leagueData.LeagueCode);
                     }
                 }
 
                 dbSession.SaveChanges();
+
+                if ( gameChanges.GameChanged )
+                {
+                    var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.GameChanged, SeasonCode, WeekNumber, GameId);
+                    pickemEvent.DynamicInformation.ancillaryMetaDataChanged = gameChanges.AncillaryMetaDataChanged;
+                    pickemEvent.DynamicInformation.gameStateChanged = gameChanges.GameStateChanged;
+                    pickemEvent.DynamicInformation.scoreChanged = gameChanges.ScoreChanged;
+
+                    foreach ( var leagueCode in leagueCodesAffected )
+                    {
+                        pickemEvent.LeagueCodesAffected.Add(leagueCode);
+                    }
+
+                    _pickemEventer.Emit(pickemEvent);
+                }
             }
 
             // read back out to return
@@ -248,6 +272,9 @@ namespace PickEmServer.Heart
                 gameChanger.ApplySpread(spreadUpdates);
                 dbSession.Store(game);
                 dbSession.SaveChanges();
+
+                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.SpreadUpdated, SeasonCode, WeekNumber, GameId);
+                _pickemEventer.Emit(pickemEvent);
             }
 
             // read back out to return

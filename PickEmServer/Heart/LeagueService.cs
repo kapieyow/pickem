@@ -18,6 +18,7 @@ namespace PickEmServer.Heart
         private readonly IDocumentStore _documentStore;
         private readonly ILogger<LeagueService> _logger;
         private readonly GameService _gameSevice;
+        private readonly PickemEventer _pickemEventer;
         private readonly ReferenceService _referenceSevice;
         private readonly UserManager<PickEmUser> _userManager;
 
@@ -41,11 +42,12 @@ namespace PickEmServer.Heart
             public Dictionary<string, TeamData> referencedAwayTeamData { get; set; }
             public Dictionary<string, TeamData> referencedHomeTeamData { get; set; }
         }
-        public LeagueService(IDocumentStore documentStore, ILogger<LeagueService> logger, ReferenceService referenceService, GameService gameSevice, UserManager<PickEmUser> userManager)
+        public LeagueService(IDocumentStore documentStore, ILogger<LeagueService> logger, PickemEventer pickemEventer, ReferenceService referenceService, GameService gameSevice, UserManager<PickEmUser> userManager)
         {
             _documentStore = documentStore;
             _gameSevice = gameSevice;
             _logger = logger;
+            _pickemEventer = pickemEventer;
             _referenceSevice = referenceService;
             _userManager = userManager;
         }
@@ -147,6 +149,10 @@ namespace PickEmServer.Heart
                 dbSession.Store(leagueData);
                 dbSession.SaveChanges();
 
+                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeagueGameAdded, seasonCode, exactLeagueCode, weekNumber, newLeagueGame.GameId);
+                pickemEvent.LeagueCodesAffected.Add(exactLeagueCode);
+                _pickemEventer.Emit(pickemEvent);
+
                 return this.MapLeagueData(leagueData);
             }
         }
@@ -193,6 +199,12 @@ namespace PickEmServer.Heart
 
                 dbSession.Store(leagueData);
                 dbSession.SaveChanges();
+
+                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerAdded, null, exactLeagueCode, null, null);
+                pickemEvent.DynamicKeys.playerTag = newLeaguePlayer.PlayerTag;
+                pickemEvent.DynamicInformation.userName = pickEmUser.UserName;
+                pickemEvent.LeagueCodesAffected.Add(exactLeagueCode);
+                _pickemEventer.Emit(pickemEvent);
 
                 return this.MapLeagueData(leagueData);
             }
@@ -760,6 +772,12 @@ namespace PickEmServer.Heart
                 dbSession.Store(leagueData);
                 dbSession.SaveChanges();
 
+                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerChanged, null, exactLeagueCode, null, null);
+                pickemEvent.DynamicKeys.playerTag = playerUpdate.PlayerTag;
+                pickemEvent.DynamicInformation.userName = playerData.UserNameRef;
+                pickemEvent.LeagueCodesAffected.Add(exactLeagueCode);
+                _pickemEventer.Emit(pickemEvent);
+
                 return await this.ReadLeaguePlayer(seasonCode, exactLeagueCode, playerData.UserNameRef);
             }
         }
@@ -805,10 +823,19 @@ namespace PickEmServer.Heart
                         throw new Exception($"Player: {playerPickData.PlayerTagRef} in league: {exactLeagueCode} cannot make a pick for game: {gameId} because the game is in the following game state: {gameData.GameState}");
                 }
 
-                playerPickData.Pick = newPlayerPick.Pick;
+                // did the pick change?
+                if (playerPickData.Pick != newPlayerPick.Pick)
+                {
+                    playerPickData.Pick = newPlayerPick.Pick;
 
-                dbSession.Store(leagueData);
-                dbSession.SaveChanges();
+                    dbSession.Store(leagueData);
+                    dbSession.SaveChanges();
+
+                    var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerPickChanged, seasonCode, exactLeagueCode, weekNumber, gameId);
+                    pickemEvent.DynamicKeys.playerTag = playerPickData.PlayerTagRef;
+                    pickemEvent.LeagueCodesAffected.Add(exactLeagueCode);
+                    _pickemEventer.Emit(pickemEvent);
+                }
 
                 return new PlayerPick { Pick = playerPickData.Pick };
             }

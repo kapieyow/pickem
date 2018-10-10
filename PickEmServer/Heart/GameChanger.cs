@@ -22,10 +22,25 @@ namespace PickEmServer.Heart
         {
             GameChanges gameChanges = new GameChanges();
 
-            _game.LastUpdated = gameUpdates.LastUpdated;
-            _game.CurrentPeriod = gameUpdates.CurrentPeriod;
-            _game.TimeClock = gameUpdates.TimeClock;
-            _game.GameStart = gameUpdates.GameStart;
+            // goofy way to check if anything changed.
+            if (
+                _game.LastUpdated != gameUpdates.LastUpdated
+                ||
+                _game.CurrentPeriod != gameUpdates.CurrentPeriod
+                ||
+                _game.TimeClock != gameUpdates.TimeClock
+                ||
+                _game.GameStart != gameUpdates.GameStart
+                )
+            {
+                _game.LastUpdated = gameUpdates.LastUpdated;
+                _game.CurrentPeriod = gameUpdates.CurrentPeriod;
+                _game.TimeClock = gameUpdates.TimeClock;
+                _game.GameStart = gameUpdates.GameStart;
+
+                gameChanges.AncillaryMetaDataChanged = true;
+            }
+
             if ( this.UpdateAwayTeamScore(gameUpdates.AwayTeamScore) )
             {
                 gameChanges.ScoreChanged = true;

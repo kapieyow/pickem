@@ -1,5 +1,7 @@
 ﻿using Marten;
 using PickEmServer.Api.Models;
+using PickEmServer.App;
+using PickEmServer.App.Models;
 using PickEmServer.Data.Models;
 using System;
 using System.Collections.Generic;
@@ -11,11 +13,14 @@ namespace PickEmServer.Heart
     public class SystemSettingsService
     {
         private readonly IDocumentStore _documentStore;
+        private readonly PickemEventer _pickemEventer;
+
         private const int SYSTEM_SETTINGS_ID = 1; // there is only one
 
-        public SystemSettingsService(IDocumentStore documentStore)
+        public SystemSettingsService(IDocumentStore documentStore, PickemEventer pickemEventer)
         {
             _documentStore = documentStore;
+            _pickemEventer = pickemEventer;
         }
 
         public async Task<SystemSettings> ReadSystemSettings()
@@ -42,6 +47,8 @@ namespace PickEmServer.Heart
 
                 dbSession.Store(systemSettingsData);
                 dbSession.SaveChanges();
+
+                _pickemEventer.Emit(new PickemSystemEvent(PickemSystemEventTypes.SystemSettingsChanged));
 
                 return this.MapSystemSettingsData(systemSettingsData);
             }
