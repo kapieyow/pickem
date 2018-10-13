@@ -13,7 +13,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "1.6.19"
+VERSION = "1.6.20"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals
@@ -54,10 +54,16 @@ def synchGames(args):
         synchGamesHandler.Run(args.action, settings.PickemNcaaSeasonCode, settings.PickemSeasonCode, settings.PickemWeekNumber)
     else:
         runCount = 0
+        failCount = 0
         while(True): # for eva .. eva?
-            synchGamesHandler.Run(args.action, settings.PickemNcaaSeasonCode, settings.PickemSeasonCode, settings.PickemWeekNumber)
+            try:
+                synchGamesHandler.Run(args.action, settings.PickemNcaaSeasonCode, settings.PickemSeasonCode, settings.PickemWeekNumber)
+            except:
+                failCount = failCount + 1
+           
             runCount = runCount + 1
-            logger.debug("-- Run #" + str(runCount) + " complete. Snoozing " + str(args.loop_every_sec) + " seconds")
+
+            logger.debug("-- Run #" + str(runCount) + " complete. Fail count - " + str(failCount) + ". Snoozing " + str(args.loop_every_sec) + " seconds")
             time.sleep(args.loop_every_sec)
 
 def updateSpreads(args):
