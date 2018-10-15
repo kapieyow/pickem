@@ -13,7 +13,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "1.6.20"
+VERSION = "1.7.21"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals

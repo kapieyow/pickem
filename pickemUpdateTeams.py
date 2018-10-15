@@ -43,7 +43,7 @@ class PickemUpdateSpreadsHandler:
         if (teamNameFromNcaaSite[-1:] == ";"):
             teamNameFromNcaaSite = teamNameFromNcaaSite[:-1]
 
-        return teamNameFromNcaaSite
+        return teamNameFromNcaaSite.strip()
 
 
     def __loadFbsTeamWinLose(self, ncaaTeamStats, url):
@@ -120,6 +120,9 @@ class PickemUpdateSpreadsHandler:
             teamName = teamTd.text
             
             teamName = self.__cleanNcaaTeamName(teamName)
+
+            if ( len(teamName) == 0 ):
+                continue
 
             pickemTeam = self.__findPickemTeamByLongName(pickemTeams, teamName)
 

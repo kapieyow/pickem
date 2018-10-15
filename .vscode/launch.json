@@ -56,15 +56,12 @@
             ]
         },
         {
-            "name": "team updater - py",
+            "name": "new - team updater",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/pickem-team-updater.py",
+            "program": "${workspaceFolder}/pickem.py",
             "args": [
-                "-ps",
-                "18",
-                "-w",
-                "4"
+                "update_teams"
             ]
         },
         {
