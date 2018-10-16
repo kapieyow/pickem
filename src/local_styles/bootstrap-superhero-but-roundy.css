@@ -9605,6 +9605,32 @@
  }
 
  /* pickem specifics */
+  .pickem-badge-all-picked
+  {
+    color: #fff;
+    background-color: #006400;
+  }
+  .pickem-badge-some-unpicked
+  {
+    color: #fff;
+    background-color: #f0ad4e;
+  }
+  .pickem-badge-lost
+  {
+    color: #fff;
+    background-color: #990500;
+  }
+  .pickem-badge-won
+  {
+    color: #fff;
+    background-color: #006400;
+  }
+  .pickem-badge-pending
+  {
+    color: #fff;
+    background-color: #4E5D6C;
+  }
+
   .pickem-card-none
   {
     background-color:inherit !important; 
@@ -9636,6 +9662,14 @@
     border-radius: 0.25rem !important; 
     border-color: #f0ad4e !important; 
     border-style: solid  ; 
+  }
+  .pickem-card-cancelled 
+  {
+    background-color:#868e96 !important; 
+    border-width:1px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #8d9dad !important; 
+    border-style: solid !important; 
   }
   .pickem-card-losing 
   {
@@ -9686,6 +9720,11 @@
     border-style: solid !important; 
   }
 
+  .pickem-score-cancelled 
+  {
+    color:#868e96;
+    font-weight: bold;
+  }
   .pickem-score-losing 
   {
     border-style:dashed;

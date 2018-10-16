@@ -153,10 +153,12 @@ export class LeagueService {
       .subscribe(
         response => 
           {
+            this.playerScoreboard.gamesPending = response.gamesPending;
+            this.playerScoreboard.gamesPicked = response.gamesPicked;
             // find same game
             var gamePickScoreboard = this.playerScoreboard.gamePickScoreboards.find(psp => psp.gameId == gameId);
             var pickScoreboard = gamePickScoreboard.pickScoreboards.find(ps => ps.playerTag == playerTag);
-            pickScoreboard.pick = pick;
+            pickScoreboard.pick = response.pick;
           },
         errors => 
           { 

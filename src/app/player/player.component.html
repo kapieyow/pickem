@@ -6,12 +6,14 @@
     <tab heading="Player">
 
       <!-- row for "no games yet" message -->
-      <div *ngIf="leagueService.playerScoreboard && leagueService.playerScoreboard.gamePickScoreboards.length == 0" class="row mx-0 my-1">
+      <div *ngIf="leagueService.playerScoreboard && leagueService.playerScoreboard.gamePickScoreboards.length == 0"
+        class="row mx-0 my-1">
         <div class="col-sm-12 px-0">
           <div class="card text-white border-warning mb-3  my-2">
             <div class="card-body">
               <h4 class="card-title">Games aren't ready for the week yet!</h4>
-              <p class="card-text">The games have not been selected for this week yet. They *should* be set by the Monday of this week ... ish.
+              <p class="card-text">The games have not been selected for this week yet. They *should* be set by the
+                Monday of this week ... ish.
                 Contact stoopideriest-soft support desk if you have concerns.</p>
             </div>
           </div>
@@ -19,7 +21,25 @@
       </div>
 
       <!-- picks -->
-      <div *ngIf="leagueService.playerScoreboard">
+      <div *ngIf="leagueService.playerScoreboard && leagueService.playerScoreboard.gamePickScoreboards.length > 0">
+        <div class="row">
+          <div class="col-12 text-nowrap text-right"><span class="small font-weight-bold">Picked&nbsp;&nbsp;</span><span class="badge" [ngClass]="
+              {
+                'pickem-badge-some-unpicked': leagueService.playerScoreboard.gamesPicked != leagueService.playerScoreboard.games,
+                'pickem-badge-all-picked': leagueService.playerScoreboard.gamesPicked == leagueService.playerScoreboard.games
+              }
+            ">{{ leagueService.playerScoreboard.gamesPicked }} of {{ leagueService.playerScoreboard.games }}</span>
+            <span *ngIf="leagueService.playerScoreboard.gamesWon + leagueService.playerScoreboard.gamesLost > 0">
+              &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Wins&nbsp;&nbsp;</span><span class="badge pickem-badge-won">{{ leagueService.playerScoreboard.gamesWon }}</span>
+            </span>
+            <span *ngIf="leagueService.playerScoreboard.gamesWon + leagueService.playerScoreboard.gamesLost > 0">
+              &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Losses&nbsp;&nbsp;</span><span class="badge pickem-badge-lost">{{ leagueService.playerScoreboard.gamesLost }}</span>
+            </span>
+            <span *ngIf="leagueService.playerScoreboard.gamesWon + leagueService.playerScoreboard.gamesLost > 0 && leagueService.playerScoreboard.gamesPending > 0">
+              &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Pending&nbsp;&nbsp;</span><span class="badge pickem-badge-pending">{{ leagueService.playerScoreboard.gamesPending }}</span>
+            </span> 
+          </div>
+        </div>
         <div *ngFor="let gameScoreboard of leagueService.playerScoreboard.gamePickScoreboards" class="my-3 border border-light container">
           <div class="row">
             <div class="col-12 text-white bg-secondary py-1">{{ gameScoreboard.gameStatusDescription }}</div>
@@ -29,6 +49,7 @@
                 {
                   'pickem-card-locked': gameScoreboard.pickScoreboards[0].pick != 'Away' && (!gamePickableByCurrentPlayer(gameScoreboard) || gameScoreboard.pickScoreboards[0].pickState != 'None'),
                   'pickem-card-none': gameScoreboard.pickScoreboards[0].pick != 'Away' && gamePickableByCurrentPlayer(gameScoreboard),
+                  'pickem-card-cancelled': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Cancelled', 
                   'pickem-card-picked': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'None', 
                   'pickem-card-losing': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Losing', 
                   'pickem-card-lost': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Lost', 
@@ -36,19 +57,25 @@
                   'pickem-card-pushed': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Pushed', 
                   'pickem-card-winning': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Winning', 
                   'pickem-card-won': gameScoreboard.pickScoreboards[0].pick == 'Away' && gameScoreboard.pickScoreboards[0].pickState == 'Won'
-                }" (click)="setPick(gameScoreboard, 'Away');">
+                }"
+              (click)="setPick(gameScoreboard, 'Away');">
               <div class="row">
                 <div class="col-10 text-nowrap">
                   <img src="assets/team_icons/{{ gameScoreboard.awayTeamIconFileName }}" width="24" class="mx-1" />
-                  <span *ngIf="gameScoreboard.awayTeamRank > 0" class="font-weight-light text-light px-1">#{{ gameScoreboard.awayTeamRank }}</span>
+                  <span *ngIf="gameScoreboard.awayTeamRank > 0" class="font-weight-light text-light px-1">#{{
+                    gameScoreboard.awayTeamRank }}</span>
                   {{ gameScoreboard.awayTeamLongName }}
-                  <span class="font-weight-light text-light px-1">({{ gameScoreboard.awayTeamWins }}-{{ gameScoreboard.awayTeamLosses }})</span>
+                  <span class="font-weight-light text-light px-1">({{ gameScoreboard.awayTeamWins }}-{{
+                    gameScoreboard.awayTeamLosses }})</span>
                   <br *ngIf="gameScoreboard.spreadDirection == 'ToAway'">
-                  <span *ngIf="gameScoreboard.spreadDirection == 'ToAway'" [ngClass]="{'text-warning': gameScoreboard.gameState == 'SpreadNotSet'}" class="px-3" tooltip="Spread"><span *ngIf="gameScoreboard.gameState == 'SpreadNotSet'">*&nbsp;</span>+{{ gameScoreboard.spread }}</span>
+                  <span *ngIf="gameScoreboard.spreadDirection == 'ToAway'" [ngClass]="{'text-warning': gameScoreboard.gameState == 'SpreadNotSet'}"
+                    class="px-3" tooltip="Spread"><span *ngIf="gameScoreboard.gameState == 'SpreadNotSet'">*&nbsp;</span>+{{
+                    gameScoreboard.spread }}</span>
                 </div>
                 <div class="col-2 text-nowrap text-right">
                   <h4 class="font-weight-bold mb-0">{{ gameScoreboard.awayTeamScore }}</h4>
-                  <span *ngIf="gameScoreboard.spreadDirection == 'ToAway' && (gameScoreboard.gameState == 'InGame' || gameScoreboard.gameState == 'Final')" tooltip="Score after spread">{{ gameScoreboard.awayTeamScore + gameScoreboard.spread }}</span>
+                  <span *ngIf="gameScoreboard.spreadDirection == 'ToAway' && (gameScoreboard.gameState == 'InGame' || gameScoreboard.gameState == 'Final')"
+                    tooltip="Score after spread">{{ gameScoreboard.awayTeamScore + gameScoreboard.spread }}</span>
                 </div>
               </div>
             </div>
@@ -56,6 +83,7 @@
                 {
                   'pickem-card-locked': gameScoreboard.pickScoreboards[0].pick != 'Home' && (!gamePickableByCurrentPlayer(gameScoreboard) || gameScoreboard.pickScoreboards[0].pickState != 'None'),
                   'pickem-card-none': gameScoreboard.pickScoreboards[0].pick != 'Home' && gamePickableByCurrentPlayer(gameScoreboard),
+                  'pickem-card-cancelled': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Cancelled', 
                   'pickem-card-picked': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'None', 
                   'pickem-card-losing': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Losing', 
                   'pickem-card-lost': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Lost', 
@@ -63,19 +91,25 @@
                   'pickem-card-pushed': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Pushed', 
                   'pickem-card-winning': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Winning', 
                   'pickem-card-won': gameScoreboard.pickScoreboards[0].pick == 'Home' && gameScoreboard.pickScoreboards[0].pickState == 'Won'
-                }" (click)="setPick(gameScoreboard, 'Home');">
+                }"
+              (click)="setPick(gameScoreboard, 'Home');">
               <div class="row">
                 <div class="col-10 text-nowrap">
                   <img src="assets/team_icons/{{ gameScoreboard.homeTeamIconFileName }}" width="24" class="mx-1" />
-                  <span *ngIf="gameScoreboard.homeTeamRank > 0" class="font-weight-light text-light px-1">#{{ gameScoreboard.homeTeamRank }}</span>
+                  <span *ngIf="gameScoreboard.homeTeamRank > 0" class="font-weight-light text-light px-1">#{{
+                    gameScoreboard.homeTeamRank }}</span>
                   @ {{ gameScoreboard.homeTeamLongName }}
-                  <span class="font-weight-light text-light px-1">({{ gameScoreboard.homeTeamWins }}-{{ gameScoreboard.homeTeamLosses }})</span>
+                  <span class="font-weight-light text-light px-1">({{ gameScoreboard.homeTeamWins }}-{{
+                    gameScoreboard.homeTeamLosses }})</span>
                   <br *ngIf="gameScoreboard.spreadDirection == 'ToHome'">
-                  <span *ngIf="gameScoreboard.spreadDirection == 'ToHome'" [ngClass]="{'text-warning': gameScoreboard.gameState == 'SpreadNotSet'}" class="px-3" tooltip="Spread"><span *ngIf="gameScoreboard.gameState == 'SpreadNotSet'">*&nbsp;</span>+{{ gameScoreboard.spread }}</span>
+                  <span *ngIf="gameScoreboard.spreadDirection == 'ToHome'" [ngClass]="{'text-warning': gameScoreboard.gameState == 'SpreadNotSet'}"
+                    class="px-3" tooltip="Spread"><span *ngIf="gameScoreboard.gameState == 'SpreadNotSet'">*&nbsp;</span>+{{
+                    gameScoreboard.spread }}</span>
                 </div>
                 <div class="col-2 text-nowrap text-right">
                   <h4 class="font-weight-bold mb-0">{{ gameScoreboard.homeTeamScore }}</h4>
-                  <span *ngIf="gameScoreboard.spreadDirection == 'ToHome' && (gameScoreboard.gameState == 'InGame' || gameScoreboard.gameState == 'Final')" tooltip="Score after spread">{{ gameScoreboard.homeTeamScore + gameScoreboard.spread }}</span>
+                  <span *ngIf="gameScoreboard.spreadDirection == 'ToHome' && (gameScoreboard.gameState == 'InGame' || gameScoreboard.gameState == 'Final')"
+                    tooltip="Score after spread">{{ gameScoreboard.homeTeamScore + gameScoreboard.spread }}</span>
                 </div>
               </div>
             </div>
@@ -95,34 +129,40 @@
         </thead>
         <tbody>
           <tr class="table-active">
-              <th scope="row">
+            <th scope="row">
 
-              </th>
-              <td *ngFor="let winBoard of leagueService.weekScoreboard.playerWins" >{{ winBoard.wins }}</td>
+            </th>
+            <td *ngFor="let winBoard of leagueService.weekScoreboard.playerWins">{{ winBoard.wins }}</td>
           </tr>
           <tr class="table-default" *ngFor="let gameScoreboard of leagueService.weekScoreboard.gamePickScoreboards">
             <td scope="col text-nowrap">
-              <img src="assets/team_icons/{{ gameScoreboard.awayTeamIconFileName }}" title="{{ gameScoreboard.awayTeamLongName }}" width="24" class="mx-1">
+              <img src="assets/team_icons/{{ gameScoreboard.awayTeamIconFileName }}" title="{{ gameScoreboard.awayTeamLongName }}"
+                width="24" class="mx-1">
               <span [ngClass]="{ 
                 'pickem-score-won': gameScoreboard.leaderAfterSpread == 'Away' && gameScoreboard.gameState == 'Final', 
-                'pickem-score-winning': gameScoreboard.leaderAfterSpread == 'Away' && gameScoreboard.pickState == 'InGame' }">{{ gameScoreboard.awayTeamScore }}</span>
-              <img src="assets/team_icons/{{ gameScoreboard.homeTeamIconFileName }}" title="{{ gameScoreboard.homeTeamLongName }}" width="24" class="mx-1" />
+                'pickem-score-winning': gameScoreboard.leaderAfterSpread == 'Away' && gameScoreboard.pickState == 'InGame' }">{{
+                gameScoreboard.awayTeamScore }}</span>
+              <img src="assets/team_icons/{{ gameScoreboard.homeTeamIconFileName }}" title="{{ gameScoreboard.homeTeamLongName }}"
+                width="24" class="mx-1" />
               <span [ngClass]="{ 
                 'pickem-score-won': gameScoreboard.leaderAfterSpread == 'Home' && gameScoreboard.gameState == 'Final', 
-                'pickem-score-winning': gameScoreboard.leaderAfterSpread == 'Home' && gameScoreboard.pickState == 'InGame' }">{{ gameScoreboard.homeTeamScore }}</span>
+                'pickem-score-winning': gameScoreboard.leaderAfterSpread == 'Home' && gameScoreboard.pickState == 'InGame' }">{{
+                gameScoreboard.homeTeamScore }}</span>
             </td>
             <td *ngFor="let pickScoreboard of gameScoreboard.pickScoreboards" class="text-nowrap">
-                <img *ngIf="pickScoreboard.pickedTeamIconFileName" src="assets/team_icons/{{ pickScoreboard.pickedTeamIconFileName }}" title="{{ pickScoreboard.pickedTeamLongName }}" width="24" class="mx-1" />
-                <span *ngIf="pickScoreboard.pick != 'Hidden' && pickScoreboard.pickState == 'None'">-</span>
-                <span *ngIf="pickScoreboard.pick == 'Hidden'">?</span>
-                <!-- locked -->
-                <!-- not picked -->
-                <span *ngIf="pickScoreboard.pickState == 'Losing'" class="pickem-score-losing" title="Losing">L</span>
-                <span *ngIf="pickScoreboard.pickState == 'Lost'" class="pickem-score-lost" title="Lost">L</span>
-                <span *ngIf="pickScoreboard.pickState == 'Pushing'" class="pickem-score-pushing" title="Pushing">X</span>
-                <span *ngIf="pickScoreboard.pickState == 'Pushed'" class="pickem-score-pushed" title="Pushed">X</span>
-                <span *ngIf="pickScoreboard.pickState == 'Winning'" class="pickem-score-winning" title="Winning">W</span>
-                <span *ngIf="pickScoreboard.pickState == 'Won'" class="pickem-score-won" title="Won">W</span>
+              <img *ngIf="pickScoreboard.pickedTeamIconFileName" src="assets/team_icons/{{ pickScoreboard.pickedTeamIconFileName }}"
+                title="{{ pickScoreboard.pickedTeamLongName }}" width="24" class="mx-1" />
+              <span *ngIf="pickScoreboard.pick != 'Hidden' && pickScoreboard.pickState == 'None'">-</span>
+              <span *ngIf="pickScoreboard.pick == 'Hidden'">?</span>
+              <!-- locked -->
+              <!-- not picked -->
+              <span *ngIf="pickScoreboard.pickState == 'Cancelled'" class="pickem-score-cancelled" title="Cancelled">X</span>
+              <span *ngIf="pickScoreboard.pickState == 'Losing'" class="pickem-score-losing" title="Losing">L</span>
+              <span *ngIf="pickScoreboard.pickState == 'Lost'" class="pickem-score-lost" title="Lost">L</span>
+              <span *ngIf="pickScoreboard.pickState == 'Pushing'" class="pickem-score-pushing" title="Pushing">X</span>
+              <span *ngIf="pickScoreboard.pickState == 'Pushed'" class="pickem-score-pushed" title="Pushed">X</span>
+              <span *ngIf="pickScoreboard.pickState == 'Winning'" class="pickem-score-winning" title="Winning">W</span>
+              <span *ngIf="pickScoreboard.pickState == 'Won'" class="pickem-score-won" title="Won">W</span>
             </td>
           </tr>
         </tbody>

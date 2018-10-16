@@ -20,6 +20,7 @@ export enum PickTypes {
 }
 
 export enum PickStates {
+    Cancelled = "Cancelled",
     Losing = "Losing",
     Lost = "Lost",
     None = "None",
