@@ -42,7 +42,13 @@ namespace PickEmServer.Heart
             public Dictionary<string, TeamData> referencedAwayTeamData { get; set; }
             public Dictionary<string, TeamData> referencedHomeTeamData { get; set; }
         }
-        public LeagueService(IDocumentStore documentStore, ILogger<LeagueService> logger, PickemEventer pickemEventer, ReferenceService referenceService, GameService gameSevice, UserManager<PickEmUser> userManager)
+        public LeagueService(
+            IDocumentStore documentStore, 
+            ILogger<LeagueService> logger, 
+            PickemEventer pickemEventer, 
+            ReferenceService referenceService, 
+            GameService gameSevice, 
+            UserManager<PickEmUser> userManager)
         {
             _documentStore = documentStore;
             _gameSevice = gameSevice;
@@ -244,7 +250,7 @@ namespace PickEmServer.Heart
                         switch (updatedGame.GameState)
                         {
                             case GameStates.Cancelled:
-                                playerPickData.PickStatus = PickStates.None;
+                                playerPickData.PickStatus = PickStates.Cancelled;
                                 break;
 
                             case GameStates.Final:
@@ -472,7 +478,14 @@ namespace PickEmServer.Heart
                 weekScoreboard.PlayerWins.Add(playerWeekWins);
             }
 
-            weekScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(seasonCode, exactLeagueCode, weekNumber, weekScoreboard.PlayerTags, authenticatedPlayer.PlayerTag, leagueWithExtendedData);
+            weekScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(
+                seasonCode, 
+                exactLeagueCode, 
+                weekNumber, 
+                weekScoreboard.PlayerTags, 
+                authenticatedPlayer.PlayerTag, 
+                leagueWithExtendedData);
+
             return weekScoreboard;
         }
 
@@ -486,7 +499,24 @@ namespace PickEmServer.Heart
 
             var playerScoreboard = new PlayerScoreboard();
 
-            playerScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(seasonCode, exactLeagueCode, weekNumber, new List<string> { uncheckedPlayerTag }, authenticatedPlayer.PlayerTag, leagueWithExtendedData);
+            playerScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(
+                seasonCode, 
+                exactLeagueCode, 
+                weekNumber, 
+                new List<string> { uncheckedPlayerTag }, 
+                authenticatedPlayer.PlayerTag, 
+                leagueWithExtendedData);
+
+            var weekScoreSubtotals = leagueWithExtendedData.LeagueData
+                .Weeks.Single(w => w.WeekNumberRef == weekNumber)
+                .PlayerWeekScores.Single(pwss => pwss.PlayerTagRef == authenticatedPlayer.PlayerTag);
+
+            // game counts
+            playerScoreboard.Games = playerScoreboard.GamePickScoreboards.Count;
+            playerScoreboard.GamesPicked = weekScoreSubtotals.GamesPicked;
+            playerScoreboard.GamesWon = weekScoreSubtotals.Points;
+            playerScoreboard.GamesLost = weekScoreSubtotals.GamesLost;
+            playerScoreboard.GamesPending = weekScoreSubtotals.GamesPending;
 
             return playerScoreboard;
         }
@@ -591,7 +621,13 @@ namespace PickEmServer.Heart
 
         }
 
-        private List<GameScoreboard> MapDataToGameScoreboards(string seasonCode, string leagueCode, int weekNumber, List<string> uncheckedPlayerTags, string authenticatedPlayerTag, LeagueWithGamesAndTeamDataForWeek leagueWithExtendedData)
+        private List<GameScoreboard> MapDataToGameScoreboards(
+            string seasonCode, 
+            string leagueCode, 
+            int weekNumber, 
+            List<string> uncheckedPlayerTags, 
+            string authenticatedPlayerTag, 
+            LeagueWithGamesAndTeamDataForWeek leagueWithExtendedData)
         {
             if (uncheckedPlayerTags == null || uncheckedPlayerTags.Count == 0 )
             {
@@ -622,7 +658,10 @@ namespace PickEmServer.Heart
                 var gameScoreboard = new GameScoreboard
                 {
                     AwayTeamIconFileName = leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].icon24FileName,
-                    AwayTeamLongName = string.IsNullOrEmpty(leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName) ? gameData.AwayTeam.TeamCodeRef : leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName,
+                    AwayTeamLongName = string.IsNullOrEmpty(
+                        leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName) 
+                        ? gameData.AwayTeam.TeamCodeRef 
+                        : leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName,
                     AwayTeamLosses = awayTeamWeekStats?.Losses ?? 0,
                     AwayTeamRank = awayTeamWeekStats?.FbsRank ?? 0,
                     AwayTeamScore = gameData.AwayTeam.Score,
@@ -631,7 +670,10 @@ namespace PickEmServer.Heart
                     GameState = gameData.GameState,
                     GameStatusDescription = _gameSevice.BuildGameDescription(gameData),
                     HomeTeamIconFileName = leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].icon24FileName,
-                    HomeTeamLongName = string.IsNullOrEmpty(leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].LongName) ? gameData.HomeTeam.TeamCodeRef : leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].LongName,
+                    HomeTeamLongName = string.IsNullOrEmpty(
+                        leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].LongName) 
+                        ? gameData.HomeTeam.TeamCodeRef 
+                        : leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].LongName,
                     HomeTeamLosses = homeTeamWeekStats?.Losses ?? 0,
                     HomeTeamRank = homeTeamWeekStats?.FbsRank ?? 0,
                     HomeTeamScore = gameData.HomeTeam.Score,
@@ -699,6 +741,19 @@ namespace PickEmServer.Heart
             }
 
             return gameScoreboards;
+        }
+
+        private int CalculateGamesPending(LeagueWeekData leagueWeekData, string playerTag)
+        {
+            // assuming upstream verified this player is in this week data.
+            return leagueWeekData.Games.SelectMany(g => g.PlayerPicks.Where(
+                pp => pp.PlayerTagRef == playerTag 
+                && pp.Pick != PickTypes.None 
+                && pp.PickStatus != PickStates.Lost 
+                && pp.PickStatus != PickStates.Won
+                && pp.PickStatus != PickStates.Pushed
+                && pp.PickStatus != PickStates.Cancelled)
+                ).Count();
         }
 
         private PickTypes CalculatePickState(PlayerPickData playerPickData, GameData gameData, bool readingPlayersOwnScoreboard)
@@ -823,10 +878,20 @@ namespace PickEmServer.Heart
                         throw new Exception($"Player: {playerPickData.PlayerTagRef} in league: {exactLeagueCode} cannot make a pick for game: {gameId} because the game is in the following game state: {gameData.GameState}");
                 }
 
+                int gamesPicked;
+                int gamesPending = this.CalculateGamesPending(weekData, playerPickData.PlayerTagRef);
+
                 // did the pick change?
                 if (playerPickData.Pick != newPlayerPick.Pick)
                 {
                     playerPickData.Pick = newPlayerPick.Pick;
+
+                    // update pick count in week subtotals
+                    var weekScoreSubtotal = weekData.PlayerWeekScores.Single(pwss => pwss.PlayerTagRef == playerPickData.PlayerTagRef);
+                    gamesPicked = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerPickData.PlayerTagRef && pp.Pick != PickTypes.None)).Count();
+                    weekScoreSubtotal.GamesPicked = gamesPicked;
+                    gamesPending = this.CalculateGamesPending(weekData, playerPickData.PlayerTagRef);
+                    weekScoreSubtotal.GamesPending = gamesPending;
 
                     dbSession.Store(leagueData);
                     dbSession.SaveChanges();
@@ -836,8 +901,17 @@ namespace PickEmServer.Heart
                     pickemEvent.LeagueCodesAffected.Add(exactLeagueCode);
                     _pickemEventer.Emit(pickemEvent);
                 }
+                else
+                {
+                    gamesPicked = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerPickData.PlayerTagRef && pp.Pick != PickTypes.None)).Count();
+                    gamesPending = this.CalculateGamesPending(weekData, playerPickData.PlayerTagRef);
+                }
 
-                return new PlayerPick { Pick = playerPickData.Pick };
+                return new PlayerPick {
+                    GamesPending = gamesPending,
+                    GamesPicked = gamesPicked,
+                    Pick = playerPickData.Pick
+                };
             }
         }
 
@@ -930,6 +1004,9 @@ namespace PickEmServer.Heart
                 {
                     var playerWeekScoreData = weekData.PlayerWeekScores.Single(pws => pws.PlayerTagRef == playerTag);
                     playerWeekScoreData.Points = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStates.Won)).Count();
+
+                    playerWeekScoreData.GamesLost = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStates.Lost)).Count();
+                    playerWeekScoreData.GamesPending = this.CalculateGamesPending(weekData, playerTag);
                 }
             }
 
@@ -937,7 +1014,10 @@ namespace PickEmServer.Heart
             foreach (var playerTag in playerTags)
             {
                 var playerSeasonScoreData = leagueData.PlayerSeasonScores.Single(pss => pss.PlayerTagRef == playerTag);
-                playerSeasonScoreData.Points = leagueData.Weeks.SelectMany(w => w.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStates.Won))).Count();
+                playerSeasonScoreData.Points = leagueData.Weeks.SelectMany(w => w.Games.SelectMany(g => g.PlayerPicks.Where(
+                    pp => pp.PlayerTagRef == playerTag 
+                    && pp.PickStatus == PickStates.Won)
+                    )).Count();
             }
         }
     }

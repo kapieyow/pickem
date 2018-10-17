@@ -49,6 +49,7 @@ namespace PickEmServer.App
     [JsonConverter(typeof(StringEnumConverter))]
     public enum PickStates
     {
+        Cancelled,
         Losing,
         Lost,
         None,
