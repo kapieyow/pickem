@@ -1005,6 +1005,9 @@ namespace PickEmServer.Heart
                     var playerWeekScoreData = weekData.PlayerWeekScores.Single(pws => pws.PlayerTagRef == playerTag);
                     playerWeekScoreData.Points = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStates.Won)).Count();
 
+                    // TODO: this doesn't need to be here if all picks run through SetPlayerPick which should be the case. 
+                    // during 1.7.x conversion this was not the case for historical data.
+                    playerWeekScoreData.GamesPicked = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.Pick != PickTypes.None)).Count();
                     playerWeekScoreData.GamesLost = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStates.Lost)).Count();
                     playerWeekScoreData.GamesPending = this.CalculateGamesPending(weekData, playerTag);
                 }
