@@ -23,12 +23,20 @@
       <!-- picks -->
       <div *ngIf="leagueService.playerScoreboard && leagueService.playerScoreboard.gamePickScoreboards.length > 0">
         <div class="row">
-          <div class="col-12 text-nowrap text-right"><span class="small font-weight-bold">Picked&nbsp;&nbsp;</span><span class="badge" [ngClass]="
-              {
-                'pickem-badge-some-unpicked': leagueService.playerScoreboard.gamesPicked != leagueService.playerScoreboard.games,
-                'pickem-badge-all-picked': leagueService.playerScoreboard.gamesPicked == leagueService.playerScoreboard.games
-              }
-            ">{{ leagueService.playerScoreboard.gamesPicked }} of {{ leagueService.playerScoreboard.games }}</span>
+          <div class="col-12 text-nowrap text-right">
+            <span class="small font-weight-bold" 
+              [ngClass]="
+                {
+                  'text-warning': leagueService.playerScoreboard.gamesPicked != leagueService.playerScoreboard.games
+                }"
+              >Picked&nbsp;&nbsp;</span>
+            <span class="badge" 
+              [ngClass]="
+                {
+                  'pickem-badge-some-unpicked': leagueService.playerScoreboard.gamesPicked != leagueService.playerScoreboard.games,
+                  'pickem-badge-all-picked': leagueService.playerScoreboard.gamesPicked == leagueService.playerScoreboard.games
+                }"
+              >{{ leagueService.playerScoreboard.gamesPicked }} of {{ leagueService.playerScoreboard.games }}</span>
             <span *ngIf="leagueService.playerScoreboard.gamesWon + leagueService.playerScoreboard.gamesLost > 0">
               &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Wins&nbsp;&nbsp;</span><span class="badge pickem-badge-won">{{ leagueService.playerScoreboard.gamesWon }}</span>
             </span>
