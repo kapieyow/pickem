@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '../../../node_modules/@angular/router';
 import { Observable, throwError, forkJoin } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { of } from 'rxjs/observable/of';
 import { interval } from "rxjs/internal/observable/interval";
-import { startWith, switchMap } from "rxjs/operators";
+import { timer } from "rxjs/internal/observable/timer";
+import { startWith, switchMap, debounceTime, map, debounce, retryWhen, delayWhen, tap, delay } from "rxjs/operators";
 
 import { environment } from '../../environments/environment';
 import { VERSION } from '../../environments/version';
@@ -18,6 +18,8 @@ import { WeekScoreboard } from '../sub-system/models/api/week-scoreboard';
 import { LeagueService } from '../sub-system/services/league.service';
 import { LoggerService } from '../sub-system/services//logger.service';
 
+import { QueueingSubject } from 'queueing-subject'
+import websocketConnect from 'rxjs-websockets'
 
 
 class StatusValue
@@ -44,6 +46,7 @@ export class TopNavComponent implements OnInit {
   isCollapsed = true;
   refreshInProcess = false;
   StatusValues: StatusValue[] = [];
+  private _socketSubscription;
 
   constructor(public statusService: StatusService, public leagueService: LeagueService, private router: Router, private userService: UserService, private logger: LoggerService, ) { }
 
@@ -66,22 +69,46 @@ export class TopNavComponent implements OnInit {
         }
       )
 
-    // polling refresh
-    interval(60000)
-    .pipe(
-      startWith(60000),
-      switchMap(() => {
-        this.refreshInProcess = true;
-        this.logger.debug("scoreboard poll");
-        return this.readScoreboards();
-      })
-    )
-    .subscribe(responses => {
-      this.leagueService.leagueScoreboard = responses.leagueScoreboard;
-      this.leagueService.playerScoreboard = responses.playerScoreboard;
-      this.leagueService.weekScoreboard = responses.weekScoreboard;
-      this.refreshInProcess = false;
-    });
+    const socketInput = new QueueingSubject<string>()
+    const { messages, connectionStatus } = websocketConnect(environment.pickemWebSocketUrl, socketInput);
+
+    // the connectionStatus stream will provides the current number of websocket
+    // connections immediately to each new observer and updates as it changes
+    const connectionStatusSubscription = connectionStatus
+      .subscribe(numberConnected => {
+        console.log('number of connected websockets:', numberConnected)
+      });
+
+   const pipedMessages = messages
+      .pipe(
+        retryWhen(errors => 
+          errors.pipe(
+            tap(error => this.logger.debug("Socket error. Delayed retry. Error: " + error)),
+            delay(10000)
+          )
+        ),
+        tap(message => this.logger.debug('received message:' + message)),
+        debounceTime(2000),
+        switchMap(() => {
+          this.refreshInProcess = true;
+          this.logger.debug("debounced scoreboard poll");
+          return this.readScoreboards();
+        }),
+      )
+
+    this._socketSubscription = pipedMessages
+      .subscribe(responses => {
+          this.leagueService.leagueScoreboard = responses.leagueScoreboard;
+          this.leagueService.playerScoreboard = responses.playerScoreboard;
+          this.leagueService.weekScoreboard = responses.weekScoreboard;
+          this.refreshInProcess = false;
+        });
+  }
+
+  ngOnDestroy()
+  {
+    if ( this._socketSubscription != null )
+      this._socketSubscription.unsubscribe();
   }
 
   logout ()
