@@ -14,8 +14,11 @@ namespace PickEmServer.Api.Models
         public int AwayTeamRank { get; internal set; }
         public int AwayTeamScore { get; internal set; }
         public int AwayTeamWins { get; internal set; }
+        public string GameCurrentPeriod { get; internal set; }
+        public DateTime GameStart { get; internal set; }
         public string GameStatusDescription { get; internal set; }
         public GameStates GameState { get; internal set; }
+        public TimeSpan GameTimeClock { get; internal set; }
         public string HomeTeamIconFileName { get; internal set; }
         public int HomeTeamLosses { get; internal set; }
         public string HomeTeamLongName { get; internal set; }

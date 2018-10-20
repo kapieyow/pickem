@@ -659,16 +659,19 @@ namespace PickEmServer.Heart
                 {
                     AwayTeamIconFileName = leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].icon24FileName,
                     AwayTeamLongName = string.IsNullOrEmpty(
-                        leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName) 
-                        ? gameData.AwayTeam.TeamCodeRef 
+                        leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName)
+                        ? gameData.AwayTeam.TeamCodeRef
                         : leagueWithExtendedData.referencedAwayTeamData[gameData.AwayTeam.TeamCodeRef].LongName,
                     AwayTeamLosses = awayTeamWeekStats?.Losses ?? 0,
                     AwayTeamRank = awayTeamWeekStats?.FbsRank ?? 0,
                     AwayTeamScore = gameData.AwayTeam.Score,
                     AwayTeamWins = awayTeamWeekStats?.Wins ?? 0,
+                    GameCurrentPeriod = gameData.CurrentPeriod,
                     GameId = gameData.GameId,
+                    GameStart = gameData.GameStart,
                     GameState = gameData.GameState,
                     GameStatusDescription = _gameSevice.BuildGameDescription(gameData),
+                    GameTimeClock = gameData.TimeClock,
                     HomeTeamIconFileName = leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].icon24FileName,
                     HomeTeamLongName = string.IsNullOrEmpty(
                         leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].LongName) 
