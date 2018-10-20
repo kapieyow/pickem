@@ -63,7 +63,8 @@ export class TopNavComponent implements OnInit {
           this.StatusValues.push({ FieldName: "Service Product", FieldValue: pickemeStatus.product });
           this.StatusValues.push({ FieldName: "Service Version", FieldValue: pickemeStatus.productVersion });
           this.StatusValues.push({ FieldName: "Service Runtime Environment", FieldValue: pickemeStatus.runtimeEnvironment });
-          this.StatusValues.push({ FieldName: "Web to Service REST URL", FieldValue: environment.pickemRestServerBaseUrl });
+          this.StatusValues.push({ FieldName: "Web Service REST URL", FieldValue: environment.pickemRestServerBaseUrl });
+          this.StatusValues.push({ FieldName: "Web Socket URL", FieldValue: environment.pickemWebSocketUrl });
           this.StatusValues.push({ FieldName: "Web Runtime Environment", FieldValue: ( environment.production ? "Production" : "Non-Prod" ) });
           this.StatusValues.push({ FieldName: "Web Version", FieldValue: VERSION.version });
         }
