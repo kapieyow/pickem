@@ -1,0 +1,10 @@
+ Volume in drive C is Windows
+ Volume Serial Number is 5862-5240
+
+ Directory of C:\Users\Kip\development\pickem-system
+
+10/21/2018  05:47 PM    <DIR>          .
+10/21/2018  05:47 PM    <DIR>          ..
+10/21/2018  05:47 PM                 0 deleteme.txt
+               1 File(s)              0 bytes
+               2 Dir(s)  415,218,700,288 bytes free
