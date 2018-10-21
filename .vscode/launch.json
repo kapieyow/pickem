@@ -1,0 +1,202 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "new synch_games",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem.py",
+            "args": [
+                "synch_games",
+                "-a",
+                "update"
+            ]
+        },
+        {
+            "name": "new set_league_games",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem.py",
+            "args": [
+                "set_league_games",
+                "-l",
+                "BUS",
+                "-w",
+                "7",
+                "-gids",
+                "2953684",
+                "2954451",
+                "2953394",
+                "2953905"
+            ]
+        },
+        {
+            "name": "week setup - py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem-setup-week.py",
+            "args": [
+                "-l",
+                "NeOnYa",
+                "-w",
+                "3"
+            ]
+        },
+        {
+            "name": "spreada - py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem-spread-loader.py",
+            "args": [
+                "-ps",
+                "18",
+                "-w",
+                "1"
+            ]
+        },
+        {
+            "name": "new - team updater",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem.py",
+            "args": [
+                "update_teams"
+            ]
+        },
+        {
+            "name": "updater s18 w5 - py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem-game-syncher.py",
+            "args": [
+                "-ns",
+                "2018",
+                "-ps",
+                "18",
+                "-w",
+                "5",
+                "-a",
+                "update"
+            ]
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "args": [
+                "-ns",
+                "2017",
+                "-ps",
+                "17",
+                "-w",
+                "1",
+                "-a",
+                "update"
+            ]
+        },
+        {
+            "name": "Python: Attach",
+            "type": "python",
+            "request": "attach",
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "${workspaceFolder}",
+            "port": 3000,
+            "secret": "my_secret",
+            "host": "localhost"
+        },
+        {
+            "name": "Python: Terminal (integrated)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Terminal (external)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "externalTerminal"
+        },
+        {
+            "name": "Python: Django",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "runserver",
+                "--noreload",
+                "--nothreading"
+            ],
+            "debugOptions": [
+                "RedirectOutput",
+                "Django"
+            ]
+        },
+        {
+            "name": "Python: Flask (0.11.x or later)",
+            "type": "python",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "app.py"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload"
+            ]
+        },
+        {
+            "name": "Python: Module",
+            "type": "python",
+            "request": "launch",
+            "module": "module.name"
+        },
+        {
+            "name": "Python: Pyramid",
+            "type": "python",
+            "request": "launch",
+            "args": [
+                "${workspaceFolder}/development.ini"
+            ],
+            "debugOptions": [
+                "RedirectOutput",
+                "Pyramid"
+            ]
+        },
+        {
+            "name": "Python: Watson",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/console.py",
+            "args": [
+                "dev",
+                "runserver",
+                "--noreload=True"
+            ]
+        },
+        {
+            "name": "Python: All debug Options",
+            "type": "python",
+            "request": "launch",
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "${file}",
+            "module": "module.name",
+            "env": {
+                "VAR1": "1",
+                "VAR2": "2"
+            },
+            "envFile": "${workspaceFolder}/.env",
+            "args": [
+                "arg1",
+                "arg2"
+            ],
+            "debugOptions": [
+                "RedirectOutput"
+            ]
+        }
+    ]
+}
