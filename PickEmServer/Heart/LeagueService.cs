@@ -509,7 +509,7 @@ namespace PickEmServer.Heart
 
             var weekScoreSubtotals = leagueWithExtendedData.LeagueData
                 .Weeks.Single(w => w.WeekNumberRef == weekNumber)
-                .PlayerWeekScores.Single(pwss => pwss.PlayerTagRef == authenticatedPlayer.PlayerTag);
+                .PlayerWeekScores.Single(pwss => pwss.PlayerTagRef.Equals(uncheckedPlayerTag, StringComparison.OrdinalIgnoreCase));
 
             // game counts
             playerScoreboard.Games = playerScoreboard.GamePickScoreboards.Count;
