@@ -9,8 +9,11 @@ export class GameScoreboard
     awayTeamRank: number;
     awayTeamScore: number;
     awayTeamWins: number;
+    gameCurrentPeriod: string;
+    gameStart: Date;
     gameStatusDescription: string;
     gameState: GameStates;
+    gameTimeClock: string;
     homeTeamIconFileName: string;
     homeTeamLosses: number;
     homeTeamLongName: string;

@@ -131,19 +131,19 @@
       <table *ngIf="leagueService.weekScoreboard" class="table table-hover">
         <thead>
           <tr>
-            <th scope="col">Game</th>
-            <th *ngFor="let playerTag of leagueService.weekScoreboard.playerTags" scope="col">{{ playerTag }}</th>
+            <th scope="col" class="p-2">Game</th>
+            <th scope="col" class="p-2"></th>
+            <th *ngFor="let playerTag of leagueService.weekScoreboard.playerTags" scope="col" class="p-2">{{ playerTag }}</th>
           </tr>
         </thead>
         <tbody>
           <tr class="table-active">
-            <th scope="row">
-
-            </th>
-            <td *ngFor="let winBoard of leagueService.weekScoreboard.playerWins">{{ winBoard.wins }}</td>
+            <td class="p-2"></td>
+            <td class="p-2"></td>
+            <td *ngFor="let winBoard of leagueService.weekScoreboard.playerWins" class="p-2">{{ winBoard.wins }}</td>
           </tr>
           <tr class="table-default" *ngFor="let gameScoreboard of leagueService.weekScoreboard.gamePickScoreboards">
-            <td scope="col text-nowrap">
+            <td scope="col" class="text-nowrap p-2">
               <img src="assets/team_icons/{{ gameScoreboard.awayTeamIconFileName }}" title="{{ gameScoreboard.awayTeamLongName }}"
                 width="24" class="mx-1">
               <span [ngClass]="{ 
@@ -157,7 +157,8 @@
                 'pickem-score-winning': gameScoreboard.leaderAfterSpread == 'Home' && gameScoreboard.pickState == 'InGame' }">{{
                 gameScoreboard.homeTeamScore }}</span>
             </td>
-            <td *ngFor="let pickScoreboard of gameScoreboard.pickScoreboards" class="text-nowrap">
+            <td class="small p-1 align-middle">{{ gameStatusDescriptionFirstPart(gameScoreboard) }}<span *ngIf="gameStatusDescriptionSecondPart(gameScoreboard) != null"><br>{{ gameStatusDescriptionSecondPart(gameScoreboard) }}</span></td>
+            <td *ngFor="let pickScoreboard of gameScoreboard.pickScoreboards" class="text-nowrap p-2">
               <img *ngIf="pickScoreboard.pickedTeamIconFileName" src="assets/team_icons/{{ pickScoreboard.pickedTeamIconFileName }}"
                 title="{{ pickScoreboard.pickedTeamLongName }}" width="24" class="mx-1" />
               <span *ngIf="pickScoreboard.pick != 'Hidden' && pickScoreboard.pickState == 'None'">-</span>

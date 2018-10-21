@@ -73,19 +73,17 @@ export class TopNavComponent implements OnInit {
     const socketInput = new QueueingSubject<string>()
     const { messages, connectionStatus } = websocketConnect(environment.pickemWebSocketUrl, socketInput);
 
-    // the connectionStatus stream will provides the current number of websocket
-    // connections immediately to each new observer and updates as it changes
     const connectionStatusSubscription = connectionStatus
       .subscribe(numberConnected => {
-        console.log('number of connected websockets:', numberConnected)
+        this.logger.debug('number of connected websockets: ' + numberConnected)
       });
 
-   const pipedMessages = messages
+    const pipedMessages = messages
       .pipe(
         retryWhen(errors => 
           errors.pipe(
             tap(error => this.logger.debug("Socket error. Delayed retry. Error: " + error)),
-            delay(10000)
+            delay(30000)
           )
         ),
         tap(message => this.logger.debug('received message:' + message)),

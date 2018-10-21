@@ -5,6 +5,7 @@ import { LeagueService } from '../sub-system/services/league.service';
 import { LoggerService } from '../sub-system/services//logger.service';
 import { StatusService } from '../sub-system/services/status.service';
 import { PickTypes, PickStates, GameStates } from '../sub-system/models/api/enums';
+import { formatDate } from '@angular/common';
 
 
 
@@ -66,4 +67,53 @@ export class PlayerComponent implements OnInit {
     }
   }
 
+  gameStatusDescriptionFirstPart(gameScoreboard: GameScoreboard) : string
+  {
+    switch ( gameScoreboard.gameState )
+    {
+        case GameStates.Cancelled:
+            return "CANCELLED";
+
+        case GameStates.Final:
+            return "FINAL";
+
+        case GameStates.InGame:
+
+            let periodRegEx = new RegExp("^[0-9]");
+
+            if (gameScoreboard.gameCurrentPeriod.length > 0 && periodRegEx.test(gameScoreboard.gameCurrentPeriod))
+            {
+                let timeParts = gameScoreboard.gameTimeClock.split(":")
+                let justMinuteSeconds = timeParts[1] + ":" + timeParts[2];
+                return justMinuteSeconds;
+            }
+            else
+                return gameScoreboard.gameCurrentPeriod;
+
+        case GameStates.SpreadLocked:
+        case GameStates.SpreadNotSet:
+            return formatDate(gameScoreboard.gameStart, "M/d", "en-US");
+            
+    }
+    return null;
+  }
+
+  gameStatusDescriptionSecondPart(gameScoreboard: GameScoreboard) : string
+  {
+    switch ( gameScoreboard.gameState )
+    {
+        case GameStates.Cancelled:
+        case GameStates.Final:
+          return null;
+
+        case GameStates.InGame:
+          return gameScoreboard.gameCurrentPeriod;
+           
+        case GameStates.SpreadLocked:
+        case GameStates.SpreadNotSet:
+          return formatDate(gameScoreboard.gameStart, "h:mm a", "en-US");
+            
+    }
+    return null;
+  }
 }
