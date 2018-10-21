@@ -1,0 +1,103 @@
+<!-- top nav -->
+<div class="bs-docs-section clearfix">
+    <div class="row">
+        <div class="col-md-12">
+
+            <div class="bs-component">
+                <nav class="navbar navbar-expand-md navbar-dark bg-primary">
+                    <a class="navbar-brand" href="javascript:return null;" (click)="statusDialog.show();">NCAAF - Pick<span [ngClass]="{ 'text-warning' : refreshInProcess }">'</span>em</a>
+                    <button class="navbar-toggler" type="button" (click)="isCollapsed = !isCollapsed" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" [collapse]=isCollapsed>
+                        <form class="form-inline my-2 my-lg-0 ml-auto" *ngIf="statusService.userLoggedInAndInitialized">
+
+                            <div *ngIf="statusService.userLeagues && statusService.userLeagues.length > 1" class="btn-group" dropdown>
+                                <button id="button-player" dropdownToggle type="button" class="btn btn-outline-warning dropdown-toggle" aria-controls="dropdown-player">
+                                    {{ statusService.leagueCode }}
+                                    <span class="caret"></span>
+                                </button>
+                                <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-warning" role="menu" aria-labelledby="button-player">
+                                    <li *ngFor="let league of statusService.userLeagues" role="menuitem" (click)="changeLeague(league.leagueCode);">
+                                        <a class="dropdown-item">{{ league.leagueCode }}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="btn-group mx-2" dropdown>
+                                <button id="button-player" dropdownToggle type="button" class="btn btn-outline-warning dropdown-toggle" aria-controls="dropdown-player">
+                                    {{ statusService.playerTagFilter }}
+                                    <span class="caret"></span>
+                                </button>
+                                <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-warning" role="menu" aria-labelledby="button-player">
+                                    <li *ngFor="let player of leagueService.players" role="menuitem" (click)="changePlayer(player.playerTag);">
+                                        <a class="dropdown-item">{{ player.playerTag }}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="btn-group" dropdown>
+                                <button id="button-week" dropdownToggle type="button" class="btn btn-outline-warning dropdown-toggle" aria-controls="dropdown-week">
+                                    Week {{ statusService.weekNumberFilter }}
+                                    <span class="caret"></span>
+                                </button>
+                                <ul id="dropdown-week" *dropdownMenu class="dropdown-menu bg-warning" role="menu" aria-labelledby="button-week">
+                                    <li *ngFor="let weekNumber of leagueService.weekNumbers" role="menuitem" (click)="changeWeek(weekNumber);">
+                                        <a class="dropdown-item">Week {{ weekNumber }}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="ml-3">
+                                <a class="navbar-brand" (click)="logout()">{{ statusService.userPlayerTag }}</a>
+                            </div>
+                        </form>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Status modal -->
+<div bsModal #statusDialog="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dialog-sizes-name1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h4 class="modal-title pull-left">Pick'em Status</h4>
+                <button type="button" class="close pull-right" aria-label="Close" (click)="statusDialog.hide()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div *ngFor="let statusValue of StatusValues" class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">{{ statusValue.FieldName }}</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusValue.FieldValue }}</div>
+                </div>
+
+                <div class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">Pick'em Season</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusService.seasonCode }}</div>
+                </div>
+                <div class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">Pick'em League</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusService.leagueCode }}</div>
+                </div>
+                <div class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">Pick'em Player Tag for League</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusService.userPlayerTag }}</div>
+                </div>
+                <div class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">Pick'em Week Number Filter</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusService.weekNumberFilter }}</div>
+                </div>
+                <div class="row mx-0 my-1 px-2 py-2">
+                    <div class="col-sm-4">Pick'em Player Tag Filter</div>
+                    <div class="col-sm-8 d-flex flex-column font-weight-bold">{{ statusService.playerTagFilter }}</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" (click)="statusDialog.hide()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
