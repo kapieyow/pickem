@@ -48,12 +48,12 @@
             </span> 
           </div>
         </div>
-        <div *ngFor="let gameScoreboard of leagueService.playerScoreboard.gamePickScoreboards" class="my-3 border border-light container">
+        <div *ngFor="let gameScoreboard of leagueService.playerScoreboard.gamePickScoreboards" class="my-2 container border border-secondary rounded">
           <div class="row">
-            <div class="col-12 text-white bg-secondary py-1">{{ gameScoreboard.gameStatusDescription }}</div>
+            <div class="col-12 small text-white py-1 border-bottom border-secondary bg-secondary">{{ gameScoreboard.gameStatusDescription }}</div>
           </div>
           <div class="row p-1">
-            <div class="col-md-6 p-2" [ngClass]="
+            <div class="col-md-6 px-2 py-1" [ngClass]="
                 {
                   'pickem-card-locked': gameScoreboard.pickScoreboards[0].pick != 'Away' && (!gamePickableByCurrentPlayer(gameScoreboard) || gameScoreboard.pickScoreboards[0].pickState != 'None'),
                   'pickem-card-none': gameScoreboard.pickScoreboards[0].pick != 'Away' && gamePickableByCurrentPlayer(gameScoreboard),
@@ -72,7 +72,7 @@
                   <img src="assets/team_icons/{{ gameScoreboard.awayTeamIconFileName }}" width="24" class="mx-1" />
                   <span *ngIf="gameScoreboard.awayTeamRank > 0" class="font-weight-light text-light px-1">#{{
                     gameScoreboard.awayTeamRank }}</span>
-                  {{ gameScoreboard.awayTeamLongName }}
+                    {{ gameScoreboard.awayTeamLongName }}
                   <span class="font-weight-light text-light px-1">({{ gameScoreboard.awayTeamWins }}-{{
                     gameScoreboard.awayTeamLosses }})</span>
                   <br *ngIf="gameScoreboard.spreadDirection == 'ToAway'">
@@ -87,7 +87,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6 p-2" [ngClass]="
+            <div class="col-md-6 px-2 py-1" [ngClass]="
                 {
                   'pickem-card-locked': gameScoreboard.pickScoreboards[0].pick != 'Home' && (!gamePickableByCurrentPlayer(gameScoreboard) || gameScoreboard.pickScoreboards[0].pickState != 'None'),
                   'pickem-card-none': gameScoreboard.pickScoreboards[0].pick != 'Home' && gamePickableByCurrentPlayer(gameScoreboard),
