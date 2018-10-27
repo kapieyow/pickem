@@ -235,10 +235,6 @@ ORDER BY
 
 /* == week 5 (1.4.x) 
 
-BEGIN; -- COMMIT ROLLBACK
--- add EE
-INSERT INTO public.mt_doc_pickemuser(id, data, mt_last_modified, mt_version, mt_dotnet_type) VALUES ('77b9faa3-5faf-46f9-91f9-24049b91726c', '{"Id": "77b9faa3-5faf-46f9-91f9-24049b91726c", "Email": "esuoh89@gmail.com", "UserName": "GingerNinja", "LockoutEnd": null, "PhoneNumber": null, "PasswordHash": "AQAAAAEAACcQAAAAEBJF6VWe7//+aRIbkddmERFRXv7ZtK+o4/HDXsgpjCFEBEUk6L9tBTQ6auEH2TvOww==", "SecurityStamp": null, "EmailConfirmed": false, "LockoutEnabled": false, "NormalizedEmail": "ESUOH89@GMAIL.COM", "ConcurrencyStamp": "85dfa170-a247-4cd4-bc6c-53b8cb5eecf5", "TwoFactorEnabled": false, "AccessFailedCount": 0, "DefaultLeagueCode": "BUS", "NormalizedUserName": "GINGERNINJA", "PhoneNumberConfirmed": false}', '2018-09-07 11:05:57.673711-04', '0165fc94-7e0f-4443-bbd0-692c9e77c551', 'PickEmServer.App.Models.PickEmUser');
-
 -- set default league for BUS crew
 UPDATE public.mt_doc_pickemuser SET data = jsonb_set(data, '{DefaultLeagueCode}', '"BUS"') WHERE data->>'UserName' IN ('Chris', 'CusheGoblin', 'gumanchew', 'GingerNinja');
 

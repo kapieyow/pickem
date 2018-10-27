@@ -70,6 +70,7 @@ export class TopNavComponent implements OnInit {
         }
       )
 
+    // TODO: Move web socket client to a service or something
     const socketInput = new QueueingSubject<string>()
     const { messages, connectionStatus } = websocketConnect(environment.pickemWebSocketUrl, socketInput);
 
