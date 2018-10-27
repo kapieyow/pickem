@@ -24,11 +24,14 @@
     "@angular/router": "^6.0.9",
     "@auth0/angular-jwt": "^2.0.0",
     "core-js": "^2.4.1",
+    "cryptiles": ">=4.1.2",
+    "hoek": "^5.0.4",
     "ngx-bootstrap": "^3.0.1",
     "queueing-subject": "^0.3.0",
     "rxjs": "^6.2.2",
     "rxjs-compat": "^6.0.0-rc.0",
     "rxjs-websockets": "^6.0.2",
+    "url-parse": ">=1.4.3",
     "zone.js": "^0.8.19"
   },
   "devDependencies": {
