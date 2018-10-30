@@ -17,11 +17,10 @@ namespace PickEmServer.WebSockets
             _logger = logger;
         }
 
-        // takes and accepted native socket and "runs" it within 
+        // takes an accepted native socket and "runs" it within 
         // the pool of sockets this manager maintains. 
         internal async Task RunSocket(WebSocket nativeWebSocket)
         {
-            // build wrapper for this new socket
             var webSocketWrapper = new SuperWebSocketWrapper(
                 nativeWebSocket,
                 this.GetNextSocketId(),
@@ -33,12 +32,12 @@ namespace PickEmServer.WebSockets
 
             try
             {
-                _logger.LogInformation("Added socket ({0}) to pool, running", webSocketWrapper.SocketId);
+                _logger.LogDebug("Added socket ({0}) to pool, running", webSocketWrapper.SocketId);
                 socketCloseReason = await webSocketWrapper.Run();
             }
             finally
             {
-                _logger.LogInformation("Removing Socket ({0}) from pool. Close reason [{1}]", webSocketWrapper.SocketId, socketCloseReason);
+                _logger.LogDebug("Removing Socket ({0}) from pool. Close reason [{1}]", webSocketWrapper.SocketId, socketCloseReason);
                 RemoveWebSocketWrapperFromPool(webSocketWrapper);
             }
         }
@@ -50,18 +49,18 @@ namespace PickEmServer.WebSockets
                 // do not echo back to the socket that sent this
                 if (socketThatReceivedData != null && socketThatReceivedData.SocketId == wrappedSocket.SocketId)
                 {
-                    _logger.LogInformation("Suppressing echo to source socket ({1})", wrappedSocket.SocketId);
+                    _logger.LogDebug("Suppressing echo to source socket ({1})", wrappedSocket.SocketId);
                 }
                 else
                 {
                     try
                     {
-                        _logger.LogInformation("Sending ({0}) to Socket ({1})", message, wrappedSocket.SocketId);
+                        _logger.LogDebug("Sending ({0}) to Socket ({1})", message, wrappedSocket.SocketId);
                         await wrappedSocket.SendData(message);
                     }
                     catch (Exception e)
                     {
-                        _logger.LogInformation(e, "Send data to socket ({0}) failed. Cleaning up socket.", wrappedSocket.SocketId);
+                        _logger.LogWarning(e, "Send data to socket ({0}) failed. Cleaning up socket.", wrappedSocket.SocketId);
                         // TODO: what does this do to the iterator?
                         RemoveWebSocketWrapperFromPool(wrappedSocket);
                     }

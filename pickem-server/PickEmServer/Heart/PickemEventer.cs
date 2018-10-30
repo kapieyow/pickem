@@ -19,7 +19,7 @@ namespace PickEmServer.Heart
         public async void Emit(PickemSystemEvent pickemSystemEvent)
         {
             var pickemEventJson = JsonConvert.SerializeObject(pickemSystemEvent);
-            _logger.LogInformation(pickemEventJson);
+            _logger.LogDebug(pickemEventJson);
             await _webSocketPoolManager.SendToAllSockets(pickemEventJson);
         }
     }
