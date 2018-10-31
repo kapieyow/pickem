@@ -13,7 +13,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "1.7.21"
+VERSION = "1.8.22"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals
@@ -72,7 +72,7 @@ def updateSpreads(args):
 
 def updateTeams(args):
     updateTeamsHandler = pickemUpdateTeams.PickemUpdateSpreadsHandler(apiClient, logger)
-    updateTeamsHandler.Run(settings.PickemSeasonCode, settings.PickemWeekNumber)
+    updateTeamsHandler.Run(settings.PickemSeasonCode, settings.PickemWeekNumber, args.rankings_source)
 
 
 #=====================================
@@ -121,6 +121,7 @@ def setupArgumentParsers():
 
     # -- update_teams sub-command
     subParser = subArgParsers.add_parser('update_teams')
+    subParser.add_argument('-rs', '--rankings_source', nargs='?', const='ap', default='ap', choices=['ap', 'cfp'])
     subParser.set_defaults(func=updateTeams)
 
     return argParser
