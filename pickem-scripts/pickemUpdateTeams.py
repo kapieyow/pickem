@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 TEAM_FBS_AP_RANKINGS_URL = "https://www.ncaa.com/rankings/football/fbs/associated-press"
+TEAM_FBS_CFP_RANKINGS_URL = "https://www.ncaa.com/rankings/football/fbs/college-football-playoff"
 TEAM_FBS_STANDINGS_URL = "https://www.ncaa.com/standings/football/fbs"
 TEAM_FCS_STANDINGS_URL = "https://www.ncaa.com/standings/football/fcs"
 
@@ -23,14 +24,26 @@ class PickemUpdateSpreadsHandler:
         self.apiClient = apiClient
         self.logger = logger
 
-    def Run(self, pickemSeason, weekNumber):
+    def Run(self, pickemSeason, weekNumber, rankingsSourceCode):
+
+        team_ranking_url = ""
+
+        if ( rankingsSourceCode == "ap" ):
+            team_ranking_url = TEAM_FBS_AP_RANKINGS_URL
+
+        elif ( rankingsSourceCode == "cfp" ):
+            team_ranking_url = TEAM_FBS_CFP_RANKINGS_URL
+
+        else:
+            self.logger.wtf("Unhandled input why didn't argparser catch it? --rankings_source " + str(rankingsSourceCode))
+            return
 
         pickemTeams = self.apiClient.readPickemTeams()
 
         ncaaTeamStats = dict()
 
         self.__loadFbsTeamWinLose(ncaaTeamStats, TEAM_FBS_STANDINGS_URL)
-        self.__loadNcaaFbsRankings(ncaaTeamStats, pickemTeams, TEAM_FBS_AP_RANKINGS_URL)
+        self.__loadNcaaFbsRankings(ncaaTeamStats, pickemTeams, team_ranking_url)
         self.__updatePickemWithStats(pickemSeason, weekNumber, ncaaTeamStats, pickemTeams)
 
     def __cleanNcaaTeamName(self, teamNameFromNcaaSite):
