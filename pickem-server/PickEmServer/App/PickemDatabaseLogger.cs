@@ -12,16 +12,11 @@ namespace PickEmServer.App
     {
         private readonly LogService _logService;
         private readonly string _name;
-        private readonly bool _neverLog = false;
-
 
         public PickemDatabaseLogger(string name, LogService logService)
         {
             _logService = logService;
             _name = name;
-
-            // TODO this should be done through filters the RIGHT way
-            _neverLog = !name.Contains("PickEmServer");
         }
 
         public IDisposable BeginScope<TState>(TState state)
@@ -31,17 +26,19 @@ namespace PickEmServer.App
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            // TODO: configure this to NOT log everything 
+            // NOTE: The filters in appsettings override this. For example if you have 
+            //      "PickemDatabaseLogger": {
+            //          "LogLevel": {
+            //              "Default": "None"
+            //          }
+            //      }
+            //
+            // this will not be called and Log will not either
             return true;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            // TODO: never log is TERRIBLE. Is used to avoid logging other stuff besides this app. Should be a filter or something
-            if (_neverLog || !IsEnabled(logLevel))
-            { 
-                return;
-            }
 
             LogAdd newLog = new LogAdd
             {
