@@ -2,7 +2,7 @@
 import argparse
 import datetime
 import subprocess
-
+ 
 parser = argparse.ArgumentParser(description='Backup a Postgres db')
 parser.add_argument('-db', '--database', required=True, help='Database name')
 args = parser.parse_args()

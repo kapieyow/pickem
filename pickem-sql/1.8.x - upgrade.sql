@@ -20,3 +20,6 @@ DELETE FROM
 WHERE
 	data->>'Component' = 'PickEmServer.Heart.PickemEventer'
 ;
+
+-- Update NC State's long name so CFP will find them
+UPDATE public.mt_doc_teamdata SET data = jsonb_set(data, '{LongName}', '"NC State"') WHERE id = 'north-carolina-st'
