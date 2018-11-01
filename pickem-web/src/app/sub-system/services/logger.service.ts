@@ -21,25 +21,25 @@ export class LoggerService {
   {
     console.debug(logMessage);
     // TODO: configure this somewhere
-    //  this.postToServer("DEBUG", logMessage);
+    //  this.postToServer("Debug", logMessage);
   }
 
   info(logMessage: string)
   {
     console.info(logMessage);
-    this.postToServer("INFO", logMessage);
+    this.postToServer("Information", logMessage);
   }
 
   warn(logMessage: string)
   {
     console.warn(logMessage);
-    this.postToServer("WARN", logMessage);
+    this.postToServer("Warning", logMessage);
   }
   
   error(logMessage: string)
   {
     console.error(logMessage);
-    this.postToServer("ERROR", logMessage);
+    this.postToServer("Error", logMessage);
   }
 
   wtf(logMessage: string)

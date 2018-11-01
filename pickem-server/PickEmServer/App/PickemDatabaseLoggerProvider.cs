@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace PickEmServer.App
 {
+    [ProviderAlias("PickemDatabaseLogger")]
     public class PickemDatabaseLoggerProvider : ILoggerProvider
     {
         private readonly ConcurrentDictionary<string, PickemDatabaseLogger> _loggers = new ConcurrentDictionary<string, PickemDatabaseLogger>();
