@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">pickem-droid</string>
+    <string name="app_name">NCAAF - Pick\'em</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
