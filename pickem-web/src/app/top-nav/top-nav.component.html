@@ -5,7 +5,7 @@
 
             <div class="bs-component">
                 <nav class="navbar navbar-expand-md navbar-dark bg-primary">
-                    <a class="navbar-brand" href="javascript:return null;" (click)="statusDialog.show();">NCAAF - Pick<span [ngClass]="{ 'text-warning' : refreshInProcess }">'</span>em</a>
+                    <a class="navbar-brand" href="javascript:return null;" (click)="statusDialog.show();">NCAAF <span class="font-weight-bold" [ngClass]="{ 'text-warning' : !socketConnected }">-</span> Pick<span [ngClass]="{ 'text-warning' : refreshInProcess }">'</span>em</a>
                     <button class="navbar-toggler" type="button" (click)="isCollapsed = !isCollapsed" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
