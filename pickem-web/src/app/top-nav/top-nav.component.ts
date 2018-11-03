@@ -45,8 +45,10 @@ export class TopNavComponent implements OnInit {
 
   isCollapsed = true;
   refreshInProcess = false;
+  socketConnected = false;
   StatusValues: StatusValue[] = [];
   private _socketSubscription;
+  private _lastWebSocketsConnectedCount = 0;
 
   constructor(public statusService: StatusService, public leagueService: LeagueService, private router: Router, private userService: UserService, private logger: LoggerService, ) { }
 
@@ -75,16 +77,24 @@ export class TopNavComponent implements OnInit {
     const { messages, connectionStatus } = websocketConnect(environment.pickemWebSocketUrl, socketInput);
 
     const connectionStatusSubscription = connectionStatus
-      .subscribe(numberConnected => {
-        this.logger.debug('number of connected websockets: ' + numberConnected)
-      });
+      .subscribe(numberConnected => 
+        {
+          this.logger.debug('number of connected websockets: ' + numberConnected);
+          this.socketConnected = numberConnected > 0;
+          if ( this._lastWebSocketsConnectedCount == 0 && numberConnected > 0 )
+          {
+            this.reloadScoreboards();
+          }
+          this._lastWebSocketsConnectedCount = numberConnected;
+        }
+      );
 
     const pipedMessages = messages
       .pipe(
         retryWhen(errors => 
           errors.pipe(
             tap(error => this.logger.debug("Socket error. Delayed retry. Error: " + error)),
-            delay(30000)
+            delay(5000)
           )
         ),
         tap(message => this.logger.debug('received message:' + message)),
