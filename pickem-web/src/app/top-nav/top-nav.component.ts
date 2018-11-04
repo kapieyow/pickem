@@ -1,17 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '../../../node_modules/@angular/router';
-import { Observable, throwError, forkJoin } from 'rxjs';
+import { Observable, forkJoin, EMPTY } from 'rxjs';
 import { of } from 'rxjs/observable/of';
-import { interval } from "rxjs/internal/observable/interval";
-import { timer } from "rxjs/internal/observable/timer";
-import { startWith, switchMap, debounceTime, map, debounce, retryWhen, delayWhen, tap, delay } from "rxjs/operators";
+import { switchMap, debounceTime, map, retryWhen, tap, delay, catchError } from "rxjs/operators";
 
 import { environment } from '../../environments/environment';
 import { VERSION } from '../../environments/version';
 
 import { StatusService } from '../sub-system/services/status.service';
 import { UserService } from '../sub-system/services/user.service';
-import { Player } from '../sub-system/models/api/player';
 import { LeagueScoreboard } from '../sub-system/models/api/league-scoreboard';
 import { PlayerScoreboard } from '../sub-system/models/api/player-scoreboard';
 import { WeekScoreboard } from '../sub-system/models/api/week-scoreboard';
@@ -20,7 +17,6 @@ import { LoggerService } from '../sub-system/services//logger.service';
 
 import { QueueingSubject } from 'queueing-subject'
 import websocketConnect from 'rxjs-websockets'
-
 
 class StatusValue
 {
@@ -99,20 +95,42 @@ export class TopNavComponent implements OnInit {
         ),
         tap(message => this.logger.debug('received message:' + message)),
         debounceTime(2000),
-        switchMap(() => {
-          this.refreshInProcess = true;
-          this.logger.debug("debounced scoreboard poll");
-          return this.readScoreboards();
-        }),
+        tap(() => 
+            {
+              this.logger.debug("debounced scoreboard poll");
+              this.refreshInProcess = true;
+            }
+        ),
+        switchMap(() => 
+            {
+              return this.readScoreboards()
+                .pipe(
+                  catchError(error => 
+                    {
+                      console.error("Caught readScoreboard failure. Error: " + error); // NOTE: not using this.logger.error as it could fail.
+                      // readscoreboards blew chunks, likely net drop
+                      // return the existing scoreboard data that was loaded earlier so the UI won't blank
+                      let sameScoreboard = new Scoreboards();
+                      sameScoreboard.leagueScoreboard = this.leagueService.leagueScoreboard;
+                      sameScoreboard.playerScoreboard = this.leagueService.playerScoreboard;
+                      sameScoreboard.weekScoreboard = this.leagueService.weekScoreboard;
+                      return of(sameScoreboard);
+                    }
+                  )
+                );
+            }
+        )
       )
 
     this._socketSubscription = pipedMessages
-      .subscribe(responses => {
+      .subscribe(responses => 
+        {
           this.leagueService.leagueScoreboard = responses.leagueScoreboard;
           this.leagueService.playerScoreboard = responses.playerScoreboard;
           this.leagueService.weekScoreboard = responses.weekScoreboard;
           this.refreshInProcess = false;
-        });
+        }
+      );
   }
 
   ngOnDestroy()
