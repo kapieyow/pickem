@@ -4,24 +4,29 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.TargetApi
 import android.support.v7.app.AppCompatActivity
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
+import com.example.kip.pickem_droid.services.AuthService
+import com.example.kip.pickem_droid.services.models.UserLoggedIn
+import com.google.gson.Gson
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 
 import kotlinx.android.synthetic.main.activity_login.*
+import okhttp3.ResponseBody
+import org.json.JSONObject
+import retrofit2.HttpException
 
 /**
  * A login screen that offers login via email/password.
  */
 class LoginActivity : AppCompatActivity() {
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
-    private var mAuthTask: UserLoginTask? = null
+
+    private val _authService = AuthService()
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -52,11 +57,6 @@ class LoginActivity : AppCompatActivity() {
      */
     private fun attemptLogin()
     {
-        if (mAuthTask != null)
-        {
-            return
-        }
-
         // Reset errors.
         username_textbox.error = null
         password_textbox.error = null
@@ -91,9 +91,61 @@ class LoginActivity : AppCompatActivity() {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true)
-            mAuthTask = UserLoginTask(username, password)
-            mAuthTask!!.execute(null as Void?)
+            _authService.startLogin(username, password)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    { result -> successfulLogin(result) },
+                    { error -> showServiceError(error) }
+                )
         }
+    }
+
+    private fun showServiceError(error: Throwable)
+    {
+        if ( error is HttpException )
+        {
+            if ( error.code() == 401 )
+            {
+                // not authorized, not a error, bad user or password
+                lblTempOut.text = "User name and password are not valid"
+            }
+            else if ( error.code() == 400 )
+            {
+                // bad request, more detail in the body
+                // try to parse it out
+
+                try
+                {
+                    // if the server sent back structured data, it will be first level properties each with an array of messages.
+                    // all we care about here is the messages
+                    var errorBody: ResponseBody? = error.response().errorBody()
+                    var json = JSONObject(errorBody?.toString())
+                    lblTempOut.text = "HMMMMMMMMMM"
+                }
+                catch (e: Exception)
+                {
+                    lblTempOut.text = error.message
+                }
+            }
+        }
+        else
+        {
+            lblTempOut.text = error.message
+        }
+        showProgress(false)
+    }
+
+    private fun successfulLogin(userLoggedIn: UserLoggedIn)
+    {
+        lblTempOut.text = """
+            defaultLeagueCode: ${userLoggedIn.defaultLeagueCode}
+            email: ${userLoggedIn.email}
+            token: ${userLoggedIn.token}
+            userName: ${userLoggedIn.userName}
+            leagues: ${userLoggedIn.leagues}
+        """.trimIndent()
+        showProgress(false)
     }
 
 
@@ -118,59 +170,4 @@ class LoginActivity : AppCompatActivity() {
 
     }
 
-
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    inner class UserLoginTask internal constructor(private val mEmail: String, private val mPassword: String) : AsyncTask<Void, Void, Boolean>()
-    {
-
-        override fun doInBackground(vararg params: Void): Boolean?
-        {
-            // TODO: attempt authentication against a network service.
-
-            try {
-                // Simulate network access.
-                Thread.sleep(2000)
-            } catch (e: InterruptedException) {
-                return false
-            }
-
-            return DUMMY_CREDENTIALS
-                    .map { it.split(":") }
-                    .firstOrNull { it[0] == mEmail }
-                    ?.let {
-                        // Account exists, return true if the password matches.
-                        it[1] == mPassword
-                    }
-                    ?: true
-        }
-
-        override fun onPostExecute(success: Boolean?) {
-            mAuthTask = null
-            showProgress(false)
-
-            if (success!!) {
-                finish()
-            } else {
-                password_textbox.error = "TODO: FIX THIS with real login fail message"
-                password_textbox.requestFocus()
-            }
-        }
-
-        override fun onCancelled() {
-            mAuthTask = null
-            showProgress(false)
-        }
-    }
-
-    companion object {
-
-        /**
-         * A dummy authentication store containing known user names and passwords.
-         * TODO: remove after connecting to a real authentication system.
-         */
-        private val DUMMY_CREDENTIALS = arrayOf("foo@example.com:hello", "bar@example.com:world")
-    }
 }

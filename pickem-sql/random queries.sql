@@ -54,36 +54,36 @@ FROM
 WHERE
 	g.data->>'SeasonCodeRef' = '18'
 	AND
-	g.data->>'WeekNumberRef' = '8'
+	g.data->>'WeekNumberRef' = '11'
 	AND
 	-- hack at Yahoo games
 	g.data->'HomeTeam'->>'TeamCodeRef' IN 
 	(
-		'temple',
-		'iowa',
-		'michigan-st',
-		'toledo',
-		'arkansas',
-		'ole-miss',
-		'tcu',
-		'syracuse',
-		'duke',
-		'marshall',
-		'clemson',
-		'florida-st',
-		'nebraska',
-		'indiana',
-		'washington',
-		'tennessee',
+		'boise-st',
+		'kansas-st',
 		'missouri',
-		'oregon-st',
-		'lsu',
-		'purdue',
-		'washington-st',
-		'kentucky',
-		'uab',
+		'michigan-st',
+		'penn-st',
+		'florida',
+		'texas-am',
+		'ga-southern',
+		'arizona-st',
+		'pittsburgh',
+		'colorado',
+		'iowa-st',
+		'oklahoma',
+		'iowa',
+		'minnesota',
+		'tennessee',
+		'alabama',
 		'utah',
-		'ucla'
+		'georgia-tech',
+		'georgia',
+		'houston',
+		'arkansas',
+		'texas-tech',
+		'boston-college',
+		'southern-california'
 	)
 ORDER BY 
 	g.data->'HomeTeam'->>'TeamCodeRef'
