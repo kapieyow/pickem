@@ -59,31 +59,7 @@ WHERE
 	-- hack at Yahoo games
 	g.data->'HomeTeam'->>'TeamCodeRef' IN 
 	(
-		'boise-st',
-		'kansas-st',
-		'missouri',
-		'michigan-st',
-		'penn-st',
-		'florida',
-		'texas-am',
-		'ga-southern',
-		'arizona-st',
-		'pittsburgh',
-		'colorado',
-		'iowa-st',
-		'oklahoma',
-		'iowa',
-		'minnesota',
-		'tennessee',
-		'alabama',
-		'utah',
-		'georgia-tech',
-		'georgia',
-		'houston',
-		'arkansas',
-		'texas-tech',
-		'boston-college',
-		'southern-california'
+		'north-carolina-st'
 	)
 ORDER BY 
 	g.data->'HomeTeam'->>'TeamCodeRef'

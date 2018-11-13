@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group
+        android:id="@+id/menu_group_leagues"
+        android:checkableBehavior="single">
+        <item android:title="SART League X" />
+    </group>
+    <item
+        android:id="@+id/menu_switch_player"
+        android:title="Switch Player"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/menu_status"
+        android:title="Status"
+        app:showAsAction="never"/>
+</menu>
