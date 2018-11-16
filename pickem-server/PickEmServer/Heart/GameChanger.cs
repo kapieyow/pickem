@@ -31,12 +31,15 @@ namespace PickEmServer.Heart
                 _game.TimeClock != gameUpdates.TimeClock
                 ||
                 _game.GameStart != gameUpdates.GameStart
+                ||
+                _game.GameTitle != gameUpdates.GameTitle
                 )
             {
                 _game.LastUpdated = gameUpdates.LastUpdated;
                 _game.CurrentPeriod = gameUpdates.CurrentPeriod;
                 _game.TimeClock = gameUpdates.TimeClock;
                 _game.GameStart = gameUpdates.GameStart;
+                _game.GameTitle = gameUpdates.GameTitle;
 
                 gameChanges.AncillaryMetaDataChanged = true;
             }

@@ -13,5 +13,6 @@ namespace PickEmServer.Api.Models
         public Boolean NeutralField { get; set; }
         public string AwayTeamCode { get; set; }
         public string HomeTeamCode { get; set; }
+        public string GameTitle { get; set; }
     }
 }

@@ -672,6 +672,7 @@ namespace PickEmServer.Heart
                     GameState = gameData.GameState,
                     GameStatusDescription = _gameSevice.BuildGameDescription(gameData),
                     GameTimeClock = gameData.TimeClock,
+                    GameTitle = gameData.GameTitle,
                     HomeTeamIconFileName = leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].icon24FileName,
                     HomeTeamLongName = string.IsNullOrEmpty(
                         leagueWithExtendedData.referencedHomeTeamData[gameData.HomeTeam.TeamCodeRef].LongName) 

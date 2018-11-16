@@ -21,6 +21,7 @@ namespace PickEmServer.Data.Models
         public SpreadData Spread { get; set; }
         public GameLeaderTypes Leader { get; set; }
         public GameLeaderTypes LeaderAfterSpread { get; set; }
+        public string GameTitle { get; set; }
 
         public GameTeamData AwayTeam { get; set; }
         public GameTeamData HomeTeam { get; set; }

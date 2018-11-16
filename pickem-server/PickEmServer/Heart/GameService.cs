@@ -89,6 +89,7 @@ namespace PickEmServer.Heart
                     SeasonCodeRef = seasonCode,
                     WeekNumberRef = weekNumber,
                     GameState = GameStates.SpreadNotSet,
+                    GameTitle = newGame.GameTitle,
                     AwayTeam = new GameTeamData { TeamCodeRef = newGame.AwayTeamCode, Score = 0, ScoreAfterSpread = 0, Winner = false },
                     HomeTeam = new GameTeamData { TeamCodeRef = newGame.HomeTeamCode, Score = 0, ScoreAfterSpread = 0, Winner = false },
                     // default spread (no data in this input)
@@ -388,6 +389,8 @@ namespace PickEmServer.Heart
                 CurrentPeriod = gameData.CurrentPeriod,
                 GameId = gameData.GameId,
                 GameStart = gameData.GameStart,
+                GameState = gameData.GameState,
+                GameTitle = gameData.GameTitle,
                 HomeTeam = new TeamScore
                 {
                     Score = gameData.HomeTeam.Score,
@@ -403,7 +406,6 @@ namespace PickEmServer.Heart
                     },
                     Winner = gameData.HomeTeam.Winner
                 },
-                GameState = gameData.GameState,
                 LastUpdated = gameData.LastUpdated,
                 NeutralField = gameData.NeutralField,
                 Spread = new Spread

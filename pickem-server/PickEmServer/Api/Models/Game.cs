@@ -14,6 +14,7 @@ namespace PickEmServer.Api.Models
         public TimeSpan TimeClock { get; internal set; }
         public Boolean NeutralField { get; internal set; }
         public Spread Spread { get; internal set; }
+        public string GameTitle { get; internal set; }
 
         public TeamScore AwayTeam { get; internal set; }
         public TeamScore HomeTeam { get; internal set; }
