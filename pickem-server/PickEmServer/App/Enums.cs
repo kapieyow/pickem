@@ -24,6 +24,13 @@ namespace PickEmServer.App
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
+    public enum PickemScoringTypes
+    {
+        AllWinsOnePoint,
+        VariablePoints,
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum PickemSystemEventTypes
     {
         GameChanged,
@@ -33,7 +40,6 @@ namespace PickEmServer.App
         LeaguePlayerPickChanged,
         SpreadLocked,
         SpreadUpdated,
-        SystemSettingsChanged,
         TeamStatsChanged,
     }
 

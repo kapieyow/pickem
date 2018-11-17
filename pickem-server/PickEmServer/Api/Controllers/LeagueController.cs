@@ -25,6 +25,14 @@ namespace PickEmServer.Api.Controllers
 
         [Authorize]
         [HttpGet]
+        [Route("api/{SeasonCode}/{LeagueCode}")]
+        public async Task<League> GetLeague(string SeasonCode, string LeagueCode)
+        {
+            return await _leagueService.ReadLeague(LeagueCode);
+        }
+
+        [Authorize]
+        [HttpGet]
         [Route("api/{SeasonCode}/{LeagueCode}/scoreboard")]
         public async Task<LeagueScoreboard> GetLeagueScoreboard(string SeasonCode, string LeagueCode)
         {
@@ -121,7 +129,13 @@ namespace PickEmServer.Api.Controllers
             return await _leagueService.AddLeagueGame(SeasonCode, LeagueCode, weekNumber, newLeagueGame);
         }
 
-       
+        [Authorize(Policy = "IsAGod")]
+        [HttpPut]
+        [Route("api/{SeasonCode}/{LeagueCode}")]
+        public async Task<League> UpdateLeague(string SeasonCode, string LeagueCode, [FromBody] LeagueUpdate leagueUpdate)
+        {
+            return await _leagueService.UpdateLeague(SeasonCode, LeagueCode, leagueUpdate);
+        }
 
     }
 }

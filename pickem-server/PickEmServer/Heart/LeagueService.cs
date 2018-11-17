@@ -84,8 +84,11 @@ namespace PickEmServer.Heart
 
                 LeagueData newLeagueData = new LeagueData
                 {
+                    CurrentWeekRef = newLeague.CurrentWeekRef,
                     LeagueCode = newLeague.LeagueCode,
                     LeagueTitle = newLeague.LeagueTitle,
+                    NcaaSeasonCodeRef = newLeague.NcaaSeasonCodeRef,
+                    PickemScoringType = newLeague.PickemScoringType,
                     PlayerSeasonScores = new List<PlayerScoreSubtotalData>(),
                     Players = new List<LeaguePlayerData>(),
                     SeasonCodeRef = seasonCode,
@@ -919,6 +922,26 @@ namespace PickEmServer.Heart
             }
         }
 
+        internal async Task<League> UpdateLeague(string seasonCode, string uncheckedLeagueCode, LeagueUpdate leagueUpdate)
+        {
+            if (leagueUpdate == null)
+            {
+                throw new ArgumentException("No leagueUpdate parameter input for UpdateLeague (is null)");
+            }
+
+            using (var dbSession = _documentStore.LightweightSession())
+            {
+                var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
+
+                leagueData.CurrentWeekRef = leagueUpdate.CurrentWeekRef;
+
+                dbSession.Store(leagueData);
+                dbSession.SaveChanges();
+
+                return this.MapLeagueData(leagueData);
+            }
+        }
+
         private async Task<LeagueData> GetLeagueData(string uncheckedLeagueCode)
         {
             using (var dbSession = _documentStore.QuerySession())
@@ -950,8 +973,12 @@ namespace PickEmServer.Heart
         {
             return new League
             {
+                CurrentWeekRef = leagueData.CurrentWeekRef,
                 LeagueCode = leagueData.LeagueCode,
-                LeagueTitle = leagueData.LeagueTitle
+                LeagueTitle = leagueData.LeagueTitle,
+                NcaaSeasonCodeRef = leagueData.NcaaSeasonCodeRef,
+                PickemScoringType = leagueData.PickemScoringType,
+                SeasonCodeRef = leagueData.SeasonCodeRef
             };
         }
        

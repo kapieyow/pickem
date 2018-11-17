@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace PickEmServer.Api.Models
 {
-    public class SystemSettingsUpdate
+    public class LeagueUpdate
     {
         public int CurrentWeekRef { get; set; }
     }
