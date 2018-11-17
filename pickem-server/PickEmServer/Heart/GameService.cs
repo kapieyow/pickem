@@ -20,14 +20,12 @@ namespace PickEmServer.Heart
         private readonly ILogger<GameService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly PickemEventer _pickemEventer;
-        private readonly ReferenceService _referenceSevice;
 
-        public GameService(IDocumentStore documentStore, ILogger<GameService> logger, PickemEventer pickemEventer, ReferenceService referenceSevice, IServiceProvider serviceProvider)
+        public GameService(IDocumentStore documentStore, ILogger<GameService> logger, PickemEventer pickemEventer, IServiceProvider serviceProvider)
         {
             _documentStore = documentStore;
             _logger = logger;
             _pickemEventer = pickemEventer;
-            _referenceSevice = referenceSevice;
             _serviceProvider = serviceProvider;
         }
 
@@ -40,8 +38,6 @@ namespace PickEmServer.Heart
 
             using (var dbSession = _documentStore.LightweightSession())
             {
-                _referenceSevice.ThrowIfNonexistantSeason(seasonCode);
-
                 // verify the team codes exist
                 var teams = await dbSession
                     .Query<TeamData>()

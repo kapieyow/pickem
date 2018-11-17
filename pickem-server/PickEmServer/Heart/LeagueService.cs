@@ -19,7 +19,6 @@ namespace PickEmServer.Heart
         private readonly ILogger<LeagueService> _logger;
         private readonly GameService _gameSevice;
         private readonly PickemEventer _pickemEventer;
-        private readonly ReferenceService _referenceSevice;
         private readonly UserManager<PickEmUser> _userManager;
 
         private class LeagueGameComparer : IEqualityComparer<LeagueGameData>
@@ -46,7 +45,6 @@ namespace PickEmServer.Heart
             IDocumentStore documentStore, 
             ILogger<LeagueService> logger, 
             PickemEventer pickemEventer, 
-            ReferenceService referenceService, 
             GameService gameSevice, 
             UserManager<PickEmUser> userManager)
         {
@@ -54,11 +52,10 @@ namespace PickEmServer.Heart
             _gameSevice = gameSevice;
             _logger = logger;
             _pickemEventer = pickemEventer;
-            _referenceSevice = referenceService;
             _userManager = userManager;
         }
 
-        public async Task<League> AddLeague(string seasonCode, LeagueAdd newLeague)
+        public async Task<League> AddLeague(LeagueAdd newLeague)
         {
             if (newLeague == null)
             {
@@ -67,9 +64,6 @@ namespace PickEmServer.Heart
 
             using (var dbSession = _documentStore.LightweightSession())
             {
-                // verify season exists
-                _referenceSevice.ThrowIfNonexistantSeason(seasonCode);
-
                 // verify league does not already exist 
                 var game = await dbSession
                    .Query<LeagueData>()
@@ -91,7 +85,7 @@ namespace PickEmServer.Heart
                     PickemScoringType = newLeague.PickemScoringType,
                     PlayerSeasonScores = new List<PlayerScoreSubtotalData>(),
                     Players = new List<LeaguePlayerData>(),
-                    SeasonCodeRef = seasonCode,
+                    SeasonCodeRef = newLeague.SeasonCodeRef,
                     Weeks = new List<LeagueWeekData>()
                 };
 
@@ -112,7 +106,7 @@ namespace PickEmServer.Heart
             }
         }
 
-        internal async Task<League> AddLeagueGame(string seasonCode, string uncheckedLeagueCode, int weekNumber, LeagueGameAdd newLeagueGame)
+        internal async Task<League> AddLeagueGame(string uncheckedLeagueCode, int weekNumber, LeagueGameAdd newLeagueGame)
         {
             if (newLeagueGame == null)
             {
@@ -137,12 +131,12 @@ namespace PickEmServer.Heart
 
                 var game = dbSession
                     .Query<GameData>()
-                    .Where(g => g.GameId == newLeagueGame.GameId)
+                    .Where(g => g.GameId == newLeagueGame.GameId && g.SeasonCodeRef == leagueData.SeasonCodeRef)
                     .SingleOrDefault();
 
                 if (game == null)
                 {
-                    throw new ArgumentException($"Game with gameid: {newLeagueGame.GameId} does not exist");
+                    throw new ArgumentException($"Game with gameid: {newLeagueGame.GameId} does not exist for the SeasonCodeRef: {leagueData.SeasonCodeRef} which is the season of league code: {exactLeagueCode}");
                 }
 
                 if (game.WeekNumberRef != weekNumber)
@@ -158,7 +152,7 @@ namespace PickEmServer.Heart
                 dbSession.Store(leagueData);
                 dbSession.SaveChanges();
 
-                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeagueGameAdded, seasonCode, exactLeagueCode, weekNumber, newLeagueGame.GameId);
+                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeagueGameAdded, null, exactLeagueCode, weekNumber, newLeagueGame.GameId);
                 pickemEvent.LeagueCodesAffected.Add(exactLeagueCode);
                 _pickemEventer.Emit(pickemEvent);
 
@@ -394,7 +388,7 @@ namespace PickEmServer.Heart
             return MapLeagueData(leagueData);
         }
 
-        public async Task<Player> ReadLeaguePlayer(string seasonCode, string uncheckedLeagueCode, string uncheckedUserName)
+        public async Task<Player> ReadLeaguePlayer(string uncheckedLeagueCode, string uncheckedUserName)
         {
             var leagueData = await this.GetLeagueData(uncheckedLeagueCode);
             var exactLeagueCode = leagueData.LeagueCode;
@@ -402,7 +396,7 @@ namespace PickEmServer.Heart
             var playerData = leagueData.Players.SingleOrDefault(p => p.UserNameRef.Equals(uncheckedUserName, StringComparison.OrdinalIgnoreCase));
             if (playerData == null)
             {
-                throw new ArgumentException($"User name: {uncheckedUserName} is not references in league: {exactLeagueCode}, season: {seasonCode}");
+                throw new ArgumentException($"User name: {uncheckedUserName} is not references in league: {exactLeagueCode}");
             }
 
             return new Player
@@ -412,7 +406,7 @@ namespace PickEmServer.Heart
             };
         }
 
-        public async Task<List<Player>> ReadLeaguePlayers(string seasonCode, string uncheckedLeagueCode)
+        public async Task<List<Player>> ReadLeaguePlayers(string uncheckedLeagueCode)
         {
             var leagueData = await this.GetLeagueData(uncheckedLeagueCode);
             var exactLeagueCode = leagueData.LeagueCode;
@@ -431,7 +425,7 @@ namespace PickEmServer.Heart
             return resultPlayers.OrderBy(p => p.PlayerTag).ToList();
         }
 
-        public async Task<LeagueWeeks> ReadLeagueWeeks(string seasonCode, string uncheckedLeagueCode)
+        public async Task<LeagueWeeks> ReadLeagueWeeks(string uncheckedLeagueCode)
         {
             var leagueData = await this.GetLeagueData(uncheckedLeagueCode);
             var exactLeagueCode = leagueData.LeagueCode;
@@ -447,12 +441,12 @@ namespace PickEmServer.Heart
             return leagueWeeks;
         }
 
-        public async Task<WeekScoreboard> ReadWeekScoreboard(string seasonCode, string uncheckedLeagueCode, int weekNumber, string uncheckedAuthenticatedUserName)
+        public async Task<WeekScoreboard> ReadWeekScoreboard(string uncheckedLeagueCode, int weekNumber, string uncheckedAuthenticatedUserName)
         {
             // determine if the authenticated user has this player tag (if not hide picks for games not started)
-            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, uncheckedLeagueCode, uncheckedAuthenticatedUserName);
+            var authenticatedPlayer = await this.ReadLeaguePlayer(uncheckedLeagueCode, uncheckedAuthenticatedUserName);
 
-            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, uncheckedLeagueCode, weekNumber);
+            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(uncheckedLeagueCode, weekNumber);
             var exactLeagueCode = leagueWithExtendedData.LeagueData.LeagueCode;
 
             // get all players and loop over to map for full week
@@ -482,7 +476,7 @@ namespace PickEmServer.Heart
             }
 
             weekScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(
-                seasonCode, 
+                leagueWithExtendedData.LeagueData.SeasonCodeRef, 
                 exactLeagueCode, 
                 weekNumber, 
                 weekScoreboard.PlayerTags, 
@@ -492,18 +486,18 @@ namespace PickEmServer.Heart
             return weekScoreboard;
         }
 
-        public async Task<PlayerScoreboard> ReadPlayerScoreboard(string seasonCode, string uncheckedLeagueCode, int weekNumber, string uncheckedPlayerTag, string uncheckedAuthenticatedUserName)
+        public async Task<PlayerScoreboard> ReadPlayerScoreboard(string uncheckedLeagueCode, int weekNumber, string uncheckedPlayerTag, string uncheckedAuthenticatedUserName)
         {
-            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(seasonCode, uncheckedLeagueCode, weekNumber);
+            var leagueWithExtendedData = await this.ReadLeagueWithWeekGamesExpanded(uncheckedLeagueCode, weekNumber);
             var exactLeagueCode = leagueWithExtendedData.LeagueData.LeagueCode;
 
             // determine if the authenticated user has this player tag (if not hide picks for games not started)
-            var authenticatedPlayer = await this.ReadLeaguePlayer(seasonCode, exactLeagueCode, uncheckedAuthenticatedUserName);
+            var authenticatedPlayer = await this.ReadLeaguePlayer(exactLeagueCode, uncheckedAuthenticatedUserName);
 
             var playerScoreboard = new PlayerScoreboard();
 
             playerScoreboard.GamePickScoreboards = this.MapDataToGameScoreboards(
-                seasonCode, 
+                leagueWithExtendedData.LeagueData.SeasonCodeRef, 
                 exactLeagueCode, 
                 weekNumber, 
                 new List<string> { uncheckedPlayerTag }, 
@@ -542,7 +536,7 @@ namespace PickEmServer.Heart
         }
 
 
-        internal async Task<LeagueScoreboard> ReadLeagueScoreboard(string seasonCode, string uncheckedLeagueCode)
+        internal async Task<LeagueScoreboard> ReadLeagueScoreboard(string uncheckedLeagueCode)
         {
             using (var dbSession = _documentStore.QuerySession())
             {
@@ -586,7 +580,7 @@ namespace PickEmServer.Heart
             }
         }
 
-        private async Task<LeagueWithGamesAndTeamDataForWeek> ReadLeagueWithWeekGamesExpanded(string seasonCode, string uncheckedLeagueCode, int weekNumber)
+        private async Task<LeagueWithGamesAndTeamDataForWeek> ReadLeagueWithWeekGamesExpanded(string uncheckedLeagueCode, int weekNumber)
         {
             using (var dbSession = _documentStore.QuerySession())
             {
@@ -794,7 +788,7 @@ namespace PickEmServer.Heart
 
         }
 
-        internal async Task<Player> SetPlayer(string seasonCode, string uncheckedLeagueCode, string uncheckedUserName, PlayerUpdate playerUpdate)
+        internal async Task<Player> SetPlayer(string uncheckedLeagueCode, string uncheckedUserName, PlayerUpdate playerUpdate)
         {
             if (playerUpdate == null)
             {
@@ -809,7 +803,7 @@ namespace PickEmServer.Heart
                 var playerData = leagueData.Players.SingleOrDefault(p => p.UserNameRef.Equals(uncheckedUserName, StringComparison.OrdinalIgnoreCase));
                 if (playerData == null)
                 {
-                    throw new ArgumentException($"User name: {uncheckedUserName} is not references in league: {exactLeagueCode}, season: {seasonCode}");
+                    throw new ArgumentException($"User name: {uncheckedUserName} is not references in league: {exactLeagueCode}");
                 }
 
                 var originalPlayerTag = playerData.PlayerTag;
@@ -834,17 +828,17 @@ namespace PickEmServer.Heart
                 dbSession.Store(leagueData);
                 dbSession.SaveChanges();
 
-                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerChanged, null, exactLeagueCode, null, null);
+                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerChanged, exactLeagueCode);
                 pickemEvent.DynamicKeys.playerTag = playerUpdate.PlayerTag;
                 pickemEvent.DynamicInformation.userName = playerData.UserNameRef;
                 pickemEvent.LeagueCodesAffected.Add(exactLeagueCode);
                 _pickemEventer.Emit(pickemEvent);
 
-                return await this.ReadLeaguePlayer(seasonCode, exactLeagueCode, playerData.UserNameRef);
+                return await this.ReadLeaguePlayer(exactLeagueCode, playerData.UserNameRef);
             }
         }
 
-        internal async Task<PlayerPick> SetPlayerPick(string seasonCode, string uncheckedLeagueCode, int weekNumber, string uncheckedPlayerTag, int gameId, PlayerPickUpdate newPlayerPick)
+        internal async Task<PlayerPick> SetPlayerPick(string uncheckedLeagueCode, int weekNumber, string uncheckedPlayerTag, int gameId, PlayerPickUpdate newPlayerPick)
         {
             if (newPlayerPick == null)
             {
@@ -859,19 +853,19 @@ namespace PickEmServer.Heart
                 var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
                 if (weekData == null)
                 {
-                    throw new ArgumentException($"League: {exactLeagueCode} for season: {seasonCode} does not contain a week: {weekNumber}");
+                    throw new ArgumentException($"League: {exactLeagueCode} does not contain a week: {weekNumber}");
                 }
 
                 var pickemGameData = weekData.Games.SingleOrDefault(g => g.GameIdRef == gameId);
                 if (pickemGameData == null)
                 {
-                    throw new ArgumentException($"League: {exactLeagueCode} for season: {seasonCode}, week: {weekNumber} does not have a game with gameid: {gameId}");
+                    throw new ArgumentException($"League: {exactLeagueCode} for week: {weekNumber} does not have a game with gameid: {gameId}");
                 }
 
                 var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef.Equals(uncheckedPlayerTag, StringComparison.OrdinalIgnoreCase));
                 if (playerPickData == null)
                 {
-                    throw new ArgumentException($"League: {exactLeagueCode} for season: {seasonCode}, week: {weekNumber}, game {gameId}, has no player pick for {uncheckedPlayerTag}. Is {uncheckedPlayerTag} in this league?");
+                    throw new ArgumentException($"League: {exactLeagueCode} for week: {weekNumber}, game {gameId}, has no player pick for {uncheckedPlayerTag}. Is {uncheckedPlayerTag} in this league?");
                 }
 
                 // get associated game to make sure the player can update the pick
@@ -903,7 +897,7 @@ namespace PickEmServer.Heart
                     dbSession.Store(leagueData);
                     dbSession.SaveChanges();
 
-                    var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerPickChanged, seasonCode, exactLeagueCode, weekNumber, gameId);
+                    var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerPickChanged, null, exactLeagueCode, weekNumber, gameId);
                     pickemEvent.DynamicKeys.playerTag = playerPickData.PlayerTagRef;
                     pickemEvent.LeagueCodesAffected.Add(exactLeagueCode);
                     _pickemEventer.Emit(pickemEvent);
@@ -922,7 +916,7 @@ namespace PickEmServer.Heart
             }
         }
 
-        internal async Task<League> UpdateLeague(string seasonCode, string uncheckedLeagueCode, LeagueUpdate leagueUpdate)
+        internal async Task<League> UpdateLeague(string uncheckedLeagueCode, LeagueUpdate leagueUpdate)
         {
             if (leagueUpdate == null)
             {

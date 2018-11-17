@@ -21,12 +21,8 @@ namespace PickEmServer.App.Models
             : this(type, seasonCode, null, weekNumber, gameId)
         { }
 
-        public PickemSystemEvent(PickemSystemEventTypes type, string seasonCode, string leagueCode)
-           : this(type, seasonCode, leagueCode, null, null)
-        { }
-
-        public PickemSystemEvent(PickemSystemEventTypes type, string seasonCode, string leagueCode, int weekNumber)
-            : this(type, seasonCode, leagueCode, weekNumber, null)
+        public PickemSystemEvent(PickemSystemEventTypes type, string leagueCode)
+           : this(type, null, leagueCode, null, null)
         { }
 
         public PickemSystemEvent(PickemSystemEventTypes type, string seasonCode, string leagueCode, int? weekNumber, int? gameId)

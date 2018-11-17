@@ -13,6 +13,7 @@ namespace PickEmServer.Api.Models
         public string LeagueTitle { get; set; }
         public string NcaaSeasonCodeRef { get; set; }
         public PickemScoringTypes PickemScoringType { get; set; }
+        public string SeasonCodeRef { get; set; }
 
         public List<int> WeekNumbers { get; set; }
     }

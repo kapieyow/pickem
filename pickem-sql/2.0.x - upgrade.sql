@@ -9,3 +9,7 @@ SET
 DROP FUNCTION public.mt_insert_systemsettingsdata(doc jsonb, docdotnettype character varying, docid integer, docversion uuid);
 DROP FUNCTION public.mt_upsert_systemsettingsdata(doc jsonb, docdotnettype character varying, docid integer, docversion uuid);
 DROP TABLE public.mt_doc_systemsettingsdata;
+
+DROP FUNCTION public.mt_insert_seasondata(doc jsonb, docdotnettype character varying, docid character varying, docversion uuid);
+DROP FUNCTION public.mt_upsert_seasondata(doc jsonb, docdotnettype character varying, docid character varying, docversion uuid);
+DROP TABLE public.mt_doc_seasondata;

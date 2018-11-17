@@ -45,7 +45,6 @@ namespace PickEmServer
             services.AddScoped<LeagueService>();
             services.AddScoped<LogService>();
             services.AddScoped<PickemDatabaseLoggerProvider>();
-            services.AddScoped<ReferenceService>();
             services.AddScoped<TeamService>();
             services.AddSingleton<SuperWebSocketPoolManager>();
             services.AddSingleton<PickemEventer>();
