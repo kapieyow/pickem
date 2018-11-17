@@ -53,13 +53,9 @@ class PickemApiClient:
 
     def readPickemTeams(self):
         return self.getApi(self.pickemServerBaseUrl + "/teams", self.jwt)
-
-    def readSystemSettings(self):
-        url = self.pickemServerBaseUrl + "/settings"
-        return self.getApi(url, self.jwt)
         
     def setLeagueGame(self, leagueCode, weekNumber, gameId):
-        leagueGameUrl = self.pickemServerBaseUrl + "/18/" + leagueCode + "/" + str(weekNumber) + "/games"
+        leagueGameUrl = self.pickemServerBaseUrl + "/" + leagueCode + "/" + str(weekNumber) + "/games"
         self.postToApi(leagueGameUrl, "{ 'gameId': " + str(gameId) + " }", self.jwt)
         
     def updateGame(
@@ -89,10 +85,14 @@ class PickemApiClient:
         gameData = '{"lastUpdated": "' + lastUpdated + '","gameState": "' + gameState + '", "gameStart": "' + gameStart + '", "currentPeriod": "' + currentPeriod + '", "timeClock": "' + timeClock + '", "awayTeamScore": "' + str(awayTeamScore) + '", "homeTeamScore": "' + str(homeTeamScore) + '"}'
         self.putToApi(pickemGamePutUrl, gameData, self.jwt)
 
-    def updateSettingWeek(self, weekNumber):
-        settingsUrl = self.pickemServerBaseUrl + "/settings"
-        settingsData = '{"currentWeekRef":' + str(weekNumber) + '}'
-        self.putToApi(settingsUrl, settingsData, self.jwt)
+    def updateLeague(self, leagueCode, currentWeekNumber):
+        spreadPutUrl = self.pickemServerBaseUrl + "/" + leagueCode
+        putData = '''
+        {
+            "currentWeekRef": ''' + str(currentWeekNumber) + '''
+        }
+        '''
+        self.putToApi(spreadPutUrl, putData, self.jwt)
 
     def updateSpread(self, pickemSeasonCode, weekNumber, gameId, spreadDirection, absSpread):
         spreadPutUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games/" + str(gameId) + "/spread"
@@ -121,7 +121,7 @@ class PickemApiClient:
     #============================================
     def getApi(self, url, jwt):
         
-        self.logger.debug("GET: " + url)
+        self.logger.debug("   GET: " + url)
         
         if ( jwt == "" ):
             response = requests.get(url, headers={'Content-Type': 'application/json'})
@@ -132,13 +132,13 @@ class PickemApiClient:
             self.logger.error("HTTP GET api Failure. Code: " + str(response.status_code) + " URL: " + url)
             response.raise_for_status()
         else:
-            self.logger.debug(response)
+            self.logger.debug("   " + str(response))
 
         return response.json()
 
     def postToApi(self, url, postData, jwt):
         
-        self.logger.debug("POST: " + url)
+        self.logger.debug("   POST: " + url)
 
         if ( jwt == "" ):
             response = requests.post(url, data=postData, headers={'Content-Type': 'application/json'})
@@ -149,13 +149,13 @@ class PickemApiClient:
             self.logger.error("HTTP POST Failure. Code: " + str(response.status_code) + " URL: " + url)
             response.raise_for_status()
         else:
-            self.logger.debug(response)
+            self.logger.debug("   " + str(response))
 
         return response.json()
         
     def putToApi(self, url, postData, jwt):
 
-        self.logger.debug("PUT: " + url)
+        self.logger.debug("   PUT: " + url)
 
         if ( jwt == "" ):
             response = requests.put(url, data=postData, headers={'Content-Type': 'application/json'})
@@ -166,19 +166,19 @@ class PickemApiClient:
             self.logger.error("HTTP PUT Failure. Code: " + str(response.status_code) + " URL: " + url)
             response.raise_for_status()
         else:
-            self.logger.debug(response)
+            self.logger.debug("   " + str(response))
 
         return response.json()
 
 
     def getHtml(self, url):
-        self.logger.debug("GET: " + url)
+        self.logger.debug("   GET: " + url)
         response = requests.get(url)
 
         if(not response.ok):
             self.logger.error("HTTP GET Failure. Code: " + str(response.status_code) + " URL: " + url)
             response.raise_for_status()
         else:
-            self.logger.debug(response)
+            self.logger.debug("   " + str(response))
 
         return response.text

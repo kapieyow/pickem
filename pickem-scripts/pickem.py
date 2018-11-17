@@ -13,7 +13,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "1.8.22"
+VERSION = "2.0.23"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals
@@ -22,10 +22,6 @@ class Settings:
     PickemAdminUsername = ""
     PickemAdminPassword = ""
     PickemServerBaseUrl = ""
-    # from server
-    PickemWeekNumber = 0
-    PickemSeasonCode = ""
-    PickemNcaaSeasonCode = ""
 
 settings = Settings()
 apiClient = None
@@ -37,27 +33,29 @@ apiClient = None
 def setLeagueGames(args):
     gamesSet = 0
 
-    for gameId in args.gameids:
-        apiClient.setLeagueGame(args.league, settings.PickemWeekNumber, gameId)
-        gamesSet = gamesSet + 1
+    for leagueCode in args.league_codes:
+        for gameId in args.gameids:
+            apiClient.setLeagueGame(leagueCode, args.week, gameId)
+            gamesSet = gamesSet + 1
 
-    logger.debug("Set (" + str(gamesSet) + ") games for league (" + args.league + ") in week (" + str(settings.PickemWeekNumber) + ")")
+        logger.debug("Set (" + str(gamesSet) + ") games for league (" + leagueCode + ") in week (" + str(args.week) + ")")
 
-def setupWeek(args):
-    apiClient.updateSettingWeek(args.week)
-    logger.debug("Week set to: " + str(args.week))
+def setupLeagueWeek(args):
+    for leagueCode in args.league_codes:
+        apiClient.updateLeague(leagueCode, args.week)
+        logger.debug("Set week to (" + str(args.week) + ") for league (" + leagueCode + ")")
 
 def synchGames(args):
     synchGamesHandler = pickemSynchGames.PickemSynchGamesHandler(apiClient, logger)
 
     if ( args.loop_every_sec == None ):
-        synchGamesHandler.Run(args.action, settings.PickemNcaaSeasonCode, settings.PickemSeasonCode, settings.PickemWeekNumber)
+        synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week)
     else:
         runCount = 0
         failCount = 0
         while(True): # for eva .. eva?
             try:
-                synchGamesHandler.Run(args.action, settings.PickemNcaaSeasonCode, settings.PickemSeasonCode, settings.PickemWeekNumber)
+                synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week)
             except:
                 failCount = failCount + 1
            
@@ -68,11 +66,11 @@ def synchGames(args):
 
 def updateSpreads(args):
     synchGamesHandler = pickemUpdateSpreads.PickemUpdateSpreadsHandler(apiClient, logger)
-    synchGamesHandler.Run(args.action, settings.PickemSeasonCode, settings.PickemWeekNumber)
+    synchGamesHandler.Run(args.action, args.pickem_season_code, args.week)
 
 def updateTeams(args):
     updateTeamsHandler = pickemUpdateTeams.PickemUpdateSpreadsHandler(apiClient, logger)
-    updateTeamsHandler.Run(settings.PickemSeasonCode, settings.PickemWeekNumber, args.rankings_source)
+    updateTeamsHandler.Run(args.pickem_season_code, args.week, args.rankings_source)
 
 
 #=====================================
@@ -85,13 +83,6 @@ def loadIniConfig(iniFile, settingsContainer):
     settingsContainer.PickemAdminPassword = configParser.get("ADMIN", "PICKEM_ADMIN_PASSWORD")
     settingsContainer.PickemServerBaseUrl = configParser.get("URLS", "PICKEM_SERVER_BASE_URL")
 
-def setServerSettings(pickemApiClient, settingsContainer):
-    # TODO current week not linked to league?
-    systemSettings = pickemApiClient.readSystemSettings()
-    settingsContainer.PickemWeekNumber = systemSettings['currentWeekRef']
-    settingsContainer.PickemSeasonCode = systemSettings['seasonCodeRef']
-    settingsContainer.PickemNcaaSeasonCode = systemSettings['ncaaSeasonCodeRef']
-
 def setupArgumentParsers():
     # arg setup
     argParser = argparse.ArgumentParser()
@@ -99,28 +90,37 @@ def setupArgumentParsers():
 
     # -- set_league_games sub-command
     subParser = subArgParsers.add_parser('set_league_games')
-    subParser.add_argument('-l', '--league', required=True, help='League code')
-    subParser.add_argument('-gids', '--gameids', required=True, nargs='+', type=int)
+    subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
+    subParser.add_argument('-lcs', '--league_codes', required=True, nargs='+', type=str, help='League codes')
+    subParser.add_argument('-gids', '--gameids', required=True, nargs='+', type=int, help='Game Ids')
     subParser.set_defaults(func=setLeagueGames)
 
     # -- setup_week sub-command
-    subParser = subArgParsers.add_parser('setup_week')
-    subParser.add_argument('-w', '--week', type=int, required=True, help='Week in # e.g. 7')
-    subParser.set_defaults(func=setupWeek)
+    subParser = subArgParsers.add_parser('set_league_week')
+    subParser.add_argument('-lcs', '--league_codes', required=True, nargs='+', type=str, help='League codes')
+    subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
+    subParser.set_defaults(func=setupLeagueWeek)
 
     # -- synch_games sub-command
     subParser = subArgParsers.add_parser('synch_games')
+    subParser.add_argument('-psc', '--pickem_season_code', type=str, required=True, help='Pickem Season Code')
+    subParser.add_argument('-nsc', '--ncaa_season_code', type=str, required=True, help='NCAA Season Code')
+    subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
-    subParser.add_argument('-les', '--loop_every_sec', type=int, required=False)
+    subParser.add_argument('-les', '--loop_every_sec', type=int, required=False, help='Seconds to pause between loops')
     subParser.set_defaults(func=synchGames)
 
     # -- update_spreads sub-command
     subParser = subArgParsers.add_parser('update_spreads')
+    subParser.add_argument('-psc', '--pickem_season_code', type=str, required=True, help='Pickem Season Code')
+    subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'lock', 'l'])
     subParser.set_defaults(func=updateSpreads)
 
     # -- update_teams sub-command
     subParser = subArgParsers.add_parser('update_teams')
+    subParser.add_argument('-psc', '--pickem_season_code', type=str, required=True, help='Pickem Season Code')
+    subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.add_argument('-rs', '--rankings_source', nargs='?', const='ap', default='ap', choices=['ap', 'cfp'])
     subParser.set_defaults(func=updateTeams)
 
@@ -145,7 +145,6 @@ if ( hasattr(args, 'func') ):
 
     # login
     apiClient.authenticate(settings.PickemAdminUsername, settings.PickemAdminPassword)
-    setServerSettings(apiClient, settings)
 
     # this runs the function in parser's set_defaults()
     args.func(args)
