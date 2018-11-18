@@ -37,7 +37,7 @@ class PickemUpdateSpreadsHandler:
             gameId = pickemGame['gameId']
             self.apiClient.lockSpread(pickemSeason, weekNumber, gameId)
 
-        self.logger.debug("Locked {0} game spreads.".format(len(pickemGamesForWeek)))	
+        self.logger.info("Locked {0} game spreads.".format(len(pickemGamesForWeek)))	
 
     def __updateSpreads(self, pickemGamesForWeek, pickemSeason, weekNumber):
 
@@ -145,4 +145,4 @@ class PickemUpdateSpreadsHandler:
             spreadsGameCount = spreadsGameCount + 1
 
 
-        self.logger.debug("Read {0} game spreads. Matched {1} games and updated.".format(spreadsGameCount, updatedPickemGameCount))	
+        self.logger.info("Read {0} game spreads. Matched {1} games and updated.".format(spreadsGameCount, updatedPickemGameCount))	

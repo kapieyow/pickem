@@ -26,7 +26,7 @@ class PickemSynchGamesHandler:
                 if ( self.__insertNcaaGame(gameUrl, pickemSeason, weekNumber) ):
                     gamesModified += 1
                     
-            self.logger.debug("Loaded (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
+            self.logger.info("Loaded (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
         
         elif ( actionCode == "update" or actionCode == "u" ):
 
@@ -37,7 +37,7 @@ class PickemSynchGamesHandler:
                 if ( self.__updateNcaaGameFromCasablanca(pickemGame, ncaaSeason, pickemSeason, weekNumber) ):
                     gamesModified += 1
 
-            self.logger.debug("Updated (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
+            self.logger.info("Updated (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
 
         else:
             self.logger.wtf("Unhandled action (a) parameter (" + actionCode + ") why didn't the argparser catch it?")
@@ -70,7 +70,7 @@ class PickemSynchGamesHandler:
             return False
     
     def __readNcaaGames(self, ncaaSeason, week):
-        self.logger.debug("Reading NCAA Games...")
+        self.logger.info("Reading NCAA Games...")
 
         url = NCAA_BASE_DATA_URL
         url = url.replace(URL_SEASON_TOKEN, str(ncaaSeason))
@@ -87,7 +87,7 @@ class PickemSynchGamesHandler:
             for game in day['games']:
                 games.append(game)
 
-        self.logger.debug("Read " + str(len(games)) + " games")
+        self.logger.info("Read " + str(len(games)) + " games")
 
         return games
 

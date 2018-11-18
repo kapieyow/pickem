@@ -19,6 +19,7 @@ PICKEM_INI = "pickem-settings.ini"
 # globals
 class Settings:
     # from INI
+    MinLogLevelToApi = ""
     PickemAdminUsername = ""
     PickemAdminPassword = ""
     PickemServerBaseUrl = ""
@@ -38,12 +39,12 @@ def setLeagueGames(args):
             apiClient.setLeagueGame(leagueCode, args.week, gameId)
             gamesSet = gamesSet + 1
 
-        logger.debug("Set (" + str(gamesSet) + ") games for league (" + leagueCode + ") in week (" + str(args.week) + ")")
+        logger.info("Set (" + str(gamesSet) + ") games for league (" + leagueCode + ") in week (" + str(args.week) + ")")
 
 def setupLeagueWeek(args):
     for leagueCode in args.league_codes:
         apiClient.updateLeague(leagueCode, args.week)
-        logger.debug("Set week to (" + str(args.week) + ") for league (" + leagueCode + ")")
+        logger.info("Set week to (" + str(args.week) + ") for league (" + leagueCode + ")")
 
 def synchGames(args):
     synchGamesHandler = pickemSynchGames.PickemSynchGamesHandler(apiClient, logger)
@@ -79,6 +80,7 @@ def updateTeams(args):
 def loadIniConfig(iniFile, settingsContainer):
     configParser = configparser.ConfigParser()
     configParser.read(iniFile)
+    settingsContainer.MinLogLevelToApi = configParser.get("LOGGING", "MIN_LOG_LEVEL_TO_API")
     settingsContainer.PickemAdminUsername = configParser.get("ADMIN", "PICKEM_ADMIN_USERNAME")
     settingsContainer.PickemAdminPassword = configParser.get("ADMIN", "PICKEM_ADMIN_PASSWORD")
     settingsContainer.PickemServerBaseUrl = configParser.get("URLS", "PICKEM_SERVER_BASE_URL")
@@ -140,7 +142,7 @@ argParser = setupArgumentParsers()
 args = argParser.parse_args()
 if ( hasattr(args, 'func') ):
 
-    logger = pickemLogger.Logger(settings.PickemServerBaseUrl, args.func.__name__)
+    logger = pickemLogger.Logger(settings.PickemServerBaseUrl, settings.MinLogLevelToApi, args.func.__name__)
     apiClient = pickemApiClient.PickemApiClient(settings.PickemServerBaseUrl, logger)
 
     # login
