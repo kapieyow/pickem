@@ -431,6 +431,8 @@ namespace PickEmServer.Heart
             var exactLeagueCode = leagueData.LeagueCode;
 
             var leagueWeeks = new LeagueWeeks();
+
+            leagueWeeks.CurrentWeekNumber = leagueData.CurrentWeekRef;
             leagueWeeks.WeekNumbers = new List<int>();
 
             foreach (var weekData in leagueData.Weeks)

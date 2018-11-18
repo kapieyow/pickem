@@ -1,9 +1,9 @@
+
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { ThrowStmt, ERROR_COMPONENT_TYPE } from '@angular/compiler';
 import { Player } from '../models/api/player';
 import { PlayerScoreboard } from '../models/api/player-scoreboard';
 import { LoggerService } from './logger.service';
@@ -34,25 +34,40 @@ export class LeagueService {
 
   constructor(private logger: LoggerService, private statusService: StatusService, private http: HttpClient) { }
 
-  public loadLeagueScoreboard(seasonCode: string, leagueCode: string)
+  public loadLeagueScoreboard(leagueCode: string)
   {
-    this.readLeagueScoreboard(seasonCode, leagueCode).subscribe( response => { this.leagueScoreboard = response; } );
+    this.readLeagueScoreboard(leagueCode).subscribe( response => { this.leagueScoreboard = response; } );
   }
 
-  public loadPlayerScoreboard(seasonCode: string, leagueCode: string, weekNumber: number, playerTag: string)
+  public loadPlayerScoreboard(leagueCode: string, weekNumber: number, playerTag: string)
   {
-    this.readPlayerScoreboard(seasonCode, leagueCode, weekNumber, playerTag).subscribe( response => { this.playerScoreboard = response; } );
+    this.readPlayerScoreboard(leagueCode, weekNumber, playerTag).subscribe( response => { this.playerScoreboard = response; } );
   }
 
-  public loadWeekScoreboard(seasonCode: string, leagueCode: string, weekNumber: number)
+  public loadWeekScoreboard(leagueCode: string, weekNumber: number)
   {
-    this.readWeekScoreboard(seasonCode, leagueCode, weekNumber).subscribe( response => { this.weekScoreboard = response; } );
+    this.readWeekScoreboard(leagueCode, weekNumber).subscribe( response => { this.weekScoreboard = response; } );
   }
 
-  public readLeagueScoreboard(seasonCode: string, leagueCode: string): Observable<LeagueScoreboard>
+  public async loadLeagueMetaData(leagueCode: string, userName: string)
   {
-    // api/{SeasonCode}/{LeagueCode}/scoreboard
-    return this.http.get<LeagueScoreboard>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/scoreboard", httpOptions)
+    var player = await this.readPlayer(leagueCode, userName).toPromise();
+    this.statusService.playerTagFilter = player.playerTag;
+    this.statusService.userPlayerTag = player.playerTag;
+
+    var leaguePlayers = await this.readLeaguePlayers(leagueCode).toPromise();
+    this.players = leaguePlayers;
+
+    var leagueWeeks = await this.readLeagueWeeks(leagueCode).toPromise();
+    this.weekNumbers = leagueWeeks.weekNumbers;
+    this.statusService.weekNumberFilter = leagueWeeks.currentWeekNumber;
+  }
+
+
+  public readLeagueScoreboard(leagueCode: string): Observable<LeagueScoreboard>
+  {
+    // api/{LeagueCode}/scoreboard
+    return this.http.get<LeagueScoreboard>(environment.pickemRestServerBaseUrl + "/" + leagueCode + "/scoreboard", httpOptions)
       .pipe(
         tap(response => 
           { 
@@ -66,10 +81,10 @@ export class LeagueService {
       );
   }
 
-  public readPlayerScoreboard(seasonCode: string, leagueCode: string, weekNumber: number, playerTag: string): Observable<PlayerScoreboard>
+  public readPlayerScoreboard(leagueCode: string, weekNumber: number, playerTag: string): Observable<PlayerScoreboard>
   {
-    //{SeasonCode}/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard
-    return this.http.get<PlayerScoreboard>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/" + weekNumber + "/" + playerTag + "/scoreboard", httpOptions)
+    //{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard
+    return this.http.get<PlayerScoreboard>(environment.pickemRestServerBaseUrl + "/" + leagueCode + "/" + weekNumber + "/" + playerTag + "/scoreboard", httpOptions)
       .pipe(
         tap(response => 
           { 
@@ -83,48 +98,40 @@ export class LeagueService {
       );
   }
 
-  public readPlayer(seasonCode: string, leagueCode: string, userName: string): Observable<Player>
+  private readPlayer(leagueCode: string, userName: string): Observable<Player>
   {
-    // /api/{SeasonCode}/{LeagueCode}/players/{UserName}
-    return this.http.get<Player>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/players/" + userName, httpOptions)
+    // /api/{LeagueCode}/players/{UserName}
+    return this.http.get<Player>(environment.pickemRestServerBaseUrl + "/" + leagueCode + "/players/" + userName, httpOptions)
       .pipe(
-        tap(response => this.logger.debug(`read (${userName}) player`)),
+        tap(() => this.logger.debug(`read (${userName}) player`)),
         catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
       );
   }
 
-  public loadPlayers(seasonCode: string, leagueCode: string) : Observable<Player[]>
+  private readLeaguePlayers(leagueCode: string) : Observable<Player[]>
   {
-    // /api/:SeasonCode/:LeagueCode/players
-    return this.http.get<Player[]>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/players", httpOptions)
+    // /api/:LeagueCode/players
+    return this.http.get<Player[]>(environment.pickemRestServerBaseUrl + "/" + leagueCode + "/players", httpOptions)
       .pipe(
-        tap(response => 
-        { 
-          this.players = response;
-          this.logger.debug(`read (${response.length}) players`);
-        }),
+        tap(response => this.logger.debug(`read (${response.length}) players`)),
         catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
       );
   }
 
-  public loadWeeks(seasonCode: string, leagueCode: string) :Observable<LeagueWeeks>
+  private readLeagueWeeks(leagueCode: string) : Observable<LeagueWeeks>
   {
-    // /api/:SeasonCode/:LeagueCode/weeks
-    return this.http.get<LeagueWeeks>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/weeks", httpOptions)
+    // /api/:LeagueCode/weeks
+    return this.http.get<LeagueWeeks>(environment.pickemRestServerBaseUrl + "/" + leagueCode + "/weeks", httpOptions)
       .pipe(
-        tap(response => 
-          {
-            this.weekNumbers = response.weekNumbers;
-            this.logger.debug(`read (${response.weekNumbers.length}) weeks`)
-          }),
+        tap(response => this.logger.debug(`read (${response.weekNumbers.length}) weeks`)),
         catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); } )
       );
   }
 
-  public readWeekScoreboard(seasonCode: string, leagueCode: string, weekNumber: number): Observable<WeekScoreboard>
+  public readWeekScoreboard(leagueCode: string, weekNumber: number): Observable<WeekScoreboard>
   {
-    // /api/{SeasonCode}/{LeagueCode}/{WeekNumber}/scoreboard
-    return this.http.get<WeekScoreboard>(environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/" + weekNumber + "/scoreboard", httpOptions)
+    // /api/{LeagueCode}/{WeekNumber}/scoreboard
+    return this.http.get<WeekScoreboard>(environment.pickemRestServerBaseUrl + "/" + leagueCode + "/" + weekNumber + "/scoreboard", httpOptions)
       .pipe(
         tap(response => 
           {
@@ -138,15 +145,15 @@ export class LeagueService {
       );
   }
 
-  public setPlayerPick(seasonCode: string, leagueCode: string, weekNumber: number, playerTag: string, gameId: number, pick: PickTypes)
+  public setPlayerPick(leagueCode: string, weekNumber: number, playerTag: string, gameId: number, pick: PickTypes)
   {
     var playerPickUpdate = new PlayerPickUpdate();
 
     playerPickUpdate.pick = pick;
 
-    // /api/{SeasonCode}/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard/{GameId}/pick
+    // /api/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard/{GameId}/pick
     return this.http.put<PlayerPick>(
-        environment.pickemRestServerBaseUrl + "/" + seasonCode + "/" + leagueCode + "/" + weekNumber + "/" + playerTag + "/scoreboard/" + gameId + "/pick", 
+        environment.pickemRestServerBaseUrl + "/" + leagueCode + "/" + weekNumber + "/" + playerTag + "/scoreboard/" + gameId + "/pick", 
         playerPickUpdate, 
         httpOptions
       )

@@ -8,7 +8,6 @@ import { ThrowStmt, ERROR_COMPONENT_TYPE } from '@angular/compiler';
 import { LoggerService } from './logger.service';
 import { League } from '../models/api/league';
 import { PickEmStatus } from '../models/api/pickem-status';
-import { SystemSettings } from '../models/api/system-settings';
 
 //"Content-Type", "application/json-patch+json"
 const httpOptions = {
@@ -20,7 +19,6 @@ const httpOptions = {
 })
 export class StatusService {
 
-  public seasonCode: string;
   public leagueCode: string;
   public weekNumberFilter: number;
   public playerTagFilter: string;
@@ -55,21 +53,5 @@ export class StatusService {
           tap(response => this.logger.debug(`read pickem status`)),
           catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); })
         );        
-  }
-
-  loadSystemSettings(): Observable<SystemSettings> {
-    // build get URL
-    let readUrl = environment.pickemRestServerBaseUrl  + "/settings";
-
-    return this.http.get<SystemSettings>(readUrl, httpOptions)
-      .pipe(
-        tap(response => 
-          {
-            this.logger.debug(`read system settings`);
-            this.weekNumberFilter = response.currentWeekRef;
-            this.seasonCode = response.seasonCodeRef;
-          }),
-        catchError(error => { return throwError(this.logger.logAndParseHttpError(error)); })
-      );
   }
 }

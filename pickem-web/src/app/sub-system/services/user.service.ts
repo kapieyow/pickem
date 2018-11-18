@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
-import { of } from 'rxjs/observable/of';
 import { catchError, map, tap } from 'rxjs/operators';
 import { Observable, throwError } from 'rxjs';
 
@@ -42,17 +41,8 @@ export class UserService {
             let token = response.token;
             localStorage.setItem("JWT", token);
             this.statusService.userName = response.userName;
-            
-            if ( response.defaultLeagueCode )
-            {
-              this.statusService.leagueCode = response.defaultLeagueCode;
-              this.statusService.userLeagues = response.leagues;
-            }
-            else
-            {
-              // TODO: unhack this
-              this.statusService.leagueCode = "Default";
-            }
+            this.statusService.leagueCode = response.defaultLeagueCode;
+            this.statusService.userLeagues = response.leagues;
           }),
         catchError(error =>
           {
@@ -66,38 +56,6 @@ export class UserService {
             return throwError(this.logger.logAndParseHttpError(error));
           })
       );
-  }
-
-  setupUser (userName: string) : Observable<any>
-  {
-    return this.leagueService.readPlayer(this.statusService.seasonCode, this.statusService.leagueCode, userName)
-    .pipe(
-      tap(response => 
-        {
-          this.statusService.userPlayerTag = response.playerTag
-          this.statusService.playerTagFilter = response.playerTag;
-        }),
-      catchError(error =>
-        {
-          return throwError(this.logger.logAndParseHttpError(error));
-        })
-    );
-  }
-
-  getUsersPlayerTag(userName: string) : string
-  {
-    var playerTag = "";
-    this.leagueService.readPlayer(this.statusService.seasonCode, this.statusService.leagueCode, userName)
-      .subscribe(
-        response => { 
-          playerTag = response.playerTag;
-        },
-        errors => { 
-          return throwError(this.logger.logAndParseHttpError(errors)); 
-        }
-      );
-
-    return playerTag;
   }
 
   logout ()
