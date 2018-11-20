@@ -194,7 +194,7 @@
           <tr *ngFor="let playerScoreboard of leagueService.leagueScoreboard.playerScoreboards" class="table-default">
             <th scope="row">{{ playerScoreboard.playerTag }}</th>
             <td *ngFor="let weekScore of playerScoreboard.weeklyScores">{{ weekScore.points }}</td>
-            <th scope="row" style="color:#5cb85c;">{{ playerScoreboard.wins }}</th>
+            <th scope="row" style="color:#5cb85c;">{{ playerScoreboard.points }}</th>
           </tr>
         </tbody>
       </table>

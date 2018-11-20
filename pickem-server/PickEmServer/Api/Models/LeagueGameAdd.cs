@@ -8,5 +8,6 @@ namespace PickEmServer.Api.Models
     public class LeagueGameAdd
     {
         public int GameId { get; set; }
+        public int WinPoints { get; set; }
     }
 }

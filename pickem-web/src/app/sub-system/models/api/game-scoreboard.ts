@@ -26,6 +26,7 @@ export class GameScoreboard
     spreadDirection: SpreadDirections;
     leader: GameLeaderTypes;
     leaderAfterSpread: GameLeaderTypes;
+    winPoints: number;
 
     pickScoreboards: PickScoreboard[];
 }

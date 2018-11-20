@@ -31,6 +31,7 @@ namespace PickEmServer.Api.Models
         public SpreadDirections SpreadDirection { get; internal set; }
         public GameLeaderTypes Leader { get; internal set; }
         public GameLeaderTypes LeaderAfterSpread { get; internal set; }
+        public int WinPoints { get; internal set; }
 
         public List<PickScoreboard> PickScoreboards { get; internal set; }
     }

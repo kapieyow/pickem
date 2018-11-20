@@ -11,6 +11,7 @@ FROM
 ORDER BY 
 	logs.mt_last_modified DESC
 
+	
 -- games by week
 SELECT
 	g.data->>'GameId' AS GameId,
@@ -29,7 +30,7 @@ FROM
 WHERE
 	g.data->>'SeasonCodeRef' = '18'
 	AND
-	g.data->>'WeekNumberRef' = '8'
+	g.data->>'WeekNumberRef' = '12'
 ORDER BY 
 	g.data->'HomeTeam'->>'TeamCodeRef'
 	
@@ -66,6 +67,23 @@ ORDER BY
 
 -- league game by week
 SELECT 
+	g.data->>'GameId' AS GameId,
+	weeks->>'WeekNumberRef' AS Week,
+	g.data->>'GameState' AS GameState,
+	g.data->>'GameStart' AS GameStart,
+	g.data->'HomeTeam'->>'TeamCodeRef' AS HomeTeam,
+	g.data->'HomeTeam'->>'Score' AS HomeScore,
+	g.data->'AwayTeam'->>'TeamCodeRef' AS AwayTeam,
+	g.data->'AwayTeam'->>'Score' AS AwayScore,
+	g.data->'Spread'->>'PointSpread' AS Spread,
+	g.data->'Spread'->>'SpreadDirection' AS SpreadDirection,
+	g.data->>'Leader' AS Leader,
+	g.data->>'LeaderAfterSpread' AS LeaderAfterSpread,
+	'{ ''gameId'': '::text || CAST(g.data->>'GameId' AS text) || ' }'::text AS PostPayload,
+	g.*
+FROM 
+	public.mt_doc_leaguedata l,
+	SELECT 
 	g.data->>'GameId' AS GameId,
 	weeks->>'WeekNumberRef' AS Week,
 	g.data->>'GameState' AS GameState,
@@ -265,3 +283,95 @@ SELECT
 	l.data#>>'{Weeks,14}' -- 15th week ordinally
 FROM 
 	public.mt_doc_leaguedata l
+
+
+
+
+
+SELECT
+	_l.id,
+	jsonb_set(_l.data, '{Weeks}', jsonb_agg(jsonb_set(weeks.value, '{Games}', COALESCE(_updatedGamesByWeek.GamesJson, '[]')))) AS LeagueJson
+FROM
+	public.mt_doc_leaguedata _l
+	CROSS JOIN jsonb_array_elements(_l.data->'Weeks') weeks
+	LEFT OUTER JOIN 
+	(
+		SELECT 
+			__l.id,
+			weeks->>'WeekNumberRef' AS WeekNumberRef,
+			jsonb_agg(jsonb_set(gameRefs.value, '{WinPoints}', '1')) AS GamesJson
+		FROM 
+			public.mt_doc_leaguedata __l,
+			jsonb_array_elements(data->'Weeks') weeks,
+			jsonb_array_elements(weeks->'Games') gameRefs
+		GROUP BY
+			__l.id,
+			weeks->>'WeekNumberRef'
+		ORDER BY 
+			__l.id,
+			to_number(weeks->>'WeekNumberRef', '999990')
+	) _updatedGamesByWeek ON 
+		(
+			weeks->>'WeekNumberRef' = _updatedGamesByWeek.WeekNumberRef 
+			AND 
+			_l.id = _updatedGamesByWeek.id
+		)
+GROUP BY
+	_l.id,
+	_l.data
+	
+
+SELECT
+	_l.id,
+	jsonb_set(_l.data, '{Weeks}', jsonb_agg(jsonb_set(weeks.value, '{PlayerWeekScores}', _updatedGamesByWeek.PlayerWeekScoresJson))) AS LeagueJson
+FROM
+	public.mt_doc_leaguedata _l
+	CROSS JOIN jsonb_array_elements(_l.data->'Weeks') weeks
+	INNER JOIN 
+	(
+		SELECT 
+			__l.id,
+			weeks->>'WeekNumberRef' AS WeekNumberRef,
+			jsonb_agg(jsonb_set(playerWeekScores.value, '{GamesWon}', playerWeekScores->'Points')) AS PlayerWeekScoresJson
+		FROM 
+			public.mt_doc_leaguedata __l,
+			jsonb_array_elements(data->'Weeks') weeks,
+			jsonb_array_elements(weeks->'PlayerWeekScores') playerWeekScores
+		GROUP BY
+			__l.id,
+			weeks->>'WeekNumberRef'
+		ORDER BY 
+			__l.id,
+			to_number(weeks->>'WeekNumberRef', '999990')
+	) _updatedGamesByWeek ON 
+		(
+			weeks->>'WeekNumberRef' = _updatedGamesByWeek.WeekNumberRef 
+			AND 
+			_l.id = _updatedGamesByWeek.id
+		)
+GROUP BY
+	_l.id,
+	_l.data
+
+
+
+SELECT 
+	__l.id,
+	weeks->>'WeekNumberRef' AS WeekNumberRef
+	--,
+	--jsonb_agg(jsonb_set(gameRefs.value, '{WinPoints}', '1')) AS GamesJson
+FROM 
+	public.mt_doc_leaguedata __l
+	CROSS JOIN jsonb_array_elements(data->'Weeks') weeks
+	CROSS JOIN jsonb_array_elements(weeks->'Games') gameRefs
+WHERE
+	__l.data->>'LeagueCode' = 'NeOnYa'
+GROUP BY
+	__l.id,
+	weeks->>'WeekNumberRef'
+ORDER BY 
+	__l.id,
+	to_number(weeks->>'WeekNumberRef', '999990')
+	
+
+SELECT data FROM public.mt_doc_leaguedata

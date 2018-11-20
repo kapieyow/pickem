@@ -7,6 +7,7 @@ using PickEmServer.App.Models;
 using PickEmServer.Data.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -144,8 +145,31 @@ namespace PickEmServer.Heart
                     throw new ArgumentException($"Game week must match League week and they do not. League with league code: {exactLeagueCode} has week: {weekNumber}. Game with game id: {newLeagueGame.GameId} has week {game.WeekNumberRef}");
                 }
 
+                // win point handling
+                int winPoints;
+
+                switch ( leagueData.PickemScoringType )
+                {
+                    case PickemScoringTypes.AllWinsOnePoint:
+                        // always 1
+                        winPoints = 1;
+                        break;
+                    case PickemScoringTypes.VariablePoints:
+                        winPoints = newLeagueGame.WinPoints;
+                        break;
+
+                    default:
+                        throw new InvalidEnumArgumentException($"Unhandled PickemScoringTypes ({leagueData.PickemScoringType})");
+                }
+
+
                 // whew we can add this now.
-                leagueWeek.Games.Add(new LeagueGameData { GameIdRef = newLeagueGame.GameId, PlayerPicks = new List<PlayerPickData>() });
+                leagueWeek.Games.Add(new LeagueGameData
+                    {
+                        GameIdRef = newLeagueGame.GameId,
+                        PlayerPicks = new List<PlayerPickData>(),
+                        WinPoints = winPoints
+                    });
 
                 SynchGamesAndPlayers(leagueData);
 
@@ -269,7 +293,7 @@ namespace PickEmServer.Heart
                                             break;
 
                                         default:
-                                            throw new ArgumentException($"Unknown PickTypes: {playerPickData.Pick}");
+                                            throw new InvalidEnumArgumentException($"Unhandled PickTypes: {playerPickData.Pick}");
                                     }
                                 }
                                 else if (updatedGame.AwayTeam.ScoreAfterSpread > updatedGame.HomeTeam.ScoreAfterSpread)
@@ -290,7 +314,7 @@ namespace PickEmServer.Heart
                                             break;
 
                                         default:
-                                            throw new ArgumentException($"Unknown PickTypes: {playerPickData.Pick}");
+                                            throw new InvalidEnumArgumentException($"Unhandled PickTypes: {playerPickData.Pick}");
                                     }
                                 }
                                 else
@@ -326,7 +350,7 @@ namespace PickEmServer.Heart
                                             break;
 
                                         default:
-                                            throw new ArgumentException($"Unknown PickTypes: {playerPickData.Pick}");
+                                            throw new InvalidEnumArgumentException($"Unhandled PickTypes: {playerPickData.Pick}");
                                     }
                                 }
                                 else if (updatedGame.AwayTeam.ScoreAfterSpread > updatedGame.HomeTeam.ScoreAfterSpread)
@@ -347,7 +371,7 @@ namespace PickEmServer.Heart
                                             break;
 
                                         default:
-                                            throw new ArgumentException($"Unknown PickTypes: {playerPickData.Pick}");
+                                            throw new InvalidEnumArgumentException($"Unhandled PickTypes: {playerPickData.Pick}");
                                     }
                                 }
                                 else
@@ -365,7 +389,7 @@ namespace PickEmServer.Heart
                                 break;
 
                             default:
-                                throw new Exception($"Invalid game state to change score {updatedGame.GameState}");
+                                throw new InvalidEnumArgumentException($"Invalid game state to change score {updatedGame.GameState}");
                         }
                     }
                 }
@@ -512,10 +536,12 @@ namespace PickEmServer.Heart
 
             // game counts
             playerScoreboard.Games = playerScoreboard.GamePickScoreboards.Count;
-            playerScoreboard.GamesPicked = weekScoreSubtotals.GamesPicked;
-            playerScoreboard.GamesWon = weekScoreSubtotals.Points;
             playerScoreboard.GamesLost = weekScoreSubtotals.GamesLost;
             playerScoreboard.GamesPending = weekScoreSubtotals.GamesPending;
+            playerScoreboard.GamesPicked = weekScoreSubtotals.GamesPicked;
+            playerScoreboard.GamesWon = weekScoreSubtotals.GamesWon;
+            playerScoreboard.Points = weekScoreSubtotals.Points;
+
 
             return playerScoreboard;
         }
@@ -560,7 +586,7 @@ namespace PickEmServer.Heart
                     var playerSeasonScoreboard = new PlayerSeasonScoreboard();
                     
                     playerSeasonScoreboard.PlayerTag = playerTag;
-                    playerSeasonScoreboard.Wins = leagueData.PlayerSeasonScores.Single(pss => pss.PlayerTagRef == playerTag).Points;
+                    playerSeasonScoreboard.Points = leagueData.PlayerSeasonScores.Single(pss => pss.PlayerTagRef == playerTag).Points;
                     playerSeasonScoreboard.WeeklyScores = new List<WeekScore>();
 
                     foreach ( var week in leagueScoreboard.WeekNumbers )
@@ -684,7 +710,8 @@ namespace PickEmServer.Heart
                     Spread = gameData.Spread.PointSpread,
                     SpreadDirection = gameData.Spread.SpreadDirection,
                     Leader = gameData.Leader,
-                    LeaderAfterSpread = gameData.LeaderAfterSpread
+                    LeaderAfterSpread = gameData.LeaderAfterSpread,
+                    WinPoints = pickemGameData.WinPoints
                 };
 
                 gameScoreboard.PickScoreboards = new List<PickScoreboard>();
@@ -1030,13 +1057,30 @@ namespace PickEmServer.Heart
                 foreach ( var playerTag in playerTags )
                 {
                     var playerWeekScoreData = weekData.PlayerWeekScores.Single(pws => pws.PlayerTagRef == playerTag);
-                    playerWeekScoreData.Points = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStates.Won)).Count();
+                    playerWeekScoreData.GamesWon = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStates.Won)).Count();
 
                     // TODO: this doesn't need to be here if all picks run through SetPlayerPick which should be the case. 
                     // during 1.7.x conversion this was not the case for historical data.
                     playerWeekScoreData.GamesPicked = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.Pick != PickTypes.None)).Count();
                     playerWeekScoreData.GamesLost = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStates.Lost)).Count();
                     playerWeekScoreData.GamesPending = this.CalculateGamesPending(weekData, playerTag);
+
+                    // set points based on scoring type
+                    switch ( leagueData.PickemScoringType )
+                    {
+                        case PickemScoringTypes.AllWinsOnePoint:
+                            playerWeekScoreData.Points = playerWeekScoreData.GamesWon;
+                            break;
+
+                        case PickemScoringTypes.VariablePoints:
+                            playerWeekScoreData.Points = weekData.Games
+                                .Where(g => g.PlayerPicks.Any(pp => pp.PlayerTagRef == playerTag && pp.PickStatus == PickStates.Won))
+                                .Sum(g => g.WinPoints);
+                            break;
+
+                        default:
+                            throw new InvalidEnumArgumentException($"Unhandled PickemScoringType ({leagueData.PickemScoringType})");
+                    }
                 }
             }
 
@@ -1044,10 +1088,15 @@ namespace PickEmServer.Heart
             foreach (var playerTag in playerTags)
             {
                 var playerSeasonScoreData = leagueData.PlayerSeasonScores.Single(pss => pss.PlayerTagRef == playerTag);
-                playerSeasonScoreData.Points = leagueData.Weeks.SelectMany(w => w.Games.SelectMany(g => g.PlayerPicks.Where(
-                    pp => pp.PlayerTagRef == playerTag 
-                    && pp.PickStatus == PickStates.Won)
-                    )).Count();
+
+                var allWeekScoresForPlayer = leagueData.Weeks
+                    .SelectMany(w => w.PlayerWeekScores.Where(pws => pws.PlayerTagRef == playerTag));
+
+                playerSeasonScoreData.GamesLost = allWeekScoresForPlayer.Sum(pws => pws.GamesWon);
+                playerSeasonScoreData.GamesPending = allWeekScoresForPlayer.Sum(pws => pws.GamesPending);
+                playerSeasonScoreData.GamesPicked = allWeekScoresForPlayer.Sum(pws => pws.GamesPicked);
+                playerSeasonScoreData.GamesWon = allWeekScoresForPlayer.Sum(pws => pws.GamesWon);
+                playerSeasonScoreData.Points = allWeekScoresForPlayer.Sum(pws => pws.Points);
             }
         }
     }

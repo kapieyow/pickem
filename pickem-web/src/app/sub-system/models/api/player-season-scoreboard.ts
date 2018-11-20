@@ -3,6 +3,6 @@ import { WeekScore } from './week-score'
 export class PlayerSeasonScoreboard
 {
     playerTag: string;
-    wins: number;
+    points: number;
     weeklyScores: WeekScore[];
 }
