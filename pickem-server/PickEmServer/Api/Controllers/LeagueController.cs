@@ -123,7 +123,7 @@ namespace PickEmServer.Api.Controllers
 
         [Authorize(Policy = "IsAGod")]
         [HttpPost]
-        [Route("api/{LeagueCode}/{weekNumber}/games")]
+        [Route("api/{LeagueCode}/{weekNumber}/pickemgames")]
         public async Task<League> AddLeagueGame(string LeagueCode, int weekNumber, [FromBody] LeagueGameAdd newLeagueGame)
         {
             return await _leagueService.AddLeagueGame(LeagueCode, weekNumber, newLeagueGame);

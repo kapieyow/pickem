@@ -55,7 +55,7 @@ class PickemApiClient:
         return self.getApi(self.pickemServerBaseUrl + "/teams", self.jwt)
         
     def setLeagueGame(self, leagueCode, weekNumber, gameId):
-        leagueGameUrl = self.pickemServerBaseUrl + "/" + leagueCode + "/" + str(weekNumber) + "/games"
+        leagueGameUrl = self.pickemServerBaseUrl + "/" + leagueCode + "/" + str(weekNumber) + "/pickemgames"
         self.postToApi(leagueGameUrl, "{ 'gameId': " + str(gameId) + " }", self.jwt)
         
     def updateGame(
