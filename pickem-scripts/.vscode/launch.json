@@ -14,6 +14,17 @@
             ]
         },
         {
+            "name": "new synch_games IN",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem.py",
+            "args": [
+                "synch_games",
+                "-a",
+                "insert"
+            ]
+        },
+        {
             "name": "new set_league_games",
             "type": "python",
             "request": "launch",
