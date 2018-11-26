@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
- 
 import pickemLogger
 import pickemApiClient
 import requests
