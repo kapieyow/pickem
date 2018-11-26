@@ -3,6 +3,18 @@
     "configurations": [
 
         {
+            "name": "update specific game",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem.py",
+            "args": [
+                "update_game",
+                "-gid",
+                "3251144",
+                "-gt",
+                "TEST_TITLE"
+            ]
+        },{
             "name": "new synch_games",
             "type": "python",
             "request": "launch",

@@ -9633,6 +9633,16 @@
     color: #fff;
     background-color: #4E5D6C;
   }
+  .pickem-badge-win-points-none
+  {
+    background-color: #343a40;
+    border-width: 1px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #fff !important; 
+    border-style: solid; 
+    color: #fff;
+    font-size: 1rem;
+  }
 
   .pickem-card-none
   {

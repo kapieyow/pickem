@@ -21,8 +21,8 @@ class PickemApiClient:
 
         self.jwt = responseJson['token']
 
-    def lockSpread(self, pickemSeasonCode, weekNumber, gameId):
-        spreadLockPutUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games/" + str(gameId) + "/spread/lock"
+    def lockSpread(self, gameId):
+        spreadLockPutUrl = self.pickemServerBaseUrl + "/games/" + str(gameId) + "/spread/lock"
         self.putToApi(spreadLockPutUrl, "", self.jwt)
 
     def insertGame(
@@ -36,7 +36,7 @@ class PickemApiClient:
         homeTeamCode
         ):
 
-        pickemGamePostUrl = self.pickemServerBaseUrl + "/" + pickemSeasonCode + "/" + str(weekNumber) + "/games"
+        pickemGamePostUrl = self.pickemServerBaseUrl + "/games/" + pickemSeasonCode + "/" + str(weekNumber) 
         #        {
         #            "gameId": 0, 
         #            "gameStart": "2018-08-03T19:18:08.826Z", responseJson['startDate']  2017-11-18, "startTime": "10:15 PM ET",
@@ -47,6 +47,9 @@ class PickemApiClient:
         gameData = '{"gameId": "' + gameId + '","gameStart": "' + gameStart + '", "neutralField": "' + neutralField + '", "awayTeamCode": "' + awayTeamCode + '", "homeTeamCode": "' + homeTeamCode + '"}'
         self.postToApi(pickemGamePostUrl, gameData, self.jwt)
 
+    def readGame(self, gameId):
+        return self.getApi(self.pickemServerBaseUrl + "/games/" + str(gameId), self.jwt)
+        
     def readPickemGamesAnyLeague(self, pickemSeasonCode, weekNumber):
         pickemAllGamesUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games_in_any_league"
         return self.getApi(pickemAllGamesUrl, self.jwt)
@@ -54,14 +57,12 @@ class PickemApiClient:
     def readPickemTeams(self):
         return self.getApi(self.pickemServerBaseUrl + "/teams", self.jwt)
         
-    def setLeagueGame(self, leagueCode, weekNumber, gameId):
+    def setLeagueGame(self, leagueCode, weekNumber, gameId, winPoints):
         leagueGameUrl = self.pickemServerBaseUrl + "/" + leagueCode + "/" + str(weekNumber) + "/pickemgames"
-        self.postToApi(leagueGameUrl, "{ 'gameId': " + str(gameId) + " }", self.jwt)
+        self.postToApi(leagueGameUrl, "{ 'gameId': " + str(gameId) + ", 'winPoints': " + str(winPoints) + " }", self.jwt)
         
     def updateGame(
         self, 
-        pickemSeasonCode, 
-        weekNumber,
         gameId,
         gameStart,
         lastUpdated,
@@ -69,10 +70,11 @@ class PickemApiClient:
         currentPeriod,
         timeClock,
         awayTeamScore,
-        homeTeamScore
+        homeTeamScore,
+        gameTitle
         ):
 
-        pickemGamePutUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games/" + str(gameId)
+        pickemGamePutUrl = self.pickemServerBaseUrl + "/games/" + str(gameId)
         #    {
         #        "lastUpdated": "2018-08-21T23:10:04.783Z",
         #        "gameState": "SpreadNotSet",
@@ -80,9 +82,21 @@ class PickemApiClient:
         #        "currentPeriod": "string",
         #        "timeClock": "string",
         #        "awayTeamScore": 0,
-        #        "homeTeamScore": 0
+        #        "homeTeamScore": 0,
+        #        "gameTitle" : "Test Bowl"
         #    }
-        gameData = '{"lastUpdated": "' + lastUpdated + '","gameState": "' + gameState + '", "gameStart": "' + gameStart + '", "currentPeriod": "' + currentPeriod + '", "timeClock": "' + timeClock + '", "awayTeamScore": "' + str(awayTeamScore) + '", "homeTeamScore": "' + str(homeTeamScore) + '"}'
+
+        gameData = '''
+            { 
+                "lastUpdated": "''' + lastUpdated + '''",
+                "gameState": "''' + gameState + '''", 
+                "gameStart": "''' + gameStart + '''", 
+                "currentPeriod": ''' + self.__handleNoneStr(currentPeriod) + ''', 
+                "timeClock": "''' + timeClock + '''", 
+                "awayTeamScore": "''' + str(awayTeamScore) + '''", 
+                "homeTeamScore": "''' + str(homeTeamScore) + '''",
+                "gameTitle" : ''' + self.__handleNoneStr(gameTitle) + '''
+            }'''
         self.putToApi(pickemGamePutUrl, gameData, self.jwt)
 
     def updateLeague(self, leagueCode, currentWeekNumber):
@@ -94,8 +108,8 @@ class PickemApiClient:
         '''
         self.putToApi(spreadPutUrl, putData, self.jwt)
 
-    def updateSpread(self, pickemSeasonCode, weekNumber, gameId, spreadDirection, absSpread):
-        spreadPutUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games/" + str(gameId) + "/spread"
+    def updateSpread(self, gameId, spreadDirection, absSpread):
+        spreadPutUrl = self.pickemServerBaseUrl + "/games/" + str(gameId) + "/spread"
         putData = '''
         {
             "spreadDirection": "''' + spreadDirection + '''",
@@ -115,6 +129,11 @@ class PickemApiClient:
         '''
         self.putToApi(apiUrl, putData, self.jwt)
 
+    def __handleNoneStr(self, strValue):
+        returnString = "null"
+        if strValue is not None:
+            returnString = "\"" + strValue + "\""
+        return returnString
 
     #============================================
     #  generic HTTP methods

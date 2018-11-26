@@ -13,7 +13,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "2.0.24"
+VERSION = "2.0.25"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals
@@ -31,12 +31,22 @@ apiClient = None
 #=====================================
 # sub command methods
 #=====================================
+def setLeagueGame(args):
+    gamesSet = 0
+
+    for leagueCode in args.league_codes:
+        apiClient.setLeagueGame(leagueCode, args.week, args.game_id, args.game_win_points)
+        gamesSet = gamesSet + 1
+
+        logger.info("Set (" + str(gamesSet) + ") games for league (" + leagueCode + ") in week (" + str(args.week) + ")")
+
 def setLeagueGames(args):
     gamesSet = 0
 
     for leagueCode in args.league_codes:
-        for gameId in args.gameids:
-            apiClient.setLeagueGame(leagueCode, args.week, gameId)
+        for gameId in args.game_ids:
+            # no win points can be sent in, when setting multiple games at a time, so default to "1"
+            apiClient.setLeagueGame(leagueCode, args.week, gameId, 1)
             gamesSet = gamesSet + 1
 
         logger.info("Set (" + str(gamesSet) + ") games for league (" + leagueCode + ") in week (" + str(args.week) + ")")
@@ -65,6 +75,12 @@ def synchGames(args):
             logger.debug("-- Run #" + str(runCount) + " complete. Fail count - " + str(failCount) + ". Snoozing " + str(args.loop_every_sec) + " seconds")
             time.sleep(args.loop_every_sec)
 
+def updateGame(args):
+    # read current data. Then update ONLY the title and re-send the rest of the current state
+    # TODO: better way to do this?
+    gameData = apiClient.readGame(args.game_id)
+    apiClient.updateGame(args.game_id, gameData['gameStart'], gameData['lastUpdated'], gameData['gameState'], gameData['currentPeriod'], gameData['timeClock'], gameData['awayTeam']['score'], gameData['homeTeam']['score'], args.game_title)
+
 def updateSpreads(args):
     synchGamesHandler = pickemUpdateSpreads.PickemUpdateSpreadsHandler(apiClient, logger)
     synchGamesHandler.Run(args.action, args.pickem_season_code, args.week)
@@ -90,11 +106,19 @@ def setupArgumentParsers():
     argParser = argparse.ArgumentParser()
     subArgParsers = argParser.add_subparsers()
 
-    # -- set_league_games sub-command
+    # -- set_league_game sub-command (SINGLE Game)
+    subParser = subArgParsers.add_parser('set_league_game')
+    subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
+    subParser.add_argument('-lcs', '--league_codes', required=True, nargs='+', type=str, help='League codes')
+    subParser.add_argument('-gid', '--game_id', required=True, type=int, help='Game Id')
+    subParser.add_argument('-gwp', '--game_win_points', required=True, type=int, help='Game Win Points')
+    subParser.set_defaults(func=setLeagueGame)
+
+    # -- set_league_games sub-command (MULTIPLE games)
     subParser = subArgParsers.add_parser('set_league_games')
     subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.add_argument('-lcs', '--league_codes', required=True, nargs='+', type=str, help='League codes')
-    subParser.add_argument('-gids', '--gameids', required=True, nargs='+', type=int, help='Game Ids')
+    subParser.add_argument('-gids', '--game_ids', required=True, nargs='+', type=int, help='Game Ids')
     subParser.set_defaults(func=setLeagueGames)
 
     # -- setup_week sub-command
@@ -111,6 +135,12 @@ def setupArgumentParsers():
     subParser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
     subParser.add_argument('-les', '--loop_every_sec', type=int, required=False, help='Seconds to pause between loops')
     subParser.set_defaults(func=synchGames)
+
+    # -- update_game sub-command
+    subParser = subArgParsers.add_parser('update_game')
+    subParser.add_argument('-gid', '--game_id', required=True, type=int, help='Game Id')
+    subParser.add_argument('-gt', '--game_title', required=True, type=str, help='Game Title')
+    subParser.set_defaults(func=updateGame)
 
     # -- update_spreads sub-command
     subParser = subArgParsers.add_parser('update_spreads')

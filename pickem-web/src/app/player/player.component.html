@@ -50,7 +50,10 @@
         </div>
         <div *ngFor="let gameScoreboard of leagueService.playerScoreboard.gamePickScoreboards" class="my-2 container border border-secondary rounded">
           <div class="row">
-            <div class="col-6 small text-white py-1 border-bottom border-secondary bg-secondary">{{ gameScoreboard.gameStatusDescription }}</div>
+            <div class="col-6 small text-white py-1 border-bottom border-secondary bg-secondary">
+              <span class="badge pickem-badge-win-points-none" tooltip="Points for correct pick">{{ gameScoreboard.winPoints }}</span>
+              &nbsp;&nbsp;{{ gameScoreboard.gameStatusDescription }}
+            </div>
             <div class="col-6 small text-white py-1 border-bottom border-secondary bg-secondary text-right">{{ gameScoreboard.gameTitle }}</div>
           </div>
           <div class="row p-1">

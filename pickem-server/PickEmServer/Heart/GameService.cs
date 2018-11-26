@@ -129,19 +129,19 @@ namespace PickEmServer.Heart
         }
 
 
-        internal async Task<Game> LockSpread(string seasonCode, int weekNumber, int gameId)
+        internal async Task<Game> LockSpread(int gameId)
         {
             using (var dbSession = _documentStore.LightweightSession())
             {
                 var game = await dbSession
                    .Query<GameData>()
-                   .Where(g => g.GameId == gameId && g.SeasonCodeRef == seasonCode && g.WeekNumberRef == weekNumber)
+                   .Where(g => g.GameId == gameId)
                    .SingleOrDefaultAsync()
                    .ConfigureAwait(false);
 
                 if (game == null)
                 {
-                    throw new ArgumentException($"No matching game found to update. Criteria Id: {gameId} or Season: {seasonCode}, Week: {weekNumber}");
+                    throw new ArgumentException($"No matching game found to update for Game Id: {gameId}");
                 }
 
                 GameChanger gameChanger = new GameChanger(game, dbSession);
@@ -149,7 +149,7 @@ namespace PickEmServer.Heart
                 dbSession.Store(game);
                 dbSession.SaveChanges();
 
-                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.SpreadLocked, seasonCode, weekNumber, gameId);
+                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.SpreadLocked, gameId);
                 _pickemEventer.Emit(pickemEvent);
             }
 
@@ -182,7 +182,7 @@ namespace PickEmServer.Heart
             }
         }
 
-        public async Task<Game> UpdateGame(string SeasonCode, int WeekNumber, int GameId, GameUpdate gameUpdates)
+        public async Task<Game> UpdateGame(int GameId, GameUpdate gameUpdates)
         {
             if (gameUpdates == null)
             {
@@ -193,13 +193,13 @@ namespace PickEmServer.Heart
             {
                 var game = await dbSession
                    .Query<GameData>()
-                   .Where(g => g.GameId == GameId && g.SeasonCodeRef == SeasonCode && g.WeekNumberRef == WeekNumber)
+                   .Where(g => g.GameId == GameId)
                    .SingleOrDefaultAsync()
                    .ConfigureAwait(false);
 
                 if (game == null)
                 {
-                    throw new ArgumentException($"No matching game found to update. Criteria Id: {GameId} or Season: {SeasonCode}, Week: {WeekNumber}");
+                    throw new ArgumentException($"No matching game found for Game Id: {GameId}");
                 }
 
                 GameChanger gameChanger = new GameChanger(game, dbSession);
@@ -227,7 +227,7 @@ namespace PickEmServer.Heart
 
                 if ( gameChanges.GameChanged )
                 {
-                    var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.GameChanged, SeasonCode, WeekNumber, GameId);
+                    var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.GameChanged, GameId);
                     pickemEvent.DynamicInformation.ancillaryMetaDataChanged = gameChanges.AncillaryMetaDataChanged;
                     pickemEvent.DynamicInformation.gameStateChanged = gameChanges.GameStateChanged;
                     pickemEvent.DynamicInformation.scoreChanged = gameChanges.ScoreChanged;
@@ -245,7 +245,7 @@ namespace PickEmServer.Heart
             return await this.ReadGame(GameId);
         }
 
-        public async Task<Game> UpdateSpread(string SeasonCode, int WeekNumber, int GameId, SpreadUpdate spreadUpdates)
+        public async Task<Game> UpdateSpread(int GameId, SpreadUpdate spreadUpdates)
         {
             if (spreadUpdates == null)
             {
@@ -256,13 +256,13 @@ namespace PickEmServer.Heart
             {
                 var game = await dbSession
                    .Query<GameData>()
-                   .Where(g => g.GameId == GameId && g.SeasonCodeRef == SeasonCode && g.WeekNumberRef == WeekNumber)
+                   .Where(g => g.GameId == GameId)
                    .SingleOrDefaultAsync()
                    .ConfigureAwait(false);
 
                 if (game == null)
                 {
-                    throw new ArgumentException($"No matching game found to update. Criteria Id: {GameId} or Season: {SeasonCode}, Week: {WeekNumber}");
+                    throw new ArgumentException($"No matching game found to update for Game Id: {GameId}");
                 }
 
                 GameChanger gameChanger = new GameChanger(game, dbSession);
@@ -270,7 +270,7 @@ namespace PickEmServer.Heart
                 dbSession.Store(game);
                 dbSession.SaveChanges();
 
-                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.SpreadUpdated, SeasonCode, WeekNumber, GameId);
+                var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.SpreadUpdated, GameId);
                 _pickemEventer.Emit(pickemEvent);
             }
 
