@@ -8,7 +8,7 @@ import time
 URL_SEASON_TOKEN = "{SeasonCode}"
 URL_WEEK_TOKEN = "{WeekNumber}"
 NCAA_DOMAIN_URL = "http://data.ncaa.com"
-NCAA_BASE_DATA_URL = "http://data.ncaa.com/sites/default/files/data/scoreboard/football/fbs/" + URL_SEASON_TOKEN + "/" + URL_WEEK_TOKEN + "/scoreboard.json"
+NCAA_BASE_DATA_URL = "https://data.ncaa.com/casablanca/scoreboard/football/fbs/" + URL_SEASON_TOKEN + "/" + URL_WEEK_TOKEN + "/scoreboard.json"
 
 
 class PickemSynchGamesHandler:
@@ -43,25 +43,15 @@ class PickemSynchGamesHandler:
             self.logger.wtf("Unhandled action (a) parameter (" + actionCode + ") why didn't the argparser catch it?")
 
     def __insertNcaaGame(self, gameUrlPath, pickemSeasonCode, weekNumber):
-        url = NCAA_DOMAIN_URL + gameUrlPath
+        url = NCAA_DOMAIN_URL + "/casablanca" + gameUrlPath + "/gameInfo.json"
 
         responseJson = self.apiClient.getApi(url, "")
 
         gameId = responseJson['id']
         neutralField = "false"
-        awayTeamCode = responseJson['away']['nameSeo']
-        homeTeamCode = responseJson['home']['nameSeo']
-        gameStart = responseJson['startDate'] + "T" 
-        startTime = responseJson['startTime']
-
-        if ( startTime == "Cancelled" ):
-            self.logger.warn("Game Cancelled: " + url)
-            return False
-        elif ( startTime == "Postponed" ):
-            self.logger.warn("Game Postponed: " + url)
-            return False
-
-        gameStart = self.__extractGameStart(responseJson['startTimeEpoch'])
+        awayTeamCode = responseJson['away']['names']['seo']
+        homeTeamCode = responseJson['home']['names']['seo']
+        gameStart = self.__extractGameStart(responseJson['status']['startTimeEpoch'])
 
         try:
             self.apiClient.insertGame(pickemSeasonCode, weekNumber, gameId, gameStart, neutralField, awayTeamCode, homeTeamCode)
@@ -83,9 +73,8 @@ class PickemSynchGamesHandler:
 
         games = list()
 
-        for day in responseJson['scoreboard']:
-            for game in day['games']:
-                games.append(game)
+        for game in responseJson['games']:
+            games.append(game['game']['url'])
 
         self.logger.info("Read " + str(len(games)) + " games")
 
