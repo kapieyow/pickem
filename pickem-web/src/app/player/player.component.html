@@ -45,16 +45,28 @@
             </span>
             <span *ngIf="leagueService.playerScoreboard.gamesWon + leagueService.playerScoreboard.gamesLost > 0 && leagueService.playerScoreboard.gamesPending > 0">
               &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Pending&nbsp;&nbsp;</span><span class="badge pickem-badge-pending">{{ leagueService.playerScoreboard.gamesPending }}</span>
+            </span>
+            <span *ngIf="leagueService.playerScoreboard.gamesWon + leagueService.playerScoreboard.gamesLost > 0">
+                &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Points&nbsp;&nbsp;</span><span class="badge pickem-badge-won">{{ leagueService.playerScoreboard.points }}</span>
             </span> 
           </div>
         </div>
         <div *ngFor="let gameScoreboard of leagueService.playerScoreboard.gamePickScoreboards" class="my-2 container border border-secondary rounded">
           <div class="row">
-            <div class="col-6 small text-white py-1 border-bottom border-secondary bg-secondary">
-              <span class="badge pickem-badge-win-points-none" tooltip="Points for correct pick">{{ gameScoreboard.winPoints }}</span>
-              &nbsp;&nbsp;{{ gameScoreboard.gameStatusDescription }}
+            <div class="col-6 small text-white py-1 border-bottom border-secondary bg-secondary">{{ gameScoreboard.gameStatusDescription }}</div>
+            <div class="col-6 small text-white py-1 pr-1 border-bottom border-secondary bg-secondary text-right">
+                {{ gameScoreboard.gameTitle }}
+                &nbsp;&nbsp;
+                <span class="badge pickem-badge-win-points-none" 
+                  [ngClass]="
+                  {
+                    'pickem-badge-win-points-none': gameScoreboard.gameState != 'Final',
+                    'pickem-badge-win-points-lost': gameScoreboard.pickScoreboards[0].pickState == 'Lost', 
+                    'pickem-badge-win-points-pushed': gameScoreboard.pickScoreboards[0].pickState == 'Pushed', 
+                    'pickem-badge-win-points-won': gameScoreboard.pickScoreboards[0].pickState == 'Won'
+                  }"
+                tooltip="Points for correct pick">{{ gameScoreboard.winPoints }}</span>
             </div>
-            <div class="col-6 small text-white py-1 border-bottom border-secondary bg-secondary text-right">{{ gameScoreboard.gameTitle }}</div>
           </div>
           <div class="row p-1">
             <div class="col-md-6 px-2 py-1" [ngClass]="
