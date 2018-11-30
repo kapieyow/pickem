@@ -8,6 +8,8 @@ using PickEmServer.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -874,7 +876,11 @@ namespace PickEmServer.Heart
                 throw new ArgumentException("No newPlayerPick parameter input for SetPlayerPick (is null)");
             }
 
-            using (var dbSession = _documentStore.LightweightSession())
+            // TODO: Remove timing code after some test deployment runs
+            var timer = new Stopwatch();
+            timer.Start();
+
+            using (var dbSession = _documentStore.LightweightSession(IsolationLevel.Serializable))
             {
                 var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
                 var exactLeagueCode = leagueData.LeagueCode;
@@ -900,7 +906,7 @@ namespace PickEmServer.Heart
                 // get associated game to make sure the player can update the pick
                 var gameData = await _gameSevice.ReadGame(gameId);
 
-                switch ( gameData.GameState )
+                switch (gameData.GameState)
                 {
                     case GameStates.Cancelled:
                     case GameStates.Final:
@@ -925,6 +931,9 @@ namespace PickEmServer.Heart
 
                     dbSession.Store(leagueData);
                     dbSession.SaveChanges();
+                    timer.Stop();
+
+                    _logger.LogDebug($"SetPlayerPick took {timer.ElapsedMilliseconds} ms");
 
                     var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerPickChanged, null, exactLeagueCode, weekNumber, gameId);
                     pickemEvent.DynamicKeys.playerTag = playerPickData.PlayerTagRef;
@@ -937,7 +946,8 @@ namespace PickEmServer.Heart
                     gamesPending = this.CalculateGamesPending(weekData, playerPickData.PlayerTagRef);
                 }
 
-                return new PlayerPick {
+                return new PlayerPick
+                {
                     GamesPending = gamesPending,
                     GamesPicked = gamesPicked,
                     Pick = playerPickData.Pick
