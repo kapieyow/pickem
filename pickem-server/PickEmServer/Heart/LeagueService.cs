@@ -876,10 +876,6 @@ namespace PickEmServer.Heart
                 throw new ArgumentException("No newPlayerPick parameter input for SetPlayerPick (is null)");
             }
 
-            // TODO: Remove timing code after some test deployment runs
-            var timer = new Stopwatch();
-            timer.Start();
-
             using (var dbSession = _documentStore.LightweightSession(IsolationLevel.Serializable))
             {
                 var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
@@ -931,9 +927,6 @@ namespace PickEmServer.Heart
 
                     dbSession.Store(leagueData);
                     dbSession.SaveChanges();
-                    timer.Stop();
-
-                    _logger.LogDebug($"SetPlayerPick took {timer.ElapsedMilliseconds} ms");
 
                     var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerPickChanged, null, exactLeagueCode, weekNumber, gameId);
                     pickemEvent.DynamicKeys.playerTag = playerPickData.PlayerTagRef;
