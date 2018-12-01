@@ -9633,6 +9633,36 @@
     color: #fff;
     background-color: #4E5D6C;
   }
+  .pickem-badge-win-points-none
+  {
+    background-color: #343a40;
+    border-width: 0px !important; 
+    border-radius: 0.25rem !important; 
+    border-color: #fff !important; 
+    border-style: solid; 
+    color: #fff;
+    font-size: .75rem;
+  }
+  .pickem-badge-win-points-lost
+  {
+    background-color: #343a40;
+    color: #fff;
+    font-size: .75rem;
+    text-decoration: line-through;
+  }
+  .pickem-badge-win-points-pushed
+  {
+    background-color: #343a40;
+    color: #fff;
+    font-size: .75rem;
+    text-decoration: line-through;
+  }
+  .pickem-badge-win-points-won
+  {
+    background-color: #343a40;
+    color: #fff;
+    font-size: .75rem;
+  }
 
   .pickem-card-none
   {

@@ -7,6 +7,7 @@ export class PlayerScoreboard
     gamesWon: number;
     gamesLost: number;
     gamesPending: number;
+    points: number;
 
     gamePickScoreboards: GameScoreboard[];
 

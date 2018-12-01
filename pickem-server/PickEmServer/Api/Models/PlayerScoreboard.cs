@@ -12,6 +12,7 @@ namespace PickEmServer.Api.Models
         public int GamesWon { get; internal set; }
         public int GamesLost { get; internal set; }
         public int GamesPending { get; internal set; }
+        public int Points { get; internal set; }
 
         public List<GameScoreboard> GamePickScoreboards { get; internal set; }
     }

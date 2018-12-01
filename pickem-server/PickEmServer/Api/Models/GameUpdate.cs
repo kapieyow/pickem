@@ -11,6 +11,7 @@ namespace PickEmServer.Api.Models
         public DateTime LastUpdated { get; set; }
         public GameStates GameState { get; set; }
         public DateTime GameStart { get; set; }
+        public string GameTitle { get; set; }
         public string CurrentPeriod { get; set; }
         public TimeSpan TimeClock { get; set; }
         public int AwayTeamScore { get; set; }

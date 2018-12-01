@@ -12,6 +12,12 @@ export enum GameLeaderTypes {
     None = "None"
 }
   
+export enum PickemScoringTypes
+{
+    AllWinsOnePoint = "AllWinsOnePoint",
+    VariablePoints = "VariablePoints"
+}
+
 export enum PickTypes {
     Away = "Away",
     Home = "Home",

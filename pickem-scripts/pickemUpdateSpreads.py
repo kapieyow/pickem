@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+ 
 import datetime
 import json
 import pickemLogger
@@ -23,22 +24,22 @@ class PickemUpdateSpreadsHandler:
         pickemGamesForWeek = self.apiClient.readPickemGamesAnyLeague(pickemSeason, weekNumber)
 
         if ( actionCode == "update" or actionCode == "u" ):
-            self.__updateSpreads(pickemGamesForWeek, pickemSeason, weekNumber)
+            self.__updateSpreads(pickemGamesForWeek)
 
         elif ( actionCode == "lock" or actionCode == "l" ):
-            self.__lockSpreads(pickemGamesForWeek, pickemSeason, weekNumber)
+            self.__lockSpreads(pickemGamesForWeek)
 
         else:
             self.logger.wtf("Unhandled input why didn't argparser catch it? --action " + actionCode)
 
-    def __lockSpreads(self, pickemGamesForWeek, pickemSeason, weekNumber):
+    def __lockSpreads(self, pickemGamesForWeek):
         for pickemGame in pickemGamesForWeek:
             gameId = pickemGame['gameId']
-            self.apiClient.lockSpread(pickemSeason, weekNumber, gameId)
+            self.apiClient.lockSpread(gameId)
 
-        self.logger.debug("Locked {0} game spreads.".format(len(pickemGamesForWeek)))	
+        self.logger.info("Locked {0} game spreads.".format(len(pickemGamesForWeek)))	
 
-    def __updateSpreads(self, pickemGamesForWeek, pickemSeason, weekNumber):
+    def __updateSpreads(self, pickemGamesForWeek):
 
         webHtml = self.apiClient.getHtml(SPREAD_SITE_URL)
 
@@ -136,7 +137,7 @@ class PickemUpdateSpreadsHandler:
                             spreadDirection = "ToAway"
                         absSpread = nextGameSpread.SpreadToVisitor[1:]
 
-                    self.apiClient.updateSpread(pickemSeason, weekNumber, gameId, spreadDirection, absSpread)
+                    self.apiClient.updateSpread(gameId, spreadDirection, absSpread)
                     
                     updatedPickemGameCount = updatedPickemGameCount + 1
                     break
@@ -144,4 +145,4 @@ class PickemUpdateSpreadsHandler:
             spreadsGameCount = spreadsGameCount + 1
 
 
-        self.logger.debug("Read {0} game spreads. Matched {1} games and updated.".format(spreadsGameCount, updatedPickemGameCount))	
+        self.logger.info("Read {0} game spreads. Matched {1} games and updated.".format(spreadsGameCount, updatedPickemGameCount))	

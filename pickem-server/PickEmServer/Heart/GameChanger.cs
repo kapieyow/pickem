@@ -22,6 +22,12 @@ namespace PickEmServer.Heart
         {
             GameChanges gameChanges = new GameChanges();
 
+            
+            // TODO: for GameTitle the null case is treated as NO CHANGE and will leave the game alone on that field
+            //  sending empty string WILL update it to "". Determine if this is a pattern that should be more wide spread and 
+            //  if so put some support in for it that is more useful/readable
+            var targetGameTitle = gameUpdates.GameTitle ?? _game.GameTitle;
+
             // goofy way to check if anything changed.
             if (
                 _game.LastUpdated != gameUpdates.LastUpdated
@@ -31,12 +37,15 @@ namespace PickEmServer.Heart
                 _game.TimeClock != gameUpdates.TimeClock
                 ||
                 _game.GameStart != gameUpdates.GameStart
+                ||
+                _game.GameTitle != targetGameTitle
                 )
             {
                 _game.LastUpdated = gameUpdates.LastUpdated;
                 _game.CurrentPeriod = gameUpdates.CurrentPeriod;
                 _game.TimeClock = gameUpdates.TimeClock;
                 _game.GameStart = gameUpdates.GameStart;
+                _game.GameTitle = targetGameTitle;
 
                 gameChanges.AncillaryMetaDataChanged = true;
             }

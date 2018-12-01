@@ -25,62 +25,70 @@ namespace PickEmServer.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        [Route("api/{SeasonCode}/{LeagueCode}/scoreboard")]
-        public async Task<LeagueScoreboard> GetLeagueScoreboard(string SeasonCode, string LeagueCode)
+        [Route("api/{LeagueCode}")]
+        public async Task<League> GetLeague(string LeagueCode)
         {
-            return await _leagueService.ReadLeagueScoreboard(SeasonCode, LeagueCode);
+            return await _leagueService.ReadLeague(LeagueCode);
         }
 
         [Authorize]
         [HttpGet]
-        [Route("api/{SeasonCode}/{LeagueCode}/players")]
-        public async Task<List<Player>> GetPlayers(string SeasonCode, string LeagueCode)
+        [Route("api/{LeagueCode}/scoreboard")]
+        public async Task<LeagueScoreboard> GetLeagueScoreboard(string LeagueCode)
         {
-            return await _leagueService.ReadLeaguePlayers(SeasonCode, LeagueCode);
+            return await _leagueService.ReadLeagueScoreboard(LeagueCode);
         }
 
         [Authorize]
         [HttpGet]
-        [Route("api/{SeasonCode}/{LeagueCode}/players/{UserName}")]
-        public async Task<Player> GetPlayer(string SeasonCode, string LeagueCode, string UserName)
+        [Route("api/{LeagueCode}/players")]
+        public async Task<List<Player>> GetPlayers(string LeagueCode)
         {
-            return await _leagueService.ReadLeaguePlayer(SeasonCode, LeagueCode, UserName);
+            return await _leagueService.ReadLeaguePlayers(LeagueCode);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("api/{LeagueCode}/players/{UserName}")]
+        public async Task<Player> GetPlayer(string LeagueCode, string UserName)
+        {
+            return await _leagueService.ReadLeaguePlayer(LeagueCode, UserName);
         }
 
         [Authorize(Policy = "IsAGod")]
         [HttpPut]
-        [Route("api/{SeasonCode}/{LeagueCode}/players/{UserName}")]
-        public async Task<Player> PutPlayer(string SeasonCode, string LeagueCode, string UserName, [FromBody] PlayerUpdate playerUpdate)
+        [Route("api/{LeagueCode}/players/{UserName}")]
+        public async Task<Player> PutPlayer(string LeagueCode, string UserName, [FromBody] PlayerUpdate playerUpdate)
         {
-            return await _leagueService.SetPlayer(SeasonCode, LeagueCode, UserName, playerUpdate);
+            return await _leagueService.SetPlayer(LeagueCode, UserName, playerUpdate);
         }
 
         [Authorize]
         [HttpGet]
-        [Route("api/{SeasonCode}/{LeagueCode}/{WeekNumber}/scoreboard")]
-        public async Task<WeekScoreboard> GetWeekScoreboard(string SeasonCode, string LeagueCode, int WeekNumber)
+        [Route("api/{LeagueCode}/{WeekNumber}/scoreboard")]
+        public async Task<WeekScoreboard> GetWeekScoreboard(string LeagueCode, int WeekNumber)
         {
-            return await _leagueService.ReadWeekScoreboard(SeasonCode, LeagueCode, WeekNumber, User.Identity.Name);
+            return await _leagueService.ReadWeekScoreboard(LeagueCode, WeekNumber, User.Identity.Name);
         }
 
         [Authorize]
         [HttpGet]
-        [Route("api/{SeasonCode}/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard")]
-        public async Task<PlayerScoreboard> GetPlayerWeekScoreboard(string SeasonCode, string LeagueCode, int WeekNumber, string PlayerTag)
+        [Route("api/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard")]
+        public async Task<PlayerScoreboard> GetPlayerWeekScoreboard(string LeagueCode, int WeekNumber, string PlayerTag)
         {
-            return await _leagueService.ReadPlayerScoreboard(SeasonCode, LeagueCode, WeekNumber, PlayerTag, User.Identity.Name);
+            return await _leagueService.ReadPlayerScoreboard(LeagueCode, WeekNumber, PlayerTag, User.Identity.Name);
         }
 
         [Authorize]
         [HttpPut]
-        [Route("api/{SeasonCode}/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard/{GameId}/pick")]
-        public async Task<IActionResult> PutPlayerPick(string SeasonCode, string LeagueCode, int WeekNumber, string PlayerTag, int GameId, [FromBody] PlayerPickUpdate newPlayerPick)
+        [Route("api/{LeagueCode}/{WeekNumber}/{PlayerTag}/scoreboard/{GameId}/pick")]
+        public async Task<IActionResult> PutPlayerPick(string LeagueCode, int WeekNumber, string PlayerTag, int GameId, [FromBody] PlayerPickUpdate newPlayerPick)
         {
-            var leaguePlayer = await _leagueService.ReadLeaguePlayer(SeasonCode, LeagueCode, this.User.Identity.Name);
+            var leaguePlayer = await _leagueService.ReadLeaguePlayer(LeagueCode, this.User.Identity.Name);
 
             if (leaguePlayer.PlayerTag.Equals(PlayerTag, StringComparison.OrdinalIgnoreCase))
             {
-                var playerPickResult =  await _leagueService.SetPlayerPick(SeasonCode, LeagueCode, WeekNumber, PlayerTag, GameId, newPlayerPick);
+                var playerPickResult =  await _leagueService.SetPlayerPick(LeagueCode, WeekNumber, PlayerTag, GameId, newPlayerPick);
                 return new OkObjectResult(playerPickResult);
             }
             else
@@ -91,7 +99,7 @@ namespace PickEmServer.Api.Controllers
 
         [Authorize(Policy = "IsAGod")]
         [HttpPost]
-        [Route("api/{SeasonCode}/{LeagueCode}/players")]
+        [Route("api/{LeagueCode}/players")]
         public async Task<League> AddLeaguePlayer(string LeagueCode, [FromBody] LeaguePlayerAdd newLeaguePlayer)
         {
             return await _leagueService.AddLeaguePlayer(LeagueCode, newLeaguePlayer);
@@ -99,29 +107,35 @@ namespace PickEmServer.Api.Controllers
 
         [Authorize]
         [HttpGet]
-        [Route("api/{SeasonCode}/{LeagueCode}/weeks")]
-        public async Task<LeagueWeeks> GetLeagueWeeks(string SeasonCode, string LeagueCode)
+        [Route("api/{LeagueCode}/weeks")]
+        public async Task<LeagueWeeks> GetLeagueWeeks(string LeagueCode)
         {
-            return await _leagueService.ReadLeagueWeeks(SeasonCode, LeagueCode);
+            return await _leagueService.ReadLeagueWeeks(LeagueCode);
         }
 
         [Authorize]
         [HttpPost]
-        [Route("api/{SeasonCode}/leagues")]
-        public async Task<League> AddLeague(string SeasonCode, [FromBody] LeagueAdd newLeague)
+        [Route("api/leagues")]
+        public async Task<League> AddLeague([FromBody] LeagueAdd newLeague)
         {
-            return await _leagueService.AddLeague(SeasonCode,  newLeague);
+            return await _leagueService.AddLeague(newLeague);
         }
 
         [Authorize(Policy = "IsAGod")]
         [HttpPost]
-        [Route("api/{SeasonCode}/{LeagueCode}/{weekNumber}/games")]
-        public async Task<League> AddLeagueGame(string SeasonCode, string LeagueCode, int weekNumber, [FromBody] LeagueGameAdd newLeagueGame)
+        [Route("api/{LeagueCode}/{weekNumber}/pickemgames")]
+        public async Task<League> AddLeagueGame(string LeagueCode, int weekNumber, [FromBody] LeagueGameAdd newLeagueGame)
         {
-            return await _leagueService.AddLeagueGame(SeasonCode, LeagueCode, weekNumber, newLeagueGame);
+            return await _leagueService.AddLeagueGame(LeagueCode, weekNumber, newLeagueGame);
         }
 
-       
+        [Authorize(Policy = "IsAGod")]
+        [HttpPut]
+        [Route("api/{LeagueCode}")]
+        public async Task<League> UpdateLeague(string LeagueCode, [FromBody] LeagueUpdate leagueUpdate)
+        {
+            return await _leagueService.UpdateLeague(LeagueCode, leagueUpdate);
+        }
 
     }
 }

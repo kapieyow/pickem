@@ -23,7 +23,7 @@
       <!-- picks -->
       <div *ngIf="leagueService.playerScoreboard && leagueService.playerScoreboard.gamePickScoreboards.length > 0">
         <div class="row">
-          <div class="col-12 text-nowrap text-right pt-1">
+          <div class="col-3 text-nowrap text-left pt-1">
             <span class="small font-weight-bold" 
               [ngClass]="
                 {
@@ -37,20 +37,36 @@
                   'pickem-badge-all-picked': leagueService.playerScoreboard.gamesPicked == leagueService.playerScoreboard.games
                 }"
               >{{ leagueService.playerScoreboard.gamesPicked }} of {{ leagueService.playerScoreboard.games }}</span>
+          </div>
+          <div class="col-9 text-nowrap text-right pt-1">
             <span *ngIf="leagueService.playerScoreboard.gamesWon + leagueService.playerScoreboard.gamesLost > 0">
-              &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Wins&nbsp;&nbsp;</span><span class="badge pickem-badge-won">{{ leagueService.playerScoreboard.gamesWon }}</span>
+              <span class="small font-weight-bold d-none d-md-inline">Wins&nbsp;&nbsp;</span><span class="badge pickem-badge-won" tooltip="Games Won">{{ leagueService.playerScoreboard.gamesWon }}</span> /
+              <span class="small font-weight-bold d-none d-md-inline">Losses&nbsp;&nbsp;</span><span class="badge pickem-badge-lost" tooltip="Games Lost">{{ leagueService.playerScoreboard.gamesLost }}</span>
             </span>
             <span *ngIf="leagueService.playerScoreboard.gamesWon + leagueService.playerScoreboard.gamesLost > 0">
-              &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Losses&nbsp;&nbsp;</span><span class="badge pickem-badge-lost">{{ leagueService.playerScoreboard.gamesLost }}</span>
-            </span>
-            <span *ngIf="leagueService.playerScoreboard.gamesWon + leagueService.playerScoreboard.gamesLost > 0 && leagueService.playerScoreboard.gamesPending > 0">
-              &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Pending&nbsp;&nbsp;</span><span class="badge pickem-badge-pending">{{ leagueService.playerScoreboard.gamesPending }}</span>
+                &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Points&nbsp;&nbsp;</span><span class="badge pickem-badge-won" tooltip="Points Won">{{ leagueService.playerScoreboard.points }}</span>
             </span> 
+            <span *ngIf="leagueService.playerScoreboard.gamesWon + leagueService.playerScoreboard.gamesLost > 0 && leagueService.playerScoreboard.gamesPending > 0">
+                &nbsp;&nbsp;&nbsp;<span class="small font-weight-bold">Pending&nbsp;&nbsp;</span><span class="badge pickem-badge-pending" tooltip="Games Pending" placement="bottom">{{ leagueService.playerScoreboard.gamesPending }}</span>
+            </span>
           </div>
         </div>
         <div *ngFor="let gameScoreboard of leagueService.playerScoreboard.gamePickScoreboards" class="my-2 container border border-secondary rounded">
           <div class="row">
-            <div class="col-12 small text-white py-1 border-bottom border-secondary bg-secondary">{{ gameScoreboard.gameStatusDescription }}</div>
+            <div class="col-6 small text-white py-1 border-bottom border-secondary bg-secondary">{{ gameScoreboard.gameStatusDescription }}</div>
+            <div class="col-6 small text-white py-1 pr-1 border-bottom border-secondary bg-secondary text-right">
+                {{ gameScoreboard.gameTitle }}
+                &nbsp;&nbsp;
+                <span class="badge pickem-badge-win-points-none" 
+                  [ngClass]="
+                  {
+                    'pickem-badge-win-points-none': gameScoreboard.gameState != 'Final',
+                    'pickem-badge-win-points-lost': gameScoreboard.pickScoreboards[0].pickState == 'Lost', 
+                    'pickem-badge-win-points-pushed': gameScoreboard.pickScoreboards[0].pickState == 'Pushed', 
+                    'pickem-badge-win-points-won': gameScoreboard.pickScoreboards[0].pickState == 'Won'
+                  }"
+                tooltip="Points for correct pick" placement="bottom">{{ gameScoreboard.winPoints }}</span>
+            </div>
           </div>
           <div class="row p-1">
             <div class="col-md-6 px-2 py-1" [ngClass]="
@@ -193,7 +209,7 @@
           <tr *ngFor="let playerScoreboard of leagueService.leagueScoreboard.playerScoreboards" class="table-default">
             <th scope="row">{{ playerScoreboard.playerTag }}</th>
             <td *ngFor="let weekScore of playerScoreboard.weeklyScores">{{ weekScore.points }}</td>
-            <th scope="row" style="color:#5cb85c;">{{ playerScoreboard.wins }}</th>
+            <th scope="row" style="color:#5cb85c;">{{ playerScoreboard.points }}</th>
           </tr>
         </tbody>
       </table>

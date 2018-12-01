@@ -33,7 +33,6 @@ export class PlayerComponent implements OnInit {
       {  
         this.logger.debug(`Game ${gameScoreboard.gameId}, pick type ${newPick}`);
         this.leagueService.setPlayerPick(
-            this.statusService.seasonCode, 
             this.statusService.leagueCode, 
             this.statusService.weekNumberFilter,
             this.statusService.userPlayerTag,

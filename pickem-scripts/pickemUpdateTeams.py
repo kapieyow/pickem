@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+ 
 import datetime
 import json
 import requests
@@ -93,7 +94,7 @@ class PickemUpdateSpreadsHandler:
 
             fbsTeamCount = fbsTeamCount + 1
 
-        self.logger.debug("Read (" + str(fbsTeamCount) + ") FBS teams from NCAA")
+        self.logger.info("Read (" + str(fbsTeamCount) + ") FBS teams from NCAA")
 
     def __findPickemTeamByLongName(self, pickemTeams, teamLongName):
         # prolly a betta way
@@ -147,7 +148,7 @@ class PickemUpdateSpreadsHandler:
 
             totalRankingRead = totalRankingRead + 1
 
-        self.logger.debug("Read (" + str(totalRankingRead) + ") FBS rankings from NCAA. Matched (" + str(rankingsMatched) + ")")
+        self.logger.info("Read (" + str(totalRankingRead) + ") FBS rankings from NCAA. Matched (" + str(rankingsMatched) + ")")
 
 
     def __updatePickemWithStats(self, seasonNumber, weekNumber, ncaaTeamStats, pickemTeams):
@@ -163,4 +164,4 @@ class PickemUpdateSpreadsHandler:
                 self.apiClient.updateTeam(teamCode, seasonNumber, weekNumber, teamStats.wins, teamStats.losses, teamStats.fbsRank)
                 updatedTeamCount = updatedTeamCount + 1
 
-        self.logger.debug("Updated (" + str(updatedTeamCount) + ") pickem team's stats")
+        self.logger.info("Updated (" + str(updatedTeamCount) + ") pickem team's stats")

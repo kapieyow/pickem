@@ -157,7 +157,7 @@ export class TopNavComponent implements OnInit {
     this.reloadScoreboards();
   }
 
-  changeLeague(league: string)
+  async changeLeague(league: string)
   {
     this.statusService.leagueCode = league;
     this.refreshInProcess = true;
@@ -166,42 +166,24 @@ export class TopNavComponent implements OnInit {
     this.leagueService.weekScoreboard = null;
     this.leagueService.leagueScoreboard = null;
 
-    // TODO: move all this to a central location? league service?
-    this.userService.setupUser(this.statusService.userName).subscribe(response => 
-      {
-        this.leagueService.loadPlayers(this.statusService.seasonCode, this.statusService.leagueCode).subscribe(response => 
-          {     
-              this.leagueService.loadWeeks(this.statusService.seasonCode, this.statusService.leagueCode).subscribe(response => 
-                { 
-                  this.leagueService.loadPlayerScoreboard(
-                    this.statusService.seasonCode, 
-                    this.statusService.leagueCode, 
-                    this.statusService.weekNumberFilter,
-                    this.statusService.playerTagFilter);
+    await this.leagueService.loadLeagueMetaData(this.statusService.leagueCode, this.statusService.userName);
 
-                  this.leagueService.loadWeekScoreboard(
-                    this.statusService.seasonCode, 
-                    this.statusService.leagueCode, 
-                    this.statusService.weekNumberFilter
-                    );
+    this.leagueService.loadPlayerScoreboard(
+      this.statusService.leagueCode, 
+      this.statusService.weekNumberFilter,
+      this.statusService.playerTagFilter);
 
-                  this.leagueService.loadLeagueScoreboard(
-                    this.statusService.seasonCode, 
-                    this.statusService.leagueCode
-                    );
+    this.leagueService.loadWeekScoreboard(
+      this.statusService.leagueCode, 
+      this.statusService.weekNumberFilter
+      );
 
-                  // user fully setup go to player view
-                  this.statusService.userLoggedInAndInitialized = true;
-                  this.refreshInProcess = false;  
-                },
-                errors => { this.logger.error(errors); }
-              );
-          },
-          errors => { this.logger.error(errors); }
-        );
-      },
-      errors => { this.logger.error(errors); }
-    );  
+    this.leagueService.loadLeagueScoreboard(
+      this.statusService.leagueCode
+      );
+
+    this.statusService.userLoggedInAndInitialized = true;
+    this.refreshInProcess = false;  
   }
 
   readScoreboards(): Observable<Scoreboards>
@@ -212,17 +194,14 @@ export class TopNavComponent implements OnInit {
       // TODO: move all this to a central location? league service?
       return forkJoin(
         this.leagueService.readLeagueScoreboard(
-          this.statusService.seasonCode, 
           this.statusService.leagueCode
         ),
         this.leagueService.readPlayerScoreboard(
-          this.statusService.seasonCode, 
           this.statusService.leagueCode,
           this.statusService.weekNumberFilter,
           this.statusService.playerTagFilter
         ),
         this.leagueService.readWeekScoreboard(
-          this.statusService.seasonCode, 
           this.statusService.leagueCode, 
           this.statusService.weekNumberFilter
         )

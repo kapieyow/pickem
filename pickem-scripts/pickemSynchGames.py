@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+ 
 import pickemLogger
 import pickemApiClient
 import requests
@@ -25,7 +26,7 @@ class PickemSynchGamesHandler:
                 if ( self.__insertNcaaGame(gameUrl, pickemSeason, weekNumber) ):
                     gamesModified += 1
                     
-            self.logger.debug("Loaded (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
+            self.logger.info("Loaded (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
         
         elif ( actionCode == "update" or actionCode == "u" ):
 
@@ -33,10 +34,10 @@ class PickemSynchGamesHandler:
             pickemGames = self.apiClient.readPickemGamesAnyLeague(pickemSeason, weekNumber)
 
             for pickemGame in pickemGames:
-                if ( self.__updateNcaaGameFromCasablanca(pickemGame, ncaaSeason, pickemSeason, weekNumber) ):
+                if ( self.__updateNcaaGameFromCasablanca(pickemGame, ncaaSeason, pickemSeason) ):
                     gamesModified += 1
 
-            self.logger.debug("Updated (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
+            self.logger.info("Updated (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
 
         else:
             self.logger.wtf("Unhandled action (a) parameter (" + actionCode + ") why didn't the argparser catch it?")
@@ -59,7 +60,7 @@ class PickemSynchGamesHandler:
             return False
     
     def __readNcaaGames(self, ncaaSeason, week):
-        self.logger.debug("Reading NCAA Games...")
+        self.logger.info("Reading NCAA Games...")
 
         url = NCAA_BASE_DATA_URL
         url = url.replace(URL_SEASON_TOKEN, str(ncaaSeason))
@@ -75,12 +76,12 @@ class PickemSynchGamesHandler:
         for game in responseJson['games']:
             games.append(game['game']['url'])
 
-        self.logger.debug("Read " + str(len(games)) + " games")
+        self.logger.info("Read " + str(len(games)) + " games")
 
         return games
 
     
-    def __updateNcaaGameFromCasablanca(self, pickemGameJson, ncaaSeason, pickemSeason, weekNumber):
+    def __updateNcaaGameFromCasablanca(self, pickemGameJson, ncaaSeason, pickemSeason):
 
         # TODO making several URL assumptions here e.g. "fbs"
         url = NCAA_DOMAIN_URL + "/casablanca/game/football/fbs/" + str(ncaaSeason) + "/"
@@ -138,7 +139,7 @@ class PickemSynchGamesHandler:
             homeTeamScore = int(ncaaHomeTeamScore)
 
         try:
-            self.apiClient.updateGame(pickemSeason, weekNumber, pickemGameJson['gameId'], gameStart, lastUpdated, gameState, currentPeriod, timeClock, awayTeamScore, homeTeamScore)
+            self.apiClient.updateGame(pickemGameJson['gameId'], gameStart, lastUpdated, gameState, currentPeriod, timeClock, awayTeamScore, homeTeamScore, None)
             return True
         except requests.exceptions.HTTPError:
             return False

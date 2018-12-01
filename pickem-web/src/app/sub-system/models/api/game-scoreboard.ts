@@ -14,6 +14,7 @@ export class GameScoreboard
     gameStatusDescription: string;
     gameState: GameStates;
     gameTimeClock: string;
+    gameTitle: string;
     homeTeamIconFileName: string;
     homeTeamLosses: number;
     homeTeamLongName: string;
@@ -25,6 +26,7 @@ export class GameScoreboard
     spreadDirection: SpreadDirections;
     leader: GameLeaderTypes;
     leaderAfterSpread: GameLeaderTypes;
+    winPoints: number;
 
     pickScoreboards: PickScoreboard[];
 }
