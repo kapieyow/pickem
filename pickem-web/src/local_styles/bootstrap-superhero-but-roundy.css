@@ -9661,6 +9661,14 @@
     color: #fff;
     font-size: .75rem;
   }
+  .pickem-badge-win-points-week
+  {
+    border-width:1px !important; 
+    border-color: #8d9dad !important; 
+    border-style: solid;
+    color: #fff;
+    font-size: .75rem;
+  }
   .pickem-badge-win-points-won
   {
     background-color: #006400;

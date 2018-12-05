@@ -19,7 +19,29 @@ const httpOptions = {
 })
 export class StatusService {
 
-  public leagueCode: string;
+  private _leagueCode: string;
+
+  // TODO: probably can get rid of leagueCode altogether AND straighten out the "league set" logic 
+  // to set the current league directly, instead of through an accessor
+  public get leagueCode(): string
+  {
+    return this._leagueCode;
+  }
+  public set leagueCode(newLeagueCode: string)
+  {
+    this._leagueCode = newLeagueCode;
+
+    if ( newLeagueCode && this.userLeagues )
+    {
+      this.currentLeague = this.userLeagues.find(league => league.leagueCode == newLeagueCode);
+    }
+    else
+    {    
+      this.currentLeague = null;
+    }
+  }
+
+  public currentLeague: League;
   public weekNumberFilter: number;
   public playerTagFilter: string;
 
@@ -39,6 +61,7 @@ export class StatusService {
     this.userLoggedInAndInitialized = false;
     this.userName = null;
     this.userPlayerTag = null;
+    this.currentLeague = null;
     this.leagueCode = null;
     this.playerTagFilter = null;
     this.weekNumberFilter = null;
