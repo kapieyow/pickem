@@ -163,7 +163,29 @@ FROM
 	jsonb_array_elements(gameRefs->'PlayerPicks') playerPicks
 WHERE 
 	g.data->>'GameState' = 'Cancelled'
-	
+
+
+SELECT 
+	p->>'UserNameRef' AS UserNameRef,
+	p->>'PlayerTag' AS PlayerTag,
+	l.data->>'LeagueCode' AS LeagueCode,
+	l.data->>'LeagueTitle' AS LeagueTitle
+FROM 
+	public.mt_doc_leaguedata l 
+	CROSS JOIN jsonb_array_elements(data->'Players') p
+WHERE 
+	p->>'UserNameRef' = 'gumanchew'
+ORDER BY
+	p->>'UserNameRef',
+	l.data->>'LeagueCode' 
+
+-- to reset a database WILL DROP ALL TABLES / FUNCS etc in public schema
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public AUTHORIZATION postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO public;
+
+
 -- pretty teams
 SELECT 
 	jsonb_pretty(t.data)
@@ -212,7 +234,7 @@ FROM
 	public.mt_doc_leaguedata l
 	CROSS JOIN LATERAL jsonb_to_recordset(l.data#>'{Weeks,0,Games}') as r("GameIdRef" int)
 WHERE
-	l.data->>'LeagueCode' = 'Default'
+	l.data->>'LeagueCode' = 'BUS'
 
 
 -- users
