@@ -57,7 +57,7 @@
             <div class="col-6 small text-white py-1 pr-1 border-bottom border-secondary bg-secondary text-right">
                 {{ gameScoreboard.gameTitle }}
                 &nbsp;&nbsp;
-                <span class="badge pickem-badge-win-points-none" 
+                <span *ngIf="statusService.currentLeague && statusService.currentLeague.pickemScoringType != 'AllWinsOnePoint'" class="badge pickem-badge-win-points-none" 
                   [ngClass]="
                   {
                     'pickem-badge-win-points-none': gameScoreboard.gameState != 'Final',
@@ -148,6 +148,7 @@
         <thead>
           <tr>
             <th scope="col" class="p-2">Game</th>
+            <th *ngIf="statusService.currentLeague && statusService.currentLeague.pickemScoringType != 'AllWinsOnePoint'" scope="col" class="p-2">Points</th>
             <th scope="col" class="p-2"></th>
             <th *ngFor="let playerTag of leagueService.weekScoreboard.playerTags" scope="col" class="p-2">{{ playerTag }}</th>
           </tr>
@@ -155,6 +156,7 @@
         <tbody>
           <tr class="table-active">
             <td class="p-2"></td>
+            <td *ngIf="statusService.currentLeague && statusService.currentLeague.pickemScoringType != 'AllWinsOnePoint'" class="p-2"></td>
             <td class="p-2"></td>
             <td *ngFor="let winBoard of leagueService.weekScoreboard.playerWins" class="p-2">{{ winBoard.wins }}</td>
           </tr>
@@ -173,21 +175,23 @@
                 'pickem-score-winning': gameScoreboard.leaderAfterSpread == 'Home' && gameScoreboard.pickState == 'InGame' }">{{
                 gameScoreboard.homeTeamScore }}</span>
             </td>
+            <td *ngIf="statusService.currentLeague && statusService.currentLeague.pickemScoringType != 'AllWinsOnePoint'" scope="col" class="text-nowrap p-2">
+              <span class="badge pickem-badge-win-points-week" tooltip="Points for correct pick" placement="bottom">{{ gameScoreboard.winPoints }}</span>
+            </td>
             <td class="small p-1 align-middle">{{ gameStatusDescriptionFirstPart(gameScoreboard) }}<span *ngIf="gameStatusDescriptionSecondPart(gameScoreboard) != null"><br>{{ gameStatusDescriptionSecondPart(gameScoreboard) }}</span></td>
             <td *ngFor="let pickScoreboard of gameScoreboard.pickScoreboards" class="text-nowrap p-2">
               <img *ngIf="pickScoreboard.pickedTeamIconFileName" src="assets/team_icons/{{ pickScoreboard.pickedTeamIconFileName }}"
                 title="{{ pickScoreboard.pickedTeamLongName }}" width="24" class="mx-1" />
               <span *ngIf="pickScoreboard.pick != 'Hidden' && pickScoreboard.pickState == 'None'">-</span>
               <span *ngIf="pickScoreboard.pick == 'Hidden'">?</span>
-              <!-- locked -->
-              <!-- not picked -->
               <span *ngIf="pickScoreboard.pickState == 'Cancelled'" class="pickem-score-cancelled" title="Cancelled">X</span>
               <span *ngIf="pickScoreboard.pickState == 'Losing'" class="pickem-score-losing" title="Losing">L</span>
               <span *ngIf="pickScoreboard.pickState == 'Lost'" class="pickem-score-lost" title="Lost">L</span>
               <span *ngIf="pickScoreboard.pickState == 'Pushing'" class="pickem-score-pushing" title="Pushing">X</span>
               <span *ngIf="pickScoreboard.pickState == 'Pushed'" class="pickem-score-pushed" title="Pushed">X</span>
               <span *ngIf="pickScoreboard.pickState == 'Winning'" class="pickem-score-winning" title="Winning">W</span>
-              <span *ngIf="pickScoreboard.pickState == 'Won'" class="pickem-score-won" title="Won">W</span>
+              <span *ngIf="pickScoreboard.pickState == 'Won' && statusService.currentLeague && statusService.currentLeague.pickemScoringType == 'AllWinsOnePoint'" class="pickem-score-won" title="Won">W</span>
+              <span *ngIf="pickScoreboard.pickState == 'Won' && statusService.currentLeague && statusService.currentLeague.pickemScoringType != 'AllWinsOnePoint'" class="pickem-score-won" title="Won">{{ gameScoreboard.winPoints }}</span>
             </td>
           </tr>
         </tbody>
