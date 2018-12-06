@@ -41,8 +41,11 @@ export class UserService {
             let token = response.token;
             localStorage.setItem("JWT", token);
             this.statusService.userName = response.userName;
-            this.statusService.leagueCode = response.defaultLeagueCode;
             this.statusService.userLeagues = response.leagues;
+            // TODO: this has to be after userLeagues set due to dumbness in statusService 
+            // where it sets the current league using userLeagues on the setter of leagueCode.
+            // See issue #26 to unwind.
+            this.statusService.leagueCode = response.defaultLeagueCode;
           }),
         catchError(error =>
           {
