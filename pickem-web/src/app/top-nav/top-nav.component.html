@@ -15,12 +15,12 @@
 
                             <div *ngIf="statusService.userLeagues && statusService.userLeagues.length > 1" class="btn-group" dropdown>
                                 <button id="button-player" dropdownToggle type="button" class="btn btn-outline-warning dropdown-toggle" aria-controls="dropdown-player">
-                                    {{ statusService.leagueCode }}
+                                    {{ statusService.currentLeague.leagueTitle }}
                                     <span class="caret"></span>
                                 </button>
                                 <ul id="dropdown-player" *dropdownMenu class="dropdown-menu bg-warning" role="menu" aria-labelledby="button-player">
                                     <li *ngFor="let league of statusService.userLeagues" role="menuitem" (click)="changeLeague(league.leagueCode);">
-                                        <a class="dropdown-item">{{ league.leagueCode }}</a>
+                                        <a class="dropdown-item">{{ league.leagueTitle }}</a>
                                     </li>
                                 </ul>
                             </div>
