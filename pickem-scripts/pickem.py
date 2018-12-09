@@ -13,7 +13,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "2.0.25"
+VERSION = "2.0.26"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals
@@ -31,6 +31,61 @@ apiClient = None
 #=====================================
 # sub command methods
 #=====================================
+
+# TODO: this is a one time run. Delete after in prod.
+def setupBowls(args):
+    
+    pickemSeasonCode = "18"
+
+    weekNumber = 16
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 1, "2018-12-15T13:30:00.000Z", "AutoNation Cure Bowl", "false", "tulane", "la-lafayette")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 2, "2018-12-15T14:00:00.000Z", "New Mexico Bowl", "false", "north-texas", "utah-st")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 3, "2018-12-15T15:30:00.000Z", "Mitsubishi Motors Las Vegas Bowl", "false", "arizona-st", "fresno-st")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 4, "2018-12-15T17:30:00.000Z", "Raycom Media Camellia Bowl", "false", "ga-southern", "eastern-mich")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 5, "2018-12-15T21:00:00.000Z", "R+L Carriers New Orleans Bowl", "false", "middle-tenn", "appalachian-st")
+
+    weekNumber = 17
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 6, "2018-12-18T19:00:00.000Z", "Cheribundi Tart Cherry Boca Raton Bowl", "false", "uab", "northern-ill")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 7, "2018-12-19T20:00:00.000Z", "DXL Frisco Bowl", "false", "san-diego-st", "ohio")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 8, "2018-12-20T20:00:00.000Z", "Bad Boy Mowers Gasparilla Bowl", "false", "marshall", "south-fla")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 9, "2018-12-21T12:30:00.000Z", "Makers Wanted Bahamas Bowl", "false", "fiu", "toledo")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 10, "2018-12-21T16:00:00.000Z", "Famous Idaho Potato Bowl", "false", "western-mich", "byu")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 11, "2018-12-22T12:00:00.000Z", "Jared Birmingham Bowl", "false", "memphis", "wake-forest")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 12, "2018-12-22T15:30:00.000Z", "Lockheed Martin Armed Forces Bowl", "false", "houston", "army")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 13, "2018-12-22T19:00:00.000Z", "Dollar General Bowl", "false", "buffalo", "troy")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 14, "2018-12-22T22:30:00.000Z", "Hawai'i Bowl", "false", "hawaii", "louisiana-tech")
+
+    weekNumber = 18
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 15, "2018-12-26T13:30:00.000Z", "SERVPRO First Responder Bowl", "false", "boston-college", "boise-st")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 16, "2018-12-26T17:15:00.000Z", "Quick Lane Bowl", "false", "minnesota", "georgia-tech")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 17, "2018-12-26T21:00:00.000Z", "Cheez-It Bowl", "false", "california", "tcu")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 18, "2018-12-27T13:30:00.000Z", "Walk-On's Independence Bowl", "false", "temple", "duke")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 19, "2018-12-27T17:15:00.000Z", "New Era Pinstripe Bowl", "false", "miami-fl", "wisconsin")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 20, "2018-12-27T21:00:00.000Z", "Academy Sports + Outdoors Texas Bowl", "false", "baylor", "vanderbilt")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 21, "2018-12-28T13:30:00.000Z", "Franklin American Mortgage Music City Bowl", "false", "purdue", "auburn")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 22, "2018-12-28T17:15:00.000Z", "Camping World Bowl", "false", "west-virginia", "syracuse")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 24, "2018-12-28T21:00:00.000Z", "Valero Alamo Bowl", "false", "iowa-st", "washington-st")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 25, "2018-12-29T12:00:00.000Z", "Chick-fil-A Peach Bowl", "false", "florida", "michigan")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 26, "2018-12-29T12:00:00.000Z", "Belk Bowl", "false", "south-carolina", "virginia")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 27, "2018-12-29T16:00:00.000Z", "College Football Playoff Semifinal at the Goodyear Cotton Bowl Classic", "false", "notre-dame", "clemson")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 28, "2018-12-29T20:00:00.000Z", "College Football Playoff Semifinal at the Capital One Orange Bowl", "false", "oklahoma", "alabama")
+
+    weekNumber = 19
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 29, "2018-12-31T12:00:00.000Z", "Military Bowl Presented by Northrop Grumman", "false", "cincinnati", "virginia-tech")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 30, "2018-12-31T14:00:00.000Z", "Hyundai Sun Bowl", "false", "stanford", "pittsburgh")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 31, "2018-12-31T15:00:00.000Z", "Redbox Bowl", "false", "michigan-st", "oregon")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 32, "2018-12-31T15:45:00.000Z", "AutoZone Liberty Bowl", "false", "missouri", "oklahoma-st")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 33, "2018-12-31T19:00:00.000Z", "San Diego County Credit Union Holiday Bowl", "false", "northwestern", "utah")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 34, "2018-12-31T19:30:00.000Z", "TaxSlayer Gator Bowl", "false", "north-carolina-st", "texas-am")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 35, "2019-01-01T12:00:00.000Z", "Outback Bowl", "false", "mississippi-st", "iowa")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 36, "2019-01-01T13:00:00.000Z", "Citrus Bowl", "false", "kentucky", "penn-st")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 37, "2019-01-01T13:00:00.000Z", "PlayStation Fiesta Bowl", "false", "lsu", "ucf")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 38, "2019-01-01T12:00:00.000Z", "Rose Bowl Game Presented by Northwestern Mutual", "false", "washington", "ohio-st")
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 39, "2019-01-01T20:45:00.000Z", "Allstate Sugar Bowl", "false", "texas", "georgia")
+
+    logger.info("2 oh bowls are setup!")
+
+
 def setLeagueGame(args):
     gamesSet = 0
 
@@ -155,6 +210,13 @@ def setupArgumentParsers():
     subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.add_argument('-rs', '--rankings_source', nargs='?', const='ap', default='ap', choices=['ap', 'cfp'])
     subParser.set_defaults(func=updateTeams)
+
+
+    # -- This is a ONE TIME setup script for the 2018 bowl season
+    # TODO: trash after is in prod
+    subParser = subArgParsers.add_parser('_setup_bowls')
+    subParser.set_defaults(func=setupBowls)
+
 
     return argParser
 

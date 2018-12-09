@@ -31,20 +31,22 @@ class PickemApiClient:
         weekNumber,
         gameId,
         gameStart,
+        gameTitle,
         neutralField,
         awayTeamCode,
         homeTeamCode
         ):
 
         pickemGamePostUrl = self.pickemServerBaseUrl + "/games/" + pickemSeasonCode + "/" + str(weekNumber) 
-        #        {
-        #            "gameId": 0, 
-        #            "gameStart": "2018-08-03T19:18:08.826Z", responseJson['startDate']  2017-11-18, "startTime": "10:15 PM ET",
-        #            "neutralField": true,
-        #            "awayTeamCode": "string", -- responseJson['away']['nameSeo']
-        #            "homeTeamCode": "string" -- responseJson['home']['nameSeo']
-        #        }
-        gameData = '{"gameId": "' + gameId + '","gameStart": "' + gameStart + '", "neutralField": "' + neutralField + '", "awayTeamCode": "' + awayTeamCode + '", "homeTeamCode": "' + homeTeamCode + '"}'
+        gameData = '''
+            { 
+                "gameId": "''' + str(gameId) + '''",
+                "gameStart": "''' + gameStart + '''", 
+                "gameTitle" : ''' + self.__handleNoneStr(gameTitle) + ''',
+                "neutralField": "''' + neutralField + '''", 
+                "awayTeamCode": "''' + awayTeamCode + '''", 
+                "homeTeamCode": "''' + homeTeamCode + '''"
+            }'''
         self.postToApi(pickemGamePostUrl, gameData, self.jwt)
 
     def readGame(self, gameId):
@@ -75,17 +77,6 @@ class PickemApiClient:
         ):
 
         pickemGamePutUrl = self.pickemServerBaseUrl + "/games/" + str(gameId)
-        #    {
-        #        "lastUpdated": "2018-08-21T23:10:04.783Z",
-        #        "gameState": "SpreadNotSet",
-        #        "gameStart": "2018-08-21T23:10:04.783Z",
-        #        "currentPeriod": "string",
-        #        "timeClock": "string",
-        #        "awayTeamScore": 0,
-        #        "homeTeamScore": 0,
-        #        "gameTitle" : "Test Bowl"
-        #    }
-
         gameData = '''
             { 
                 "lastUpdated": "''' + lastUpdated + '''",

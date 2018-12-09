@@ -54,7 +54,7 @@ class PickemSynchGamesHandler:
         gameStart = self.__extractGameStart(responseJson['status']['startTimeEpoch'])
 
         try:
-            self.apiClient.insertGame(pickemSeasonCode, weekNumber, gameId, gameStart, neutralField, awayTeamCode, homeTeamCode)
+            self.apiClient.insertGame(pickemSeasonCode, weekNumber, gameId, gameStart, None, neutralField, awayTeamCode, homeTeamCode)
             return True
         except requests.exceptions.HTTPError:
             return False
