@@ -1,4 +1,49 @@
-﻿-- logs newest first 
+﻿/* 	THIS WILL DROP ALL DATA !!!!!!!!!!!!!!
+
+-- to reset a database WILL DROP ALL TABLES / FUNCS etc in public schema
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public AUTHORIZATION postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO public;
+
+*/
+
+
+
+-- =========================================================
+-- Users with related leagues
+-- =========================================================
+SELECT 
+	u.data->>'UserName' AS UserName,
+	u.data->>'Email' AS Email,
+	_leaguePlayers.PlayerTag,
+	_leaguePlayers.LeagueCode,
+	_leaguePlayers.LeagueTitle,
+	CASE WHEN ( u.data->>'DefaultLeagueCode' = _leaguePlayers.LeagueCode ) THEN 'Yes' ELSE NULL END AS DefaultLeague
+FROM 
+	public.mt_doc_pickemuser u
+	LEFT OUTER JOIN 
+	(
+		SELECT 
+			p->>'UserNameRef' AS UserNameRef,
+			p->>'PlayerTag' AS PlayerTag,
+			l.data->>'LeagueCode' AS LeagueCode,
+			l.data->>'LeagueTitle' AS LeagueTitle
+		FROM 
+			public.mt_doc_leaguedata l 
+			CROSS JOIN jsonb_array_elements(data->'Players') p
+	) AS _leaguePlayers ON _leaguePlayers.UserNameRef = u.data->>'UserName'
+ORDER BY
+	u.data->>'UserName'
+;
+-- =/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/=/
+
+
+
+
+
+
+-- logs newest first 
 SELECT
 	logs.data->>'Id' AS Id,
 	logs.mt_last_modified,
@@ -173,11 +218,39 @@ SELECT
 FROM 
 	public.mt_doc_leaguedata l 
 	CROSS JOIN jsonb_array_elements(data->'Players') p
-WHERE 
-	p->>'UserNameRef' = 'gumanchew'
+--WHERE 
+--	p->>'UserNameRef' = 'gumanchew'
 ORDER BY
 	p->>'UserNameRef',
-	l.data->>'LeagueCode' 
+	l.data->>'LeagueCode'
+; 
+
+
+-- users
+SELECT 
+	u.data->>'UserName' AS UserName,
+	u.data->>'Email' AS Email,
+	u.data->>'DefaultLeagueCode' AS DefaultLeagueCode,
+	_leaguePlayers.PlayerTag,
+	_leaguePlayers.LeagueCode,
+	_leaguePlayers.LeagueTitle,
+	CASE WHEN ( u.data->>'DefaultLeagueCode' = _leaguePlayers.LeagueCode ) THEN 'Yes' ELSE NULL END AS DefaultLeague
+FROM 
+	public.mt_doc_pickemuser u
+	LEFT OUTER JOIN 
+	(
+		SELECT 
+			p->>'UserNameRef' AS UserNameRef,
+			p->>'PlayerTag' AS PlayerTag,
+			l.data->>'LeagueCode' AS LeagueCode,
+			l.data->>'LeagueTitle' AS LeagueTitle
+		FROM 
+			public.mt_doc_leaguedata l 
+			CROSS JOIN jsonb_array_elements(data->'Players') p
+	) AS _leaguePlayers ON _leaguePlayers.UserNameRef = u.data->>'UserName'
+ORDER BY
+	u.data->>'UserName'
+;
 
 -- to reset a database WILL DROP ALL TABLES / FUNCS etc in public schema
 DROP SCHEMA public CASCADE;
@@ -237,16 +310,7 @@ WHERE
 	l.data->>'LeagueCode' = 'BUS'
 
 
--- users
-SELECT 
-	data->>'UserName' AS UserName,
-	data->>'Email' AS Email,
-	data->>'DefaultLeagueCode' AS DefaultLeagueCode,
-	* 
-FROM 
-	public.mt_doc_pickemuser
-ORDER BY
-	data->>'UserName'
+
 
 
 /* == week 5 (1.4.x) 
@@ -290,7 +354,6 @@ WHERE
 	g.id = '2953974'
 	--g.data->>'GameState' = 'Cancelled'
 
-BEGIN; -- COMMIT ROLLBACK
 
 --UPDATE public.mt_doc_teamdata SET data = '{"LongName": "James Madison", "TeamCode": "james-madison", "ShortName": "", "NcaaNameSeo": "james-madison", "theSpreadName": "", "icon24FileName": "james-madison.24.png"}' WHERE id = 'james-madison';
 --UPDATE public.mt_doc_teamdata SET data = '{"LongName": "South Dakota State", "TeamCode": "south-dakota-st", "ShortName": "", "NcaaNameSeo": "south-dakota-st", "theSpreadName": "", "icon24FileName": "south-dakota-st.24.png"}' WHERE id = 'south-dakota-st';	
@@ -397,3 +460,97 @@ ORDER BY
 	
 
 SELECT data FROM public.mt_doc_leaguedata
+
+
+
+SELECT
+	_teamLongNames.TeamLongName,
+	t.data->>'TeamCode' AS TeamCode
+FROM
+	(
+		SELECT 'Alabama' AS TeamLongName
+		UNION SELECT 'Appalachian State'
+		UNION SELECT 'Arizona State'
+		-- UNION SELECT 'Arkansas State'
+		UNION SELECT 'Army'
+		UNION SELECT 'Auburn'
+		UNION SELECT 'Baylor'
+		UNION SELECT 'Boise State'
+		UNION SELECT 'Boston College'
+		UNION SELECT 'Buffalo'
+		UNION SELECT 'BYU'
+		UNION SELECT 'California'
+		UNION SELECT 'Cincinnati'
+		UNION SELECT 'Clemson'
+		UNION SELECT 'Duke'
+		UNION SELECT 'Eastern Michigan'
+		UNION SELECT 'Florida Intl'
+		UNION SELECT 'Florida'
+		UNION SELECT 'Fresno State'
+		UNION SELECT 'Georgia Tech'
+		UNION SELECT 'Georgia'
+		UNION SELECT 'Georgia Southern'
+		UNION SELECT 'Hawaii'
+		UNION SELECT 'Houston'
+		UNION SELECT 'Iowa'
+		UNION SELECT 'Iowa State'
+		UNION SELECT 'Kentucky'
+		UNION SELECT 'Louisiana Tech'
+		UNION SELECT 'Louisiana Lafayette'
+		UNION SELECT 'LSU'
+		UNION SELECT 'Marshall'
+		UNION SELECT 'Memphis'
+		UNION SELECT 'Miami'
+		UNION SELECT 'Michigan'
+		UNION SELECT 'Michigan State'
+		UNION SELECT 'Middle Tenn St'
+		UNION SELECT 'Minnesota'
+		UNION SELECT 'Mississippi State'
+		UNION SELECT 'Missouri'
+		UNION SELECT 'NC State'
+		-- UNION SELECT 'Nevada'
+		UNION SELECT 'North Texas'
+		UNION SELECT 'Northern Illinois'
+		UNION SELECT 'Northwestern'
+		UNION SELECT 'Notre Dame'
+		UNION SELECT 'Ohio'
+		UNION SELECT 'Ohio State'
+		UNION SELECT 'Oklahoma'
+		UNION SELECT 'Oklahoma State'
+		UNION SELECT 'Oregon'
+		UNION SELECT 'Penn State'
+		UNION SELECT 'Pittsburgh'
+		UNION SELECT 'Purdue'
+		UNION SELECT 'San Diego State'
+		UNION SELECT 'South Carolina'
+		UNION SELECT 'South Florida'
+		UNION SELECT 'Stanford'
+		UNION SELECT 'Syracuse'
+		UNION SELECT 'TCU'
+		UNION SELECT 'Temple'
+		UNION SELECT 'Texas'
+		UNION SELECT 'Texas A&M'
+		UNION SELECT 'Toledo'
+		UNION SELECT 'Troy'
+		UNION SELECT 'Tulane'
+		UNION SELECT 'UAB'
+		UNION SELECT 'UCF'
+		UNION SELECT 'Utah'
+		UNION SELECT 'Utah State'
+		UNION SELECT 'Vanderbilt'
+		UNION SELECT 'Virginia'
+		UNION SELECT 'Virginia Tech'
+		UNION SELECT 'Wake Forest'
+		UNION SELECT 'Washington'
+		UNION SELECT 'Washington State'
+		UNION SELECT 'West Virginia'
+		UNION SELECT 'Western Michigan'
+		UNION SELECT 'Wisconsin'
+	) _teamLongNames
+	LEFT OUTER JOIN public.mt_doc_teamdata t ON _teamLongNames.TeamLongName = t.data->>'LongName'
+ORDER BY 
+	_teamLongNames.TeamLongName
+
+
+SELECT data->>'LongName', * FROM mt_doc_teamdata WHERE data->>'LongName' LIKE '%Tenn%'
+
