@@ -75,7 +75,7 @@ FROM
 WHERE
 	g.data->>'SeasonCodeRef' = '18'
 	AND
-	g.data->>'WeekNumberRef' = '12'
+	g.data->>'WeekNumberRef' = '16'
 ORDER BY 
 	g.data->'HomeTeam'->>'TeamCodeRef'
 	
@@ -178,9 +178,9 @@ FROM
 		INNER JOIN public.mt_doc_gamedata g ON g.Id::text = gameRefs->>'GameIdRef',
 	jsonb_array_elements(gameRefs->'PlayerPicks') playerPicks
 WHERE 
-	l.data->>'LeagueCode' = 'NeOnYa'
+	l.data->>'LeagueCode' = 'NeOnYa-Bowl-18'
 	AND
-	weeks->>'WeekNumberRef' = '1'
+	weeks->>'WeekNumberRef' = '16'
 
 
 
@@ -310,7 +310,12 @@ WHERE
 	l.data->>'LeagueCode' = 'BUS'
 
 
-
+SELECT
+	*
+FROM
+	public.mt_doc_gamedata g
+WHERE
+	g.Id < 1000
 
 
 /* == week 5 (1.4.x) 
