@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
- 
+import json
 import pickemLogger
 import pickemApiClient
+import re
 import requests
 import time
 
@@ -16,28 +17,41 @@ class PickemSynchGamesHandler:
         self.apiClient = apiClient
         self.logger = logger
 
-    def Run(self, actionCode, ncaaSeason, pickemSeason, weekNumber):
+    def Run(self, actionCode, ncaaSeason, pickemSeason, weekNumber, gameSource):
 
         gamesModified = 0
         if ( actionCode == "insert" or actionCode == "i" ):
-            gameUrls = self.__readNcaaGames(ncaaSeason, weekNumber)
 
-            for gameUrl in gameUrls:
-                if ( self.__insertNcaaGame(gameUrl, pickemSeason, weekNumber) ):
-                    gamesModified += 1
-                    
-            self.logger.info("Loaded (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
+            if ( gameSource == "ncaa" ):
+                gameUrls = self.__readNcaaGames(ncaaSeason, weekNumber)
+
+                for gameUrl in gameUrls:
+                    if ( self.__insertNcaaGame(gameUrl, pickemSeason, weekNumber) ):
+                        gamesModified += 1
+                        
+                self.logger.info("Loaded (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
+            else:
+                # TODO : implement this
+                self.logger.error("Game source (" + gameSource + ") is not supported for game synchs where the -action is insert")
         
         elif ( actionCode == "update" or actionCode == "u" ):
 
             # read pickem games used (so not all NCAA games)
             pickemGames = self.apiClient.readPickemGamesAnyLeague(pickemSeason, weekNumber)
 
-            for pickemGame in pickemGames:
-                if ( self.__updateNcaaGameFromCasablanca(pickemGame, ncaaSeason, pickemSeason) ):
-                    gamesModified += 1
+            if ( gameSource == "ncaa" ):
+                for pickemGame in pickemGames:
+                    if ( self.__updateNcaaGameFromCasablanca(pickemGame, ncaaSeason, pickemSeason) ):
+                        gamesModified += 1
 
-            self.logger.info("Updated (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
+                self.logger.info("Updated (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
+
+            elif ( gameSource == "espn" ):
+                self.__readEspnGames()
+                self.logger.error("FULLY IMPL espn update")
+
+            else:
+                self.logger.error("Game source (" + gameSource + ") is not supported for game synchs where the -action is update")
 
         else:
             self.logger.wtf("Unhandled action (a) parameter (" + actionCode + ") why didn't the argparser catch it?")
@@ -58,6 +72,53 @@ class PickemSynchGamesHandler:
             return True
         except requests.exceptions.HTTPError:
             return False
+
+    def __readEspnGames(self):
+        # TODO : this could be better
+        #url = "http://www.espn.com/college-football/scoreboard/_/group/80/year/2018/seasontype/3/week/1"
+        url = "http://www.espn.com/college-football/scoreboard/_/group/80/year/2018/seasontype/2/week/14"
+
+        espnHtml = self.apiClient.getHtml(url)
+
+        # TODO: Error handle
+        match = re.search("\<script\>window\.espn\.scoreboardData\s*=\s*(.*);window\.espn\.scoreboardSettings \=", espnHtml)
+
+        gamesJsonString = match.group(1)
+        gamesJson = json.loads(gamesJsonString)
+
+        for event in gamesJson['events']:            
+            self.logger.debug("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
+            self.logger.debug("=- shortName " + event['shortName'])
+            self.logger.debug("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
+            self.logger.debug("gameId = " + event['id'])
+            self.logger.debug("gameStart = " + event['competitions'][0]['startDate'])
+            self.logger.debug("lastUpdated =  ummm hmm.... ")
+            self.logger.debug("gameState = " + event['status']['type']['state'])
+            self.logger.debug("currentPeriod = " + str(event['status']['period']))
+            self.logger.debug("timeClock = " + event['status']['displayClock'])
+            self.logger.debug("gameTitle = None")
+
+            for competitor in event['competitions'][0]['competitors']:
+                if ( competitor['homeAway'] == "away" ):
+                    self.logger.debug("awayTeamScore = " + competitor['score'])
+                elif ( competitor['homeAway'] == "home" ):
+                    self.logger.debug("homeTeamScore = " + competitor['score'])
+        '''
+        updateGame(
+            self, 
+            gameId,  =id
+            gameStart, =date || =competitions[0]/startDate
+            lastUpdated, {now}
+            gameState, =status/type/state 
+            currentPeriod, =status/period
+            timeClock, =status/displayClock
+            awayTeamScore, =competitions[0]/competitors(homeAway='away')/score
+            homeTeamScore, =competitions[0]/competitors(homeAway='home')/score
+            gameTitle
+            ):
+        '''
+
+
     
     def __readNcaaGames(self, ncaaSeason, week):
         self.logger.info("Reading NCAA Games...")
