@@ -66,6 +66,38 @@ export class PlayerComponent implements OnInit {
     }
   }
 
+  gameStatusDescriptionFull(gameScoreboard: GameScoreboard) : string
+  {
+    switch ( gameScoreboard.gameState )
+    {
+        case GameStates.Cancelled:
+            return "CANCELLED";
+
+        case GameStates.Final:
+            return "FINAL";
+
+        case GameStates.InGame:
+
+            let periodRegEx = new RegExp("^[0-9]");
+
+            let timeClockAndPeriod = ""
+
+            if (gameScoreboard.gameCurrentPeriod.length > 0 && periodRegEx.test(gameScoreboard.gameCurrentPeriod))
+            {
+                let timeParts = gameScoreboard.gameTimeClock.split(":")
+                let justMinuteSeconds = timeParts[1] + ":" + timeParts[2];
+                timeClockAndPeriod += justMinuteSeconds + " - ";
+            }
+
+            return timeClockAndPeriod += gameScoreboard.gameCurrentPeriod;
+
+        case GameStates.SpreadLocked:
+        case GameStates.SpreadNotSet:
+            return formatDate(gameScoreboard.gameStart, "EEEE - M/d - h:mm a", "en-US");
+    }
+    return null;
+  }
+
   gameStatusDescriptionFirstPart(gameScoreboard: GameScoreboard) : string
   {
     switch ( gameScoreboard.gameState )

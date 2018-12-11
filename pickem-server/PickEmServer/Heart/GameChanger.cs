@@ -30,8 +30,7 @@ namespace PickEmServer.Heart
 
             // goofy way to check if anything changed.
             if (
-                _game.LastUpdated != gameUpdates.LastUpdated
-                ||
+                // NOTE: not considering a last updated change an update by itself
                 _game.CurrentPeriod != gameUpdates.CurrentPeriod
                 ||
                 _game.TimeClock != gameUpdates.TimeClock

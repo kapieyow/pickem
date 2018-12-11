@@ -102,33 +102,6 @@ namespace PickEmServer.Heart
             return await this.ReadGame(newGame.GameId);
         }
 
-        public string BuildGameDescription(GameData gameData)
-        {
-            switch ( gameData.GameState )
-            {
-                case GameStates.Cancelled:
-                    return "Cancelled";
-
-                case GameStates.Final:
-                    return "Final";
-
-                case GameStates.InGame:
-                    if (gameData.CurrentPeriod.Length > 0 && Regex.IsMatch(gameData.CurrentPeriod, "^[0-9]"))
-                    {
-                        var timeClockFormatted = gameData.TimeClock.ToString(@"mm\:ss");
-                        return $"{timeClockFormatted} - {gameData.CurrentPeriod}";
-                    }
-                    else
-                        return gameData.CurrentPeriod;
-
-                case GameStates.SpreadLocked:
-                case GameStates.SpreadNotSet:
-                    return gameData.GameStart.ToString("dddd, M/d - hh:mm tt");
-            }
-            return null;
-        }
-
-
         internal async Task<Game> LockSpread(int gameId)
         {
             using (var dbSession = _documentStore.LightweightSession())

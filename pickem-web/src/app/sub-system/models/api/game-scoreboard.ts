@@ -11,7 +11,6 @@ export class GameScoreboard
     awayTeamWins: number;
     gameCurrentPeriod: string;
     gameStart: Date;
-    gameStatusDescription: string;
     gameState: GameStates;
     gameTimeClock: string;
     gameTitle: string;
