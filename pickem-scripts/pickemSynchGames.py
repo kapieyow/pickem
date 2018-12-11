@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime
 import json
 import pickemLogger
 import pickemApiClient
@@ -11,6 +12,9 @@ URL_WEEK_TOKEN = "{WeekNumber}"
 NCAA_DOMAIN_URL = "http://data.ncaa.com"
 NCAA_BASE_DATA_URL = "https://data.ncaa.com/casablanca/scoreboard/football/fbs/" + URL_SEASON_TOKEN + "/" + URL_WEEK_TOKEN + "/scoreboard.json"
 
+class Jsonable:
+	def toJSON(self):
+        	return json.dumps(self, default=lambda o: o.__dict__)
 
 class PickemSynchGamesHandler:
     def __init__(self, apiClient, logger):
@@ -47,8 +51,34 @@ class PickemSynchGamesHandler:
                 self.logger.info("Updated (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
 
             elif ( gameSource == "espn" ):
-                self.__readEspnGames()
-                self.logger.error("FULLY IMPL espn update")
+                espnGames = self.__readEspnGames()
+
+                # loop through pickem games and match to espn
+                for pickemGame in pickemGames:
+                    pickemGameId = str(pickemGame['gameId'])
+                    if ( pickemGameId in espnGames ):
+                        matchedEspnGame = espnGames[pickemGameId]
+                        # if no game state change (is before game start)
+                        # pass back pickem state which will have spread status etc.
+                        if ( matchedEspnGame.gameState == None ):
+                            matchedEspnGame.gameState = pickemGame['gameState']
+
+                        self.apiClient.updateGame(
+                            matchedEspnGame.gameId,
+                            matchedEspnGame.gameStart,
+                            matchedEspnGame.lastUpdated,
+                            matchedEspnGame.gameState,
+                            matchedEspnGame.currentPeriod,
+                            matchedEspnGame.timeClock,
+                            matchedEspnGame.awayTeamScore,
+                            matchedEspnGame.homeTeamScore,
+                            None
+                        )
+                        gamesModified += 1
+                    else:
+                        self.logger.info("Pick'em game id (" + str(pickemGameId) + ") not found in the ESPN game data")
+
+                self.logger.info("Updated (" + str(gamesModified) + ") games from ESPN data for week (" + str(weekNumber) + ")")
 
             else:
                 self.logger.error("Game source (" + gameSource + ") is not supported for game synchs where the -action is update")
@@ -75,8 +105,7 @@ class PickemSynchGamesHandler:
 
     def __readEspnGames(self):
         # TODO : this could be better
-        #url = "http://www.espn.com/college-football/scoreboard/_/group/80/year/2018/seasontype/3/week/1"
-        url = "http://www.espn.com/college-football/scoreboard/_/group/80/year/2018/seasontype/2/week/14"
+        url = "http://www.espn.com/college-football/scoreboard/_/group/80/year/2018/seasontype/3/week/1"
 
         espnHtml = self.apiClient.getHtml(url)
 
@@ -86,38 +115,63 @@ class PickemSynchGamesHandler:
         gamesJsonString = match.group(1)
         gamesJson = json.loads(gamesJsonString)
 
-        for event in gamesJson['events']:            
-            self.logger.debug("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
-            self.logger.debug("=- shortName " + event['shortName'])
-            self.logger.debug("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
-            self.logger.debug("gameId = " + event['id'])
-            self.logger.debug("gameStart = " + event['competitions'][0]['startDate'])
-            self.logger.debug("lastUpdated =  ummm hmm.... ")
-            self.logger.debug("gameState = " + event['status']['type']['state'])
-            self.logger.debug("currentPeriod = " + str(event['status']['period']))
-            self.logger.debug("timeClock = " + event['status']['displayClock'])
-            self.logger.debug("gameTitle = None")
+        espnGames = dict()
 
+        for event in gamesJson['events']:           
+
+            # this isn't used to pickem API, but is for script logging
+            shortName = event['shortName']
+
+            espnGameData = Jsonable()
+
+            espnGameData.gameId = event['id']
+            espnGameData.gameStart = event['competitions'][0]['startDate']
+            espnGameData.lastUpdated = datetime.datetime.now().isoformat()
+
+            espnGameState = event['status']['type']['state']
+            if ( espnGameState == "pre" ):
+                # game has not started don't mess with spread set or not status
+                espnGameData.gameState = None
+            elif ( espnGameState == "in" ):
+                espnGameData.gameState = "InGame"
+            elif ( espnGameState == "post" ):
+                espnGameData.gameState = "Final"
+            else:
+                # In game?
+                self.logger.warn("Unhandled ESPN game state (" + espnGameState + ") defaulting to InGame. " + shortName)
+                espnGameData.gameState = "InGame"
+
+            espnPeriodNumber = event['status']['period']
+            if ( espnPeriodNumber == 1 ):
+                espnGameData.currentPeriod = "1st"
+            elif ( espnPeriodNumber == 2 ):
+                espnGameData.currentPeriod = "2nd"
+            elif ( espnPeriodNumber == 3 ):
+                espnGameData.currentPeriod = "3rd"
+            elif ( espnPeriodNumber == 4 ):
+                espnGameData.currentPeriod = "4th"
+            else:
+                espnGameData.currentPeriod = str(espnPeriodNumber)
+
+            # note pickem api expects 00:00:00 espn is just the min:sec 00:00
+            espnGameData.timeClock = "00:" + event['status']['displayClock']
+            espnGameData.gameTitle = None
+
+            espnGameData.awayTeamScore = 0
+            espnGameData.homeTeamScore = 0
             for competitor in event['competitions'][0]['competitors']:
                 if ( competitor['homeAway'] == "away" ):
-                    self.logger.debug("awayTeamScore = " + competitor['score'])
+                    espnGameData.awayTeamScore = competitor['score']
                 elif ( competitor['homeAway'] == "home" ):
-                    self.logger.debug("homeTeamScore = " + competitor['score'])
-        '''
-        updateGame(
-            self, 
-            gameId,  =id
-            gameStart, =date || =competitions[0]/startDate
-            lastUpdated, {now}
-            gameState, =status/type/state 
-            currentPeriod, =status/period
-            timeClock, =status/displayClock
-            awayTeamScore, =competitions[0]/competitors(homeAway='away')/score
-            homeTeamScore, =competitions[0]/competitors(homeAway='home')/score
-            gameTitle
-            ):
-        '''
+                    espnGameData.homeTeamScore = competitor['score']
 
+            self.logger.debug("==> " + event['shortName'])
+            self.logger.debug(espnGameData.toJSON())
+
+            # add to dictionary with game id as the key
+            espnGames[espnGameData.gameId] = espnGameData
+
+        return espnGames
 
     
     def __readNcaaGames(self, ncaaSeason, week):
