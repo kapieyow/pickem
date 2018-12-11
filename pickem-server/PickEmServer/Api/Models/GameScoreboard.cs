@@ -18,7 +18,6 @@ namespace PickEmServer.Api.Models
         public int GameId { get; internal set; }
         public DateTime GameStart { get; internal set; }
         public GameStates GameState { get; internal set; }
-        public string GameStatusDescription { get; internal set; }
         public TimeSpan GameTimeClock { get; internal set; }
         public string GameTitle { get; internal set; }
         public string HomeTeamIconFileName { get; internal set; }
