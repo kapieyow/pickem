@@ -6,6 +6,8 @@ import pickemApiClient
 import re
 import requests
 import time
+from dateutil.parser import parse
+import pytz
 
 URL_SEASON_TOKEN = "{SeasonCode}"
 URL_WEEK_TOKEN = "{WeekNumber}"
@@ -95,7 +97,7 @@ class PickemSynchGamesHandler:
         neutralField = "false"
         awayTeamCode = responseJson['away']['names']['seo']
         homeTeamCode = responseJson['home']['names']['seo']
-        gameStart = self.__extractGameStart(responseJson['status']['startTimeEpoch'])
+        gameStart = self.__extractNcaaGameStartToUtc(responseJson['status']['startTimeEpoch'])
 
         try:
             self.apiClient.insertGame(pickemSeasonCode, weekNumber, gameId, gameStart, None, neutralField, awayTeamCode, homeTeamCode)
@@ -201,11 +203,12 @@ class PickemSynchGamesHandler:
         # TODO making several URL assumptions here e.g. "fbs"
         url = NCAA_DOMAIN_URL + "/casablanca/game/football/fbs/" + str(ncaaSeason) + "/"
 
-        # TODO fix this terrible "date" parsing. Example date value "2017-09-02T19:30:00"
-        dateParts = pickemGameJson['gameStart'].split("T")[0].split("-")
+        # dates in database are UTC. NCAA is ET based. 
+        startDateUtc = parse(pickemGameJson['gameStart'])
+        startDateEt = startDateUtc.astimezone(pytz.timezone('US/Eastern'))
 
-        # append month/day
-        url = url + dateParts[1] + "/" + dateParts[2] + "/"
+        # append zero padded month/day to url
+        url = url + "{0:02d}".format(startDateEt.month) + "/" +  "{0:02d}".format(startDateEt.day) + "/"
         # append away team ncaa code "-" home team ncaa code
         url = url + pickemGameJson['awayTeam']['team']['teamCode'] + "-" + pickemGameJson['homeTeam']['team']['teamCode'] + "/"
         url = url + "gameInfo.json"
@@ -235,7 +238,7 @@ class PickemSynchGamesHandler:
             self.logger.warn("Unhandled NCAA game state (" + ncaaGameState + ") defaulting to InGame. " + url)
             gameState = "InGame"
         
-        gameStart = self.__extractGameStart(responseJson['status']['startTimeEpoch'])
+        gameStart = self.__extractNcaaGameStartToUtc(responseJson['status']['startTimeEpoch'])
         lastUpdated = responseJson['status']['updatedTimestamp']
         currentPeriod = responseJson['status']['currentPeriod']
         ncaaTimeClock = responseJson['status']['clock']
@@ -259,9 +262,9 @@ class PickemSynchGamesHandler:
         except requests.exceptions.HTTPError:
             return False
 
-    def __extractGameStart(self, startTimeEpoch):
+    def __extractNcaaGameStartToUtc(self, startTimeEpoch):
         epochStartInt = int(startTimeEpoch)
-        gameStart = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epochStartInt))
+        gameStart = time.strftime('%Y-%m-%d %H:%M:%SZ', time.gmtime(epochStartInt))
         return gameStart
 
 
