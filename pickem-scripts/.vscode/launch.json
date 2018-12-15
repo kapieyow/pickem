@@ -15,14 +15,20 @@
                 "TEST_TITLE"
             ]
         },{
-            "name": "new synch_games",
+            "name": "synch_games",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/pickem.py",
             "args": [
                 "synch_games",
                 "-a",
-                "update"
+                "u",
+                "-psc",
+                "18",
+                "-nsc",
+                "2018", 
+                "-w",
+                "16"
             ]
         },
         {
@@ -41,55 +47,6 @@
                 "2954451",
                 "2953394",
                 "2953905"
-            ]
-        },
-        {
-            "name": "week setup - py",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/pickem-setup-week.py",
-            "args": [
-                "-l",
-                "NeOnYa",
-                "-w",
-                "3"
-            ]
-        },
-        {
-            "name": "spreada - py",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/pickem-spread-loader.py",
-            "args": [
-                "-ps",
-                "18",
-                "-w",
-                "1"
-            ]
-        },
-        {
-            "name": "new - team updater",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/pickem.py",
-            "args": [
-                "update_teams"
-            ]
-        },
-        {
-            "name": "updater s18 w5 - py",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/pickem-game-syncher.py",
-            "args": [
-                "-ns",
-                "2018",
-                "-ps",
-                "18",
-                "-w",
-                "5",
-                "-a",
-                "update"
             ]
         },
         {
