@@ -65,6 +65,16 @@ class PickemSynchGamesHandler:
                         if ( matchedEspnGame.gameState == None ):
                             matchedEspnGame.gameState = pickemGame['gameState']
 
+                        # TODO : HACK CITY cut this
+                        if ( pickemGameId == "401032054" ):
+                            self.logger.warn("Flipping away and home for game id: " + pickemGameId)
+                            awayTeamScore = matchedEspnGame.homeTeamScore
+                            homeTeamScore = matchedEspnGame.awayTeamScore
+                        else:
+                            awayTeamScore = matchedEspnGame.awayTeamScore
+                            homeTeamScore = matchedEspnGame.homeTeamScore
+                        
+
                         self.apiClient.updateGame(
                             matchedEspnGame.gameId,
                             matchedEspnGame.gameStart,
@@ -72,8 +82,8 @@ class PickemSynchGamesHandler:
                             matchedEspnGame.gameState,
                             matchedEspnGame.currentPeriod,
                             matchedEspnGame.timeClock,
-                            matchedEspnGame.awayTeamScore,
-                            matchedEspnGame.homeTeamScore,
+                            awayTeamScore,
+                            homeTeamScore,
                             None
                         )
                         gamesModified += 1
@@ -205,6 +215,13 @@ class PickemSynchGamesHandler:
 
         # dates in database are UTC. NCAA is ET based. 
         startDateUtc = parse(pickemGameJson['gameStart'])
+
+        # TODO: gut this hack for old data.
+        if ( startDateUtc.tzinfo == None ):
+            self.logger.warn("Found start date in pickem data with no timezone. Game Id: " + str(pickemGameJson['gameId']) + ". Hacking to correct.")
+            # no timezone in data. This shouldn't happen moving forward, if it does it old old ET db data (pre-2.1 it may)
+            startDateUtc = pytz.timezone('US/Eastern').localize(startDateUtc)
+
         startDateEt = startDateUtc.astimezone(pytz.timezone('US/Eastern'))
 
         # append zero padded month/day to url
