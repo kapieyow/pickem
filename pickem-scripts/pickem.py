@@ -13,7 +13,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "2.0.31"
+VERSION = "2.0.32"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals
@@ -60,13 +60,13 @@ def synchGames(args):
     synchGamesHandler = pickemSynchGames.PickemSynchGamesHandler(apiClient, logger)
 
     if ( args.loop_every_sec == None ):
-        synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week, args.game_source)
+        synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week, args.game_source, args.dump_json)
     else:
         runCount = 0
         failCount = 0
         while(True): # for eva .. eva?
             try:
-                synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week, args.game_source)
+                synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week, args.game_source, args.dump_json)
             except:
                 failCount = failCount + 1
            
@@ -135,6 +135,7 @@ def setupArgumentParsers():
     subParser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
     subParser.add_argument('-gs', '--game_source', nargs='?', const='ncaa', default='ncaa', choices=['ncaa', 'espn'])
     subParser.add_argument('-les', '--loop_every_sec', type=int, required=False, help='Seconds to pause between loops')
+    subParser.add_argument('-dj', '--dump_json', action='store_true', help='Use to dump source data as json with timestamp')
     subParser.set_defaults(func=synchGames)
 
     # -- update_game sub-command
