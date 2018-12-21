@@ -23,16 +23,16 @@ class PickemSynchGamesHandler:
         self.apiClient = apiClient
         self.logger = logger
 
-    def Run(self, actionCode, ncaaSeason, pickemSeason, weekNumber, gameSource):
+    def Run(self, actionCode, ncaaSeason, pickemSeason, weekNumber, gameSource, dumpJson):
 
         gamesModified = 0
         if ( actionCode == "insert" or actionCode == "i" ):
 
             if ( gameSource == "ncaa" ):
-                gameUrls = self.__readNcaaGames(ncaaSeason, weekNumber)
+                gameUrls = self.__readNcaaGames(ncaaSeason, weekNumber, dumpJson)
 
                 for gameUrl in gameUrls:
-                    if ( self.__insertNcaaGame(gameUrl, pickemSeason, weekNumber) ):
+                    if ( self.__insertNcaaGame(gameUrl, pickemSeason, weekNumber, dumpJson) ):
                         gamesModified += 1
                         
                 self.logger.info("Loaded (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
@@ -47,13 +47,13 @@ class PickemSynchGamesHandler:
 
             if ( gameSource == "ncaa" ):
                 for pickemGame in pickemGames:
-                    if ( self.__updateNcaaGameFromCasablanca(pickemGame, ncaaSeason, pickemSeason) ):
+                    if ( self.__updateNcaaGameFromCasablanca(pickemGame, ncaaSeason, pickemSeason, dumpJson) ):
                         gamesModified += 1
 
                 self.logger.info("Updated (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
 
             elif ( gameSource == "espn" ):
-                espnGames = self.__readEspnGames()
+                espnGames = self.__readEspnGames(dumpJson)
 
                 # loop through pickem games and match to espn
                 for pickemGame in pickemGames:
@@ -65,16 +65,6 @@ class PickemSynchGamesHandler:
                         if ( matchedEspnGame.gameState == None ):
                             matchedEspnGame.gameState = pickemGame['gameState']
 
-                        # TODO : HACK CITY cut this
-                        if ( pickemGameId == "401032054" ):
-                            self.logger.warn("Flipping away and home for game id: " + pickemGameId)
-                            awayTeamScore = matchedEspnGame.homeTeamScore
-                            homeTeamScore = matchedEspnGame.awayTeamScore
-                        else:
-                            awayTeamScore = matchedEspnGame.awayTeamScore
-                            homeTeamScore = matchedEspnGame.homeTeamScore
-                        
-
                         self.apiClient.updateGame(
                             matchedEspnGame.gameId,
                             matchedEspnGame.gameStart,
@@ -82,8 +72,8 @@ class PickemSynchGamesHandler:
                             matchedEspnGame.gameState,
                             matchedEspnGame.currentPeriod,
                             matchedEspnGame.timeClock,
-                            awayTeamScore,
-                            homeTeamScore,
+                            matchedEspnGame.awayTeamScore,
+                            matchedEspnGame.homeTeamScore,
                             None
                         )
                         gamesModified += 1
@@ -98,10 +88,20 @@ class PickemSynchGamesHandler:
         else:
             self.logger.wtf("Unhandled action (a) parameter (" + actionCode + ") why didn't the argparser catch it?")
 
-    def __insertNcaaGame(self, gameUrlPath, pickemSeasonCode, weekNumber):
+    def __dumpJsonToFile(self, filePrefix, jsonData):
+        outputFileName = filePrefix + "_" + datetime.datetime.now().strftime('%Y%m%d-%H%M%S.%f') + ".json"
+        prettyJson = json.dumps(jsonData, indent=4)
+        outputFile = open(outputFileName, "w")
+        outputFile.write(prettyJson)
+        self.logger.debug("Dumped json to: " + outputFileName)
+
+    def __insertNcaaGame(self, gameUrlPath, pickemSeasonCode, weekNumber, dumpJson):
         url = NCAA_DOMAIN_URL + "/casablanca" + gameUrlPath + "/gameInfo.json"
 
         responseJson = self.apiClient.getApi(url, "")
+
+        if ( dumpJson ):
+            self.__dumpJsonToFile("ncaa_gameInfo_", responseJson)
 
         gameId = responseJson['id']
         neutralField = "false"
@@ -115,7 +115,7 @@ class PickemSynchGamesHandler:
         except requests.exceptions.HTTPError:
             return False
 
-    def __readEspnGames(self):
+    def __readEspnGames(self, dumpJson):
         # TODO : this could be better
         url = "http://www.espn.com/college-football/scoreboard/_/group/80/year/2018/seasontype/3/week/1"
 
@@ -126,6 +126,9 @@ class PickemSynchGamesHandler:
 
         gamesJsonString = match.group(1)
         gamesJson = json.loads(gamesJsonString)
+
+        if ( dumpJson ):
+            self.__dumpJsonToFile("espn_scoreboardData_", gamesJson)
 
         espnGames = dict()
 
@@ -186,7 +189,7 @@ class PickemSynchGamesHandler:
         return espnGames
 
     
-    def __readNcaaGames(self, ncaaSeason, week):
+    def __readNcaaGames(self, ncaaSeason, week, dumpJson):
         self.logger.info("Reading NCAA Games...")
 
         url = NCAA_BASE_DATA_URL
@@ -197,6 +200,9 @@ class PickemSynchGamesHandler:
             url = url.replace(URL_WEEK_TOKEN, str(week))
 
         responseJson = self.apiClient.getApi(url, "")
+        
+        if ( dumpJson ):
+            self.__dumpJsonToFile("ncaa_scoreboard_", responseJson)
 
         games = list()
 
@@ -208,7 +214,7 @@ class PickemSynchGamesHandler:
         return games
 
     
-    def __updateNcaaGameFromCasablanca(self, pickemGameJson, ncaaSeason, pickemSeason):
+    def __updateNcaaGameFromCasablanca(self, pickemGameJson, ncaaSeason, pickemSeason, dumpJson):
 
         # TODO making several URL assumptions here e.g. "fbs"
         url = NCAA_DOMAIN_URL + "/casablanca/game/football/fbs/" + str(ncaaSeason) + "/"
@@ -218,9 +224,9 @@ class PickemSynchGamesHandler:
 
         # TODO: gut this hack for old data.
         if ( startDateUtc.tzinfo == None ):
-            self.logger.warn("Found start date in pickem data with no timezone. Game Id: " + str(pickemGameJson['gameId']) + ". Hacking to correct.")
-            # no timezone in data. This shouldn't happen moving forward, if it does it old old ET db data (pre-2.1 it may)
-            startDateUtc = pytz.timezone('US/Eastern').localize(startDateUtc)
+            failureMessage = "Found start date in pickem data with no timezone. Game Id: " + str(pickemGameJson['gameId'])
+            self.logger.error(failureMessage)
+            raise Exception(failureMessage)
 
         startDateEt = startDateUtc.astimezone(pytz.timezone('US/Eastern'))
 
@@ -231,6 +237,9 @@ class PickemSynchGamesHandler:
         url = url + "gameInfo.json"
 
         responseJson = self.apiClient.getApi(url, "")
+
+        if ( dumpJson ):
+            self.__dumpJsonToFile("ncaa_gameInfo_", responseJson)
 
         # game state
         ncaaGameState = responseJson['status']['gameState'] # pre, cancelled, canceled, final, live, delayed
