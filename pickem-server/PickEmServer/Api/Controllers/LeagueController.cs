@@ -63,6 +63,15 @@ namespace PickEmServer.Api.Controllers
             return await _leagueService.SetPlayer(LeagueCode, UserName, playerUpdate);
         }
 
+        [HttpPut]
+        [Route("api/{LeagueCode}/players/")]
+        public async Task<Player> PutPlayer(string LeagueCode, [FromBody] PlayerUpdate playerUpdate)
+        {
+            var leaguePlayer = await _leagueService.ReadLeaguePlayer(LeagueCode, this.User.Identity.Name);
+
+            return await _leagueService.SetPlayer(LeagueCode, leaguePlayer.UserName, playerUpdate);
+        }
+
         [Authorize]
         [HttpGet]
         [Route("api/{LeagueCode}/{WeekNumber}/scoreboard")]
