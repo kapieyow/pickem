@@ -143,17 +143,19 @@ class PickemSynchGamesHandler:
             espnGameData.gameStart = event['competitions'][0]['startDate']
             espnGameData.lastUpdated = datetime.datetime.now().isoformat()
 
-            espnGameState = event['status']['type']['state']
-            if ( espnGameState == "pre" ):
+            espnGameStateCode = event['status']['type']['name']
+            if ( espnGameStateCode == "STATUS_SCHEDULED" ):
                 # game has not started don't mess with spread set or not status
                 espnGameData.gameState = None
-            elif ( espnGameState == "in" ):
+            elif ( espnGameStateCode == "STATUS_IN_PROGRESS" ):
                 espnGameData.gameState = "InGame"
-            elif ( espnGameState == "post" ):
+            elif ( espnGameStateCode == "STATUS_CANCELED" ):
+                espnGameData.gameState = "Cancelled"
+            elif ( espnGameStateCode == "STATUS_FINAL" ):
                 espnGameData.gameState = "Final"
             else:
                 # In game?
-                self.logger.warn("Unhandled ESPN game state (" + espnGameState + ") defaulting to InGame. " + shortName)
+                self.logger.warn("Unhandled ESPN game state (" + espnGameStateCode + ") defaulting to InGame. " + shortName)
                 espnGameData.gameState = "InGame"
 
             espnPeriodNumber = event['status']['period']
