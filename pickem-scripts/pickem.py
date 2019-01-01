@@ -13,7 +13,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "2.0.33"
+VERSION = "2.0.34"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals
@@ -30,6 +30,16 @@ apiClient = None
 #=====================================
 # sub command methods
 #=====================================
+
+# TODO: this is a one time run. Delete after in prod.
+def setupBowls(args):
+    
+    pickemSeasonCode = "18"
+
+    weekNumber = 20
+    apiClient.insertGame(pickemSeasonCode, weekNumber, 401032087, "2019-01-07T20:00:00.000Z", "College Football Playoff National Championship Presented By AT&T", "false", "clemson", "alabama")
+
+    logger.info("18 Bowl Championship setup!")
 
 def setLeagueGame(args):
     gamesSet = 0
@@ -157,6 +167,11 @@ def setupArgumentParsers():
     subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.add_argument('-rs', '--rankings_source', nargs='?', const='ap', default='ap', choices=['ap', 'cfp'])
     subParser.set_defaults(func=updateTeams)
+
+    # -- This is a ONE TIME setup script for the 2018 bowl season
+    # TODO: trash after is in prod
+    subParser = subArgParsers.add_parser('_setup_18_champ')
+    subParser.set_defaults(func=setupBowls)
 
     return argParser
 
