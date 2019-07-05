@@ -13,7 +13,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "2.0.34"
+VERSION = "3.0.0"
 PICKEM_INI = "pickem-settings.ini"
 
 # globals
@@ -70,13 +70,15 @@ def synchGames(args):
     synchGamesHandler = pickemSynchGames.PickemSynchGamesHandler(apiClient, logger)
 
     if ( args.loop_every_sec == None ):
-        synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week, args.game_source, args.dump_json)
+         # TODO: cut week
+        synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week, args.round, args.game_source, args.dump_json)
     else:
         runCount = 0
         failCount = 0
         while(True): # for eva .. eva?
             try:
-                synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week, args.game_source, args.dump_json)
+                # TODO: cut week
+                synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week, args.round, args.game_source, args.dump_json)
             except:
                 failCount = failCount + 1
            
@@ -141,6 +143,8 @@ def setupArgumentParsers():
     subParser = subArgParsers.add_parser('synch_games')
     subParser.add_argument('-psc', '--pickem_season_code', type=str, required=True, help='Pickem Season Code')
     subParser.add_argument('-nsc', '--ncaa_season_code', type=str, required=True, help='NCAA Season Code')
+    subParser.add_argument('-r', '--round', type=str, required=True, help='Round Identifier')
+    # TODO : replace week number with round identifier
     subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
     subParser.add_argument('-gs', '--game_source', nargs='?', const='ncaa', default='ncaa', choices=['ncaa', 'espn'])

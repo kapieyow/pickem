@@ -23,7 +23,8 @@ class PickemSynchGamesHandler:
         self.apiClient = apiClient
         self.logger = logger
 
-    def Run(self, actionCode, ncaaSeason, pickemSeason, weekNumber, gameSource, dumpJson):
+    # TODO: cut weekNumber and use roundIdentifier instead
+    def Run(self, actionCode, ncaaSeason, pickemSeason, weekNumber, roundIdentifier, gameSource, dumpJson):
 
         gamesModified = 0
         if ( actionCode == "insert" or actionCode == "i" ):
@@ -37,8 +38,36 @@ class PickemSynchGamesHandler:
                         
                 self.logger.info("Loaded (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
             else:
+                pickemTeams = self.apiClient.readPickemTeams()
+                espnGames = self.__readEspnGames(roundIdentifier, dumpJson)
+
+                for espnGameId in espnGames:
+
+                    espnGame = espnGames[espnGameId]
+
+                    # match to team
+                    matchedAwayPickemTeam = self.__findPickemTeamByShortName(pickemTeams, espnGame.awayTeamAbbreviation)
+                    matchedHomePickemTeam = self.__findPickemTeamByShortName(pickemTeams, espnGame.homeTeamAbbreviation)
+
+                    if ( matchedAwayPickemTeam == None ):
+                        self.logger.warn("No Pickem team for espn away team (" + espnGame.awayTeamAbbreviation + ") - (" + espnGame.awayTeamDisplayName + ")")
+                    elif ( matchedHomePickemTeam == None ):
+                        self.logger.warn("No Pickem team for espn away team (" + espnGame.homeTeamAbbreviation + ") - (" + espnGame.homeTeamDisplayName + ")")
+                    else:
+                        self.apiClient.insertGame(
+                            pickemSeason, 
+                            weekNumber, 
+                            espnGame.gameId, 
+                            espnGame.gameStart, 
+                            None, 
+                            espnGame.neutralSite, 
+                            matchedAwayPickemTeam.teamCode, 
+                            matchedHomePickemTeam.teamCode
+                            )
+                        gamesModified += 1
+
                 # TODO : implement this
-                self.logger.error("Game source (" + gameSource + ") is not supported for game synchs where the -action is insert")
+                self.logger.info("Added (" + str(gamesModified) + ") games for season (" + str(ncaaSeason) + ") round (" + str(roundIdentifier) + ")")
         
         elif ( actionCode == "update" or actionCode == "u" ):
 
@@ -53,7 +82,7 @@ class PickemSynchGamesHandler:
                 self.logger.info("Updated (" + str(gamesModified) + ") games for NCAA season (" + str(ncaaSeason) + ") week (" + str(weekNumber) + ")")
 
             elif ( gameSource == "espn" ):
-                espnGames = self.__readEspnGames(dumpJson)
+                espnGames = self.__readEspnGames(roundIdentifier, dumpJson)
 
                 # loop through pickem games and match to espn
                 for pickemGame in pickemGames:
@@ -95,6 +124,15 @@ class PickemSynchGamesHandler:
         outputFile.write(prettyJson)
         self.logger.debug("Dumped json to: " + outputFileName)
 
+    def __findPickemTeamByShortName(self, pickemTeams, shortName):
+        # prolly a betta way
+        for pickemTeam in pickemTeams:
+            if ( pickemTeam['shortName'] == shortName ):
+                return pickemTeam
+
+        # not found
+        return None
+
     def __insertNcaaGame(self, gameUrlPath, pickemSeasonCode, weekNumber, dumpJson):
         url = NCAA_DOMAIN_URL + "/casablanca" + gameUrlPath + "/gameInfo.json"
 
@@ -115,9 +153,10 @@ class PickemSynchGamesHandler:
         except requests.exceptions.HTTPError:
             return False
 
-    def __readEspnGames(self, dumpJson):
-        # TODO : this could be better
-        url = "http://www.espn.com/college-football/scoreboard/_/group/80/year/2018/seasontype/3/week/1"
+    def __readEspnGames(self, roundIdentifier, dumpJson):
+        # TODO : round identifier hacked in for NCAAM
+        #       as is the mens-college-basketball etc, make work for football too
+        url = "http://www.espn.com/mens-college-basketball/scoreboard/_/group/100/date/" + roundIdentifier
 
         espnHtml = self.apiClient.getHtml(url)
 
@@ -141,8 +180,12 @@ class PickemSynchGamesHandler:
 
             espnGameData.gameId = event['id']
             espnGameData.gameStart = event['competitions'][0]['startDate']
+            espnGameData.neutralSite = event['competitions'][0]['neutralSite']
             espnGameData.lastUpdated = datetime.datetime.now().isoformat()
 
+            # TODO: may not be the first note?
+            espnGameData.headline = event['competitions'][0]['notes'][0]['headline']
+            
             espnGameStateCode = event['status']['type']['name']
             if ( espnGameStateCode == "STATUS_SCHEDULED" ):
                 # game has not started don't mess with spread set or not status
@@ -178,8 +221,12 @@ class PickemSynchGamesHandler:
             espnGameData.homeTeamScore = 0
             for competitor in event['competitions'][0]['competitors']:
                 if ( competitor['homeAway'] == "away" ):
+                    espnGameData.awayTeamAbbreviation = competitor['team']['abbreviation']
+                    espnGameData.awayTeamDisplayName = competitor['team']['displayName']
                     espnGameData.awayTeamScore = competitor['score']
                 elif ( competitor['homeAway'] == "home" ):
+                    espnGameData.homeTeamAbbreviation = competitor['team']['abbreviation']
+                    espnGameData.homeTeamDisplayName = competitor['team']['displayName']
                     espnGameData.homeTeamScore = competitor['score']
 
             self.logger.debug("==> " + event['shortName'])
