@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '../../../node_modules/@angular/router';
-import { Observable, forkJoin, EMPTY } from 'rxjs';
-import { of } from 'rxjs/observable/of';
+import { Observable, forkJoin, EMPTY ,  of } from 'rxjs';
 import { switchMap, debounceTime, map, retryWhen, tap, delay, catchError } from "rxjs/operators";
 
 import { environment } from '../../environments/environment';

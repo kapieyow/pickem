@@ -1,13 +1,8 @@
-﻿using FluentValidation.Attributes;
+﻿using FluentValidation;
 using PickEmServer.Api.Models.Validators;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace PickEmServer.Api.Models
 {
-    [Validator(typeof(UserCredentialsValidator))]
     public class UserCredentials
     {
         public string UserName { get; set; }
