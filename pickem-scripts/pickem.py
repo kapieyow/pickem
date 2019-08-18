@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
- 
+
+#=================================================
+# Pickem CLI - Handles command line input 
+# parsing then hands of to core and/or handlers
+# Not intended to have any logic.
+#================================================= 
 import argparse
-import configparser
 import time
 import pickemCore
 import pickemSynchGames
@@ -15,52 +19,26 @@ VERSION = "2.1.35"
 # sub command methods
 #=====================================
 
-# TODO: this is a one time run. Delete after in prod.
-def setupBowls(args):
-    
-    pickemSeasonCode = "18"
-
-    weekNumber = 20
-    core.apiClient.insertGame(pickemSeasonCode, weekNumber, 401032087, "2019-01-07T20:00:00.000Z", "College Football Playoff National Championship Presented By AT&T", "false", "clemson", "alabama")
-
-    core.logger.info("18 Bowl Championship setup!")
-
 def setLeagueGame(args):
-    gamesSet = 0
-
-    for leagueCode in args.league_codes:
-        core.apiClient.setLeagueGame(leagueCode, args.week, args.game_id, args.game_win_points)
-        gamesSet = gamesSet + 1
-
-        core.logger.info("Set (" + str(gamesSet) + ") games for league (" + leagueCode + ") in week (" + str(args.week) + ")")
+    core.setLeagueGame(args.league_codes, args.week, args.game_id, args.game_win_points)
 
 def setLeagueGames(args):
-    gamesSet = 0
-
-    for leagueCode in args.league_codes:
-        for gameId in args.game_ids:
-            # no win points can be sent in, when setting multiple games at a time, so default to "1"
-            core.apiClient.setLeagueGame(leagueCode, args.week, gameId, 1)
-            gamesSet = gamesSet + 1
-
-        core.logger.info("Set (" + str(gamesSet) + ") games for league (" + leagueCode + ") in week (" + str(args.week) + ")")
+    core.setLeagueGames(args.league_codes, args.week, args.game_ids)
 
 def setupLeagueWeek(args):
-    for leagueCode in args.league_codes:
-        core.apiClient.updateLeague(leagueCode, args.week)
-        core.logger.info("Set week to (" + str(args.week) + ") for league (" + leagueCode + ")")
+    core.setupLeagueWeek(args.league_codes, args.week)
 
 def synchGames(args):
     synchGamesHandler = pickemSynchGames.PickemSynchGamesHandler(core.apiClient, core.logger)
 
     if ( args.loop_every_sec == None ):
-        synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week, args.game_source, args.dump_json)
+        synchGamesHandler.Run(args.action, args.espn_season_code, args.pickem_season_code, args.week, args.dump_json)
     else:
         runCount = 0
         failCount = 0
         while(True): # for eva .. eva?
             try:
-                synchGamesHandler.Run(args.action, args.ncaa_season_code, args.pickem_season_code, args.week, args.game_source, args.dump_json)
+                synchGamesHandler.Run(args.action, args.espn_season_code, args.pickem_season_code, args.week, args.dump_json)
             except:
                 failCount = failCount + 1
            
@@ -115,11 +93,10 @@ def setupArgumentParsers():
 
     # -- synch_games sub-command
     subParser = subArgParsers.add_parser('synch_games')
-    subParser.add_argument('-psc', '--pickem_season_code', type=str, required=True, help='Pickem Season Code')
-    subParser.add_argument('-nsc', '--ncaa_season_code', type=str, required=True, help='NCAA Season Code')
+    subParser.add_argument('-psc', '--pickem_season_code', type=str, required=True, help='Pickem Season Code (YY)')
+    subParser.add_argument('-esc', '--espn_season_code', type=str, required=True, help='Espn Season Code (YYYY)')
     subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.add_argument('-a', '--action', required=True, choices=['update', 'u', 'insert', 'i'])
-    subParser.add_argument('-gs', '--game_source', nargs='?', const='ncaa', default='ncaa', choices=['ncaa', 'espn'])
     subParser.add_argument('-les', '--loop_every_sec', type=int, required=False, help='Seconds to pause between loops')
     subParser.add_argument('-dj', '--dump_json', action='store_true', help='Use to dump source data as json with timestamp')
     subParser.set_defaults(func=synchGames)
@@ -143,11 +120,6 @@ def setupArgumentParsers():
     subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.add_argument('-rs', '--rankings_source', nargs='?', const='ap', default='ap', choices=['ap', 'cfp'])
     subParser.set_defaults(func=updateTeams)
-
-    # -- This is a ONE TIME setup script for the 2018 bowl season
-    # TODO: trash after is in prod
-    subParser = subArgParsers.add_parser('_setup_18_champ')
-    subParser.set_defaults(func=setupBowls)
 
     return argParser
 

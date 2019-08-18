@@ -3,50 +3,20 @@
     "configurations": [
 
         {
-            "name": "update specific game",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/pickem.py",
-            "args": [
-                "update_game",
-                "-gid",
-                "3251144",
-                "-gt",
-                "TEST_TITLE"
-            ]
-        },{
-            "name": "synch_games",
+            "name": "synch_games insert case",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/pickem.py",
             "args": [
                 "synch_games",
                 "-a",
-                "u",
+                "i",
                 "-psc",
-                "18",
-                "-nsc",
-                "2018", 
+                "19",
+                "-esc",
+                "2019", 
                 "-w",
-                "16"
-            ]
-        },
-        {
-            "name": "new set_league_games",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/pickem.py",
-            "args": [
-                "set_league_games",
-                "-l",
-                "BUS",
-                "-w",
-                "7",
-                "-gids",
-                "2953684",
-                "2954451",
-                "2953394",
-                "2953905"
+                "1"
             ]
         },
         {

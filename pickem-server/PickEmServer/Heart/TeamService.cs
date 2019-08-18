@@ -119,6 +119,8 @@ namespace PickEmServer.Heart
             {
                 icon24FileName = teamData.icon24FileName,
                 LongName = teamData.LongName,
+                EspnAbbreviation = teamData.EspnAbbreviation,
+                EspnDisplayName = teamData.EspnDisplayName,
                 NcaaNameSeo = teamData.NcaaNameSeo,
                 ShortName = teamData.ShortName,
                 TeamCode = teamData.TeamCode,

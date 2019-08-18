@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
- 
+
+#=================================================
+# Wrappers of the pickem API. 
+# Not intended to have logic. 
+#================================================= 
 import json
 import requests
 
@@ -9,6 +13,14 @@ class PickemApiClient:
         self.logger = logger
 
     jwt = None
+
+    def addPlayerToLeague(self, leagueCode, userName, playerTag):
+        postData = '''{
+                "playerTag": "''' + playerTag + '''",
+                "userName": "''' + userName + '''"
+            }'''
+        self.postToPickemApi("/" + leagueCode + "/players", postData)
+        self.logger.info("Added user (%s) to league (%s) as player tag (%s)" % (userName, leagueCode, playerTag))
 
     def authenticate(self, username, password):
         self.logger.info("Authenticating as (" + username + ")")
@@ -37,17 +49,44 @@ class PickemApiClient:
         homeTeamCode
         ):
 
-        pickemGamePostUrl = self.pickemServerBaseUrl + "/games/" + pickemSeasonCode + "/" + str(weekNumber) 
+        pickemGamePostUrl = self.pickemServerBaseUrl + "/games/" + str(pickemSeasonCode) + "/" + str(weekNumber) 
         gameData = '''
             { 
                 "gameId": "''' + str(gameId) + '''",
                 "gameStart": "''' + gameStart + '''", 
                 "gameTitle" : ''' + self.__handleNoneStr(gameTitle) + ''',
-                "neutralField": "''' + neutralField + '''", 
+                "neutralField": "''' + str(neutralField) + '''", 
                 "awayTeamCode": "''' + awayTeamCode + '''", 
                 "homeTeamCode": "''' + homeTeamCode + '''"
             }'''
         self.postToApi(pickemGamePostUrl, gameData, self.jwt)
+        self.logger.info("Created game (%s) (%s) & (%s) for season (%s) week (%s)" % (str(gameId), homeTeamCode, awayTeamCode, str(pickemSeasonCode), str(weekNumber)))
+
+    def insertLeague(
+        self,
+        currentWeekRef, 
+        leagueCode, 
+        leagueTitle,
+        ncaaSeasonCodeRef,
+        pickemScoringType,
+        seasonCodeRef,
+        weekNumbersList
+        ):
+
+        leagueData = '''
+            {
+                "currentWeekRef": ''' + str(currentWeekRef) + ''',
+                "leagueCode": "''' + leagueCode + '''",
+                "leagueTitle": "''' + leagueTitle + '''",
+                "ncaaSeasonCodeRef": "''' + ncaaSeasonCodeRef + '''",
+                "pickemScoringType": "''' + pickemScoringType + '''",
+                "seasonCodeRef": "''' + seasonCodeRef + '''",
+                "weekNumbers": [
+                    ''' + ",".join([str(num) for num in weekNumbersList]) + '''
+                ]
+            }'''
+        self.postToPickemApi("/leagues", leagueData)
+        self.logger.info("Created league (%s) code (%s)" % (leagueTitle, leagueCode))
 
     def readGame(self, gameId):
         return self.getApi(self.pickemServerBaseUrl + "/games/" + str(gameId), self.jwt)
@@ -62,6 +101,7 @@ class PickemApiClient:
     def setLeagueGame(self, leagueCode, weekNumber, gameId, winPoints):
         leagueGameUrl = self.pickemServerBaseUrl + "/" + leagueCode + "/" + str(weekNumber) + "/pickemgames"
         self.postToApi(leagueGameUrl, "{ 'gameId': " + str(gameId) + ", 'winPoints': " + str(winPoints) + " }", self.jwt)
+        self.logger.info("Added game (%s) to league (%s) on week (%s) with win points (%s)" % (str(gameId), leagueCode, str(weekNumber), str(winPoints)))
         
     def updateGame(
         self, 
@@ -89,6 +129,7 @@ class PickemApiClient:
                 "gameTitle" : ''' + self.__handleNoneStr(gameTitle) + '''
             }'''
         self.putToApi(pickemGamePutUrl, gameData, self.jwt)
+        self.logger.info("Updated game (%s)" % (str(gameId)))
 
     def updateLeague(self, leagueCode, currentWeekNumber):
         spreadPutUrl = self.pickemServerBaseUrl + "/" + leagueCode
@@ -98,6 +139,7 @@ class PickemApiClient:
         }
         '''
         self.putToApi(spreadPutUrl, putData, self.jwt)
+        self.logger.info("Updated league (%s) current week to (%s)" % (leagueCode, str(currentWeekNumber)))
 
     def updateSpread(self, gameId, spreadDirection, absSpread):
         spreadPutUrl = self.pickemServerBaseUrl + "/games/" + str(gameId) + "/spread"
@@ -108,6 +150,7 @@ class PickemApiClient:
         }
         '''
         self.putToApi(spreadPutUrl, putData, self.jwt)
+        self.logger.info("Updated game (%s) spread" % (str(gameId)))
 
     def updateTeam(self, teamCode, pickemSeasonCode, weekNumber, wins, losses, fbsRank):
         apiUrl = self.pickemServerBaseUrl + "/teams/" + teamCode + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/stats"
@@ -119,6 +162,12 @@ class PickemApiClient:
         }
         '''
         self.putToApi(apiUrl, putData, self.jwt)
+        self.logger.info("Updated team (%s) " % (teamCode))
+
+    def updateUserAccount(self, userName, defaultLeagueCode):
+        putData = '{ "defaultLeagueCode": "' + defaultLeagueCode + '", }'
+        self.putToPickemApi("/useraccounts/" + userName, putData)
+        self.logger.info("Updated user account (%s) to default league (%s)" % (userName, defaultLeagueCode))
 
     def __handleNoneStr(self, strValue):
         returnString = "null"

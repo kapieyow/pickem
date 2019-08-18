@@ -11,9 +11,18 @@ PICKEM_LOG_LEVEL_ERROR = "Error"
 PICKEM_LOG_LEVEL_WTF = "WTF"
 
 class Logger:
-    def __init__(self, pickemServerBaseUrl, minLogLevelToApi, subComponentName):
+    def __init__(self, pickemServerBaseUrl, minLogLevelToApi, minLogLevelToConsole, subComponentName):
         self.pickemServerBaseUrl = pickemServerBaseUrl
         self.subComponentName = subComponentName
+
+        # check for invalid log levels on input and if invalid default to Debug
+        validLogLevels = [PICKEM_LOG_LEVEL_DEBUG.lower(), PICKEM_LOG_LEVEL_INFO.lower(), PICKEM_LOG_LEVEL_WARN.lower(), PICKEM_LOG_LEVEL_ERROR.lower(), PICKEM_LOG_LEVEL_WTF.lower()]
+
+        if ( validLogLevels.count(minLogLevelToApi.lower()) == 0 ):
+            minLogLevelToApi = PICKEM_LOG_LEVEL_DEBUG
+
+        if ( validLogLevels.count(minLogLevelToConsole.lower()) == 0 ):
+            minLogLevelToConsole = PICKEM_LOG_LEVEL_DEBUG
 
         # run logic to check if posting to API for each log level once and set in vars
         # -----------------------------------------------------------------------------
@@ -25,6 +34,13 @@ class Logger:
         self.postWarnToApi = minLogLevelToApi.lower() == PICKEM_LOG_LEVEL_WARN.lower() or self.postInfoToApi
         self.postErrorToApi = minLogLevelToApi.lower() == PICKEM_LOG_LEVEL_ERROR.lower() or self.postWarnToApi
         self.postWtfToApi = minLogLevelToApi.lower() == PICKEM_LOG_LEVEL_WTF.lower() or self.postErrorToApi
+
+        # same for console value
+        self.postDebugToConsole = minLogLevelToConsole.lower() == PICKEM_LOG_LEVEL_DEBUG.lower()
+        self.postInfoToConsole = minLogLevelToConsole.lower() == PICKEM_LOG_LEVEL_INFO.lower() or self.postDebugToConsole
+        self.postWarnToConsole = minLogLevelToConsole.lower() == PICKEM_LOG_LEVEL_WARN.lower() or self.postInfoToConsole
+        self.postErrorToConsole = minLogLevelToConsole.lower() == PICKEM_LOG_LEVEL_ERROR.lower() or self.postWarnToConsole
+        self.postWtfToConsole = minLogLevelToConsole.lower() == PICKEM_LOG_LEVEL_WTF.lower() or self.postErrorToConsole
 
 
     def log(self, logLevel, message):
@@ -38,32 +54,37 @@ class Logger:
         return
 
     def debug(self, logMessage):
-        # note debugs are tabbed in
-        print("   " + str(logMessage))
+        if ( self.postDebugToConsole ):
+            # note debugs are tabbed in
+            print("   " + str(logMessage))
 
         if ( self.postDebugToApi ):
             self.log(PICKEM_LOG_LEVEL_DEBUG, logMessage)
     
     def info(self, logMessage):
-        print(logMessage)
+        if ( self.postInfoToConsole ):
+            print(logMessage)
 
         if ( self.postInfoToApi ):
             self.log(PICKEM_LOG_LEVEL_INFO, logMessage)
     
     def warn(self, logMessage):
-        print("WARN: " + str(logMessage))
+        if ( self.postWarnToConsole ):
+            print("WARN: " + str(logMessage))
 
         if ( self.postWarnToApi ):
             self.log(PICKEM_LOG_LEVEL_WARN, logMessage)
         
     def error(self, logMessage):
-        print("ERROR: " + str(logMessage))
+        if ( self.postErrorToConsole ):
+            print("ERROR: " + str(logMessage))
 
         if ( self.postErrorToApi ):
             self.log(PICKEM_LOG_LEVEL_ERROR, logMessage)
         
     def wtf(self, logMessage):
-        print("WTF: " + str(logMessage))
+        if ( self.postWtfToConsole ):
+            print("WTF: " + str(logMessage))
 
         if ( self.postWtfToApi ):
             self.log(PICKEM_LOG_LEVEL_WTF, logMessage)
