@@ -4,8 +4,6 @@ import argparse
 import configparser
 import time
 import pickemCore
-import pickemLogger
-import pickemApiClient
 import pickemSynchGames
 import pickemUpdateSpreads
 import pickemUpdateTeams

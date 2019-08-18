@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,6 @@ using PickEmServer.Heart;
 namespace PickEmServer.Api.Controllers
 {
     [Produces("application/json")]
-    [Route("api/useraccounts")]
     public class UserAccountController : Controller
     {
         private readonly ILogger<UserAccountController> _logger;
@@ -30,6 +30,7 @@ namespace PickEmServer.Api.Controllers
         }
 
         [HttpPost]
+        [Route("api/useraccounts")]
         public async Task<IActionResult> RegisterUser([FromBody] UserRegistration userRegistration)
         {
             if (!ModelState.IsValid)
@@ -82,5 +83,40 @@ namespace PickEmServer.Api.Controllers
             return new OkObjectResult(newUser);
         }
 
+        [Authorize(Policy = "IsAGod")]
+        [HttpPut]
+        [Route("api/useraccounts/{UserName}")]
+        public async Task<User> UpdateUser(string UserName, [FromBody] UserUpdate userUpdates)
+        {
+            // get the user to verify
+            // NOTE: the find is case INsensitive so "Kip" will find "kip"
+            // result is cased correctly for subsequent calls.
+            var pickEmUser = await _userManager.FindByNameAsync(UserName);
+
+            if (pickEmUser == null)
+            {
+                throw new ArgumentException($"No matching user to update found for UserName: {UserName}");
+            }
+
+            var uncheckedDefaultLeagueCode = userUpdates.DefaultLeagueCode;
+            var league = await this._leagueService.ReadLeague(uncheckedDefaultLeagueCode);
+
+            if ( league == null )
+            {
+                throw new ArgumentException($"No League found for input DefaultLeagueCode: {uncheckedDefaultLeagueCode}");
+            }
+
+            // this verifies the exact league casing
+            pickEmUser.DefaultLeagueCode = league.LeagueCode;
+
+            await _userManager.UpdateAsync(pickEmUser);
+
+            return new User
+            {
+                DefaultLeagueCode = pickEmUser.DefaultLeagueCode,
+                Email = pickEmUser.Email,
+                UserName = pickEmUser.UserName
+            };
+        }
     }
 }
