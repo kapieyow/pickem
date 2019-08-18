@@ -41,7 +41,24 @@ ORDER BY
 
 
 
-
+-- =========================================================
+-- Teams
+-- =========================================================
+SELECT
+	teams.data->>'TeamCode' AS TeamCode,
+	teams.data->>'LongName' AS LongName,
+	teams.data->>'ShortName' AS ShortName,
+	teams.data->>'EspnAbbreviation' AS EspnAbbreviation,
+	teams.data->>'EspnDisplayName' AS EspnDisplayName,
+	teams.data->>'NcaaNameSeo' AS NcaaNameSeo,
+	teams.data->>'theSpreadName' AS theSpreadName,
+	teams.data->>'icon24FileName' AS icon24FileName,
+	*
+FROM
+	public.mt_doc_teamdata teams
+ORDER BY 
+	teams.id
+    
 
 -- logs newest first 
 SELECT

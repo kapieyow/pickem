@@ -10,6 +10,8 @@ namespace PickEmServer.Api.Models
         public string TeamCode { get; internal set; }
         public string ShortName { get; internal set; }
         public string LongName { get; internal set; }
+        public string EspnAbbreviation { get; internal set; }
+        public string EspnDisplayName { get; internal set; }
         public string NcaaNameSeo { get; internal set; }
         public string theSpreadName { get; internal set; }
         public string icon24FileName { get; internal set; }
