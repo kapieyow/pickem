@@ -127,6 +127,18 @@ class PickemApiClient:
         return returnString
 
     #============================================
+    #  Pickem HTTP methods
+    #============================================
+    def getPickemApi(self, apiUrlSuffix):
+        return self.getApi(self.pickemServerBaseUrl + apiUrlSuffix, self.jwt)
+
+    def postToPickemApi(self, apiUrlSuffix, postData):
+        return self.postToApi(self.pickemServerBaseUrl + apiUrlSuffix, postData, self.jwt)
+
+    def putToPickemApi(self, apiUrlSuffix, putData):
+        return self.putToApi(self.pickemServerBaseUrl + apiUrlSuffix, putData, self.jwt)
+
+    #============================================
     #  generic HTTP methods
     #============================================
     def getApi(self, url, jwt):
@@ -163,14 +175,14 @@ class PickemApiClient:
 
         return response.json()
         
-    def putToApi(self, url, postData, jwt):
+    def putToApi(self, url, putData, jwt):
 
         self.logger.debug("PUT: " + url)
 
         if ( jwt == "" ):
-            response = requests.put(url, data=postData, headers={'Content-Type': 'application/json'})
+            response = requests.put(url, data=putData, headers={'Content-Type': 'application/json'})
         else:
-            response = requests.put(url, data=postData, headers={'Content-Type': 'application/json', 'authorization': "Bearer " + jwt})
+            response = requests.put(url, data=putData, headers={'Content-Type': 'application/json', 'authorization': "Bearer " + jwt})
 
         if(not response.ok):
             self.logger.error("HTTP PUT Failure. Code: " + str(response.status_code) + " URL: " + url)
