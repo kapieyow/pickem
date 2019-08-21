@@ -44,7 +44,7 @@ def synchGames(args):
            
             runCount = runCount + 1
 
-            core.logger.debug("-- Run #" + str(runCount) + " complete. Fail count - " + str(failCount) + ". Snoozing " + str(args.loop_every_sec) + " seconds")
+            core.logger.info("-- Run #" + str(runCount) + " complete. Fail count - " + str(failCount) + ". Snoozing " + str(args.loop_every_sec) + " seconds")
             time.sleep(args.loop_every_sec)
 
 def updateGame(args):

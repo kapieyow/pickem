@@ -115,6 +115,12 @@ currentPlayerTag = "Tom"
 core.apiClient.addPlayerToLeague(currentLeagueCode, currentUserName, currentPlayerTag)
 core.apiClient.updateUserAccount(currentUserName, currentLeagueCode)
 
+currentUserName = "CusheGoblin"
+currentPlayerTag = "Tony"
+core.apiClient.addPlayerToLeague(currentLeagueCode, currentUserName, currentPlayerTag)
+core.apiClient.updateUserAccount(currentUserName, currentLeagueCode)
+
+
 
 # -- Burl Mafia 2019 ------------------
 currentLeagueCode = "BurlMafia-NCAAF-19"
@@ -133,3 +139,16 @@ currentUserName = "fvedder"
 currentPlayerTag = "Frank"
 core.apiClient.addPlayerToLeague(currentLeagueCode, currentUserName, currentPlayerTag)
 core.apiClient.updateUserAccount(currentUserName, currentLeagueCode)
+
+currentUserName = "msciole"
+currentPlayerTag = "Mike"
+core.apiClient.addPlayerToLeague(currentLeagueCode, currentUserName, currentPlayerTag)
+core.apiClient.updateUserAccount(currentUserName, currentLeagueCode)
+
+currentUserName = "CusheGoblin"
+currentPlayerTag = "Tony"
+core.apiClient.addPlayerToLeague(currentLeagueCode, currentUserName, currentPlayerTag)
+
+currentUserName = "Chris"
+currentPlayerTag = "Chris"
+core.apiClient.addPlayerToLeague(currentLeagueCode, currentUserName, currentPlayerTag)
