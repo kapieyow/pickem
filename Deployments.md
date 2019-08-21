@@ -2,6 +2,7 @@
 
 ### 2.1.x
 - deploy server
+- restart server (kestrel)
 - deploy scripts
 
 #### If not production
