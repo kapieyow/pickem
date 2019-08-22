@@ -67,6 +67,7 @@ class Core:
                 gamesSet = gamesSet + 1
 
             self.logger.info("Set (" + str(gamesSet) + ") games for league (" + leagueCode + ") in week (" + str(weekNumber) + ")")
+            gamesSet = 0
 
     def setupLeagueWeek(self, leagueCodes, weekNumber):
         for leagueCode in leagueCodes:
