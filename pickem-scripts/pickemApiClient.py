@@ -90,7 +90,11 @@ class PickemApiClient:
 
     def readGame(self, gameId):
         return self.getApi(self.pickemServerBaseUrl + "/games/" + str(gameId), self.jwt)
-        
+
+    def readPickemGames(self, pickemSeasonCode, weekNumber):
+        pickemAllGamesUrl = self.pickemServerBaseUrl + "/games/" + str(pickemSeasonCode) + "/" + str(weekNumber)
+        return self.getApi(pickemAllGamesUrl, self.jwt)
+
     def readPickemGamesAnyLeague(self, pickemSeasonCode, weekNumber):
         pickemAllGamesUrl = self.pickemServerBaseUrl + "/" + str(pickemSeasonCode) + "/" + str(weekNumber) + "/games_in_any_league"
         return self.getApi(pickemAllGamesUrl, self.jwt)

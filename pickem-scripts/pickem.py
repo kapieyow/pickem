@@ -19,6 +19,9 @@ VERSION = "2.1.35"
 # sub command methods
 #=====================================
 
+def extractGames(args):
+    core.extractPickemGames(args.pickem_season_code, args.week)
+
 def setLeagueGame(args):
     core.setLeagueGame(args.league_codes, args.week, args.game_id, args.game_win_points)
 
@@ -69,6 +72,12 @@ def setupArgumentParsers():
     # arg setup
     argParser = argparse.ArgumentParser()
     subArgParsers = argParser.add_subparsers()
+
+    # -- extract_games sub-command
+    subParser = subArgParsers.add_parser('extract_games')
+    subParser.add_argument('-psc', '--pickem_season_code', type=str, required=True, help='Pickem Season Code')
+    subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
+    subParser.set_defaults(func=extractGames)
 
     # -- set_league_game sub-command (SINGLE Game)
     subParser = subArgParsers.add_parser('set_league_game')
