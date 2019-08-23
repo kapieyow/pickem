@@ -141,6 +141,7 @@ namespace PickEmServer.Heart
                     .Query<GameData>()
                     .Include(g => g.AwayTeam.TeamCodeRef, reffedAwayTeams)
                     .Include(g => g.HomeTeam.TeamCodeRef, reffedHomeTeams)
+                    .Where(g => g.SeasonCodeRef == seasonCode && g.WeekNumberRef == weekNumber)
                     .ToListAsync()
                     .ConfigureAwait(false);
 

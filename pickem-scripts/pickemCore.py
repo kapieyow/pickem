@@ -48,6 +48,11 @@ class Core:
     #=================================================
     # Core helper functions. May have some light logic
     #=================================================
+    def extractPickemGames(self, pickemSeasonCode, weekNumber):
+        pickemGames = self.apiClient.readPickemGames(pickemSeasonCode, weekNumber)
+        for pickemGame in pickemGames:
+            self.logger.info("(%d) : (%s) (%s) @ (%s) (%s)" % (pickemGame['gameId'], pickemGame['awayTeam']['team']['longName'], pickemGame['awayTeam']['team']['teamCode'], pickemGame['homeTeam']['team']['longName'], pickemGame['homeTeam']['team']['teamCode']))
+
     def setLeagueGame(self, leagueCodes, weekNumber, gameId, gameWinPoints):
         gamesSet = 0
 
