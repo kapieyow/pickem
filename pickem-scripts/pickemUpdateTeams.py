@@ -143,8 +143,13 @@ class PickemUpdateSpreadsHandler:
                 self.logger.warn("No pickem team found for NCAA team long name: " + teamName)
             else:
                 rankingsMatched = rankingsMatched + 1
-                matchedTeamStats = ncaaTeamStats[pickemTeam['teamCode']]
-                matchedTeamStats.fbsRank = rank
+                if ( pickemTeam['teamCode'] in ncaaTeamStats ):
+                    matchedTeamStats = ncaaTeamStats[pickemTeam['teamCode']]
+                    matchedTeamStats.fbsRank = rank
+                else:
+                    thisTeam = TeamUpdates()
+                    thisTeam.fbsRank = rank
+                    ncaaTeamStats[pickemTeam['teamCode']] = thisTeam
 
             totalRankingRead = totalRankingRead + 1
 

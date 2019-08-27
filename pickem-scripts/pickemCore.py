@@ -45,22 +45,69 @@ class Core:
         settingsContainer.PickemAdminPassword = configParser.get("ADMIN", "PICKEM_ADMIN_PASSWORD")
         settingsContainer.PickemServerBaseUrl = configParser.get("URLS", "PICKEM_SERVER_BASE_URL")
 
+    def __matchGameByTeamAttribute(self, pickemGames, teamAttributeName, teamAttributeValue):
+        # probably smarter way to do this
+        for pickemGame in pickemGames:
+            # check away team
+            if ( pickemGame['awayTeam']['team'][teamAttributeName] == teamAttributeValue ):
+                return pickemGame
+
+            # check home team
+            if ( pickemGame['homeTeam']['team'][teamAttributeName] == teamAttributeValue ):
+                return pickemGame
+
+        # if we got here there is no match
+        return None
+            
     #=================================================
     # Core helper functions. May have some light logic
     #=================================================
     def extractPickemGames(self, pickemSeasonCode, weekNumber):
         pickemGames = self.apiClient.readPickemGames(pickemSeasonCode, weekNumber)
         for pickemGame in pickemGames:
-            self.logger.info("(%d) : (%s) (%s) @ (%s) (%s)" % (pickemGame['gameId'], pickemGame['awayTeam']['team']['longName'], pickemGame['awayTeam']['team']['teamCode'], pickemGame['homeTeam']['team']['longName'], pickemGame['homeTeam']['team']['teamCode']))
+            self.logger.info("(%d) : (%s) ptc (%s) yc (%s) @ (%s) ptc (%s) yc (%s)" % (pickemGame['gameId'], pickemGame['awayTeam']['team']['longName'], pickemGame['awayTeam']['team']['teamCode'], pickemGame['awayTeam']['team']['yahooCode'], pickemGame['homeTeam']['team']['longName'], pickemGame['homeTeam']['team']['teamCode'], pickemGame['homeTeam']['team']['yahooCode']))
 
-    def setLeagueGame(self, leagueCodes, weekNumber, gameId, gameWinPoints):
+    def setLeagueGame(self, leagueCodes, weekNumber, gameId, pickemTeamCode, yahooTeamCode, gameWinPoints):
+        # it's expected that only one of these params (gameId, pickemTeamCode, yahooTeamCode) have a value
+        noneParamCount = 0
+        noneParamCount += 1 if gameId == None else 0
+        noneParamCount += 1 if pickemTeamCode == None else 0
+        noneParamCount += 1 if yahooTeamCode == None else 0
+
+        if noneParamCount != 2:
+            raise RuntimeError("only one of these params (gameId, pickemTeamCode, yahooTeamCode) should have a value")
+
         gamesSet = 0
 
+        # if a team code will need to find the game id
+        mapTeamCodeToGameId = ( pickemTeamCode != None or yahooTeamCode != None )
+
         for leagueCode in leagueCodes:
+
+            if ( mapTeamCodeToGameId ):
+                league = self.apiClient.readLeague(leagueCode)
+                pickemSeasonCode = league['seasonCodeRef']
+                pickemGamesForSeason = self.apiClient.readPickemGames(pickemSeasonCode, weekNumber)
+                matchedPickemGame = None
+                if ( pickemTeamCode != None ):
+                    # match on native pickem teamCode
+                    matchedPickemGame = self.__matchGameByTeamAttribute(pickemGamesForSeason, "teamCode", pickemTeamCode)
+
+                    if ( matchedPickemGame == None ):
+                        self.logger.warn("No game found in season (%s) for league (%s) with teamCode (%s)" % (pickemSeasonCode, leagueCode, pickemTeamCode))
+                        continue
+                else:
+                    # match by yahoo code
+                    matchedPickemGame = self.__matchGameByTeamAttribute(pickemGamesForSeason, "yahooCode", yahooTeamCode)
+
+                    if ( matchedPickemGame == None ):
+                        self.logger.warn("No game found in season (%s) for league (%s) with yahooCode (%s)" % (pickemSeasonCode, leagueCode, yahooTeamCode))
+                        continue
+                
+                gameId = matchedPickemGame['gameId']
+
             self.apiClient.setLeagueGame(leagueCode, weekNumber, gameId, gameWinPoints)
             gamesSet = gamesSet + 1
-
-            self.logger.info("Set (" + str(gamesSet) + ") games for league (" + leagueCode + ") in week (" + str(weekNumber) + ")")
 
     def setLeagueGames(self, leagueCodes, weekNumber, gameIds):
         gamesSet = 0

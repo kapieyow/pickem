@@ -7,13 +7,14 @@
 #================================================= 
 import argparse
 import time
+import pickemAddYahooGames
 import pickemCore
 import pickemSynchGames
 import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "2.1.35"
+VERSION = "2.2.37"
 
 #=====================================
 # sub command methods
@@ -23,10 +24,14 @@ def extractGames(args):
     core.extractPickemGames(args.pickem_season_code, args.week)
 
 def setLeagueGame(args):
-    core.setLeagueGame(args.league_codes, args.week, args.game_id, args.game_win_points)
+    core.setLeagueGame(args.league_codes, args.week, args.game_id, args.pickem_team_code, args.yahoo_team_code, args.game_win_points)
 
 def setLeagueGames(args):
     core.setLeagueGames(args.league_codes, args.week, args.game_ids)
+
+def setLeagueGamesFromYahoo(args):
+    addYahooGamesHandler = pickemAddYahooGames.PickemAddYahooGamesHandler(core)
+    addYahooGamesHandler.Run(args.league_codes, args.week)
 
 def setupLeagueWeek(args):
     core.setupLeagueWeek(args.league_codes, args.week)
@@ -73,6 +78,8 @@ def setupArgumentParsers():
     argParser = argparse.ArgumentParser()
     subArgParsers = argParser.add_subparsers()
 
+   
+
     # -- extract_games sub-command
     subParser = subArgParsers.add_parser('extract_games')
     subParser.add_argument('-psc', '--pickem_season_code', type=str, required=True, help='Pickem Season Code')
@@ -83,7 +90,12 @@ def setupArgumentParsers():
     subParser = subArgParsers.add_parser('set_league_game')
     subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.add_argument('-lcs', '--league_codes', required=True, nargs='+', type=str, help='League codes')
-    subParser.add_argument('-gid', '--game_id', required=True, type=int, help='Game Id')
+
+    mutexParams = subParser.add_mutually_exclusive_group(required=True)
+    mutexParams.add_argument('-gid', '--game_id', type=int, help='Game Id')
+    mutexParams.add_argument('-ptc', '--pickem_team_code', type=str, help='Pickem Team Code')
+    mutexParams.add_argument('-ytc', '--yahoo_team_code', type=str, help='Yahoo Team Code')
+
     subParser.add_argument('-gwp', '--game_win_points', required=True, type=int, help='Game Win Points')
     subParser.set_defaults(func=setLeagueGame)
 
@@ -93,6 +105,12 @@ def setupArgumentParsers():
     subParser.add_argument('-lcs', '--league_codes', required=True, nargs='+', type=str, help='League codes')
     subParser.add_argument('-gids', '--game_ids', required=True, nargs='+', type=int, help='Game Ids')
     subParser.set_defaults(func=setLeagueGames)
+
+     # -- set_league_games_from_yahoo 
+    subParser = subArgParsers.add_parser('set_league_games_from_yahoo')
+    subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
+    subParser.add_argument('-lcs', '--league_codes', required=True, nargs='+', type=str, help='League codes')
+    subParser.set_defaults(func=setLeagueGamesFromYahoo)
 
     # -- setup_week sub-command
     subParser = subArgParsers.add_parser('set_league_week')
