@@ -20,13 +20,20 @@ namespace PickEmServer.Heart
         private readonly ILogger<GameService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly PickemEventer _pickemEventer;
+        private readonly TeamService _teamService;
 
-        public GameService(IDocumentStore documentStore, ILogger<GameService> logger, PickemEventer pickemEventer, IServiceProvider serviceProvider)
+        public GameService(
+            IDocumentStore documentStore, 
+            ILogger<GameService> logger, 
+            PickemEventer pickemEventer, 
+            IServiceProvider serviceProvider,
+            TeamService teamService)
         {
             _documentStore = documentStore;
             _logger = logger;
             _pickemEventer = pickemEventer;
             _serviceProvider = serviceProvider;
+            _teamService = teamService;
         }
 
         public async Task<Game> AddGame(string seasonCode, int weekNumber, GameAdd newGame)
@@ -345,15 +352,7 @@ namespace PickEmServer.Heart
                 {
                     Score = gameData.AwayTeam.Score,
                     ScoreAfterSpread = gameData.AwayTeam.ScoreAfterSpread,
-                    Team = new Team
-                    {
-                        icon24FileName = awayTeamData.icon24FileName,
-                        LongName = awayTeamData.LongName,
-                        NcaaNameSeo = awayTeamData.NcaaNameSeo,
-                        ShortName = awayTeamData.ShortName,
-                        TeamCode = awayTeamData.TeamCode,
-                        theSpreadName = awayTeamData.theSpreadName
-                    },
+                    Team = _teamService.MapTeamData(awayTeamData),
                     Winner = gameData.AwayTeam.Winner
                 },
                 CurrentPeriod = gameData.CurrentPeriod,
@@ -365,15 +364,7 @@ namespace PickEmServer.Heart
                 {
                     Score = gameData.HomeTeam.Score,
                     ScoreAfterSpread = gameData.HomeTeam.ScoreAfterSpread,
-                    Team = new Team
-                    {
-                        icon24FileName = homeTeamData.icon24FileName,
-                        LongName = homeTeamData.LongName,
-                        NcaaNameSeo = homeTeamData.NcaaNameSeo,
-                        ShortName = homeTeamData.ShortName,
-                        TeamCode = homeTeamData.TeamCode,
-                        theSpreadName = homeTeamData.theSpreadName
-                    },
+                    Team = _teamService.MapTeamData(homeTeamData),
                     Winner = gameData.HomeTeam.Winner
                 },
                 LastUpdated = gameData.LastUpdated,

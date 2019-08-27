@@ -113,7 +113,7 @@ namespace PickEmServer.Heart
             return teamData;
         }
 
-        private Team MapTeamData(TeamData teamData)
+        public Team MapTeamData(TeamData teamData)
         {
             return new Team
             {
@@ -124,7 +124,8 @@ namespace PickEmServer.Heart
                 NcaaNameSeo = teamData.NcaaNameSeo,
                 ShortName = teamData.ShortName,
                 TeamCode = teamData.TeamCode,
-                theSpreadName = teamData.theSpreadName
+                theSpreadName = teamData.theSpreadName,
+                YahooCode = teamData.YahooCode
             };
         }
     }

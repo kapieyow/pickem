@@ -1,4 +1,4 @@
-﻿/* 	THIS WILL DROP ALL DATA !!!!!!!!!!!!!!
+/* 	THIS WILL DROP ALL DATA !!!!!!!!!!!!!!
 
 -- to reset a database WILL DROP ALL TABLES / FUNCS etc in public schema
 DROP SCHEMA public CASCADE;
@@ -53,6 +53,7 @@ SELECT
 	teams.data->>'NcaaNameSeo' AS NcaaNameSeo,
 	teams.data->>'theSpreadName' AS theSpreadName,
 	teams.data->>'icon24FileName' AS icon24FileName,
+	teams.data->>'YahooCode' AS YahooCode,
 	*
 FROM
 	public.mt_doc_teamdata teams

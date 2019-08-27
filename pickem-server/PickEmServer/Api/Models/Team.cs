@@ -15,5 +15,6 @@ namespace PickEmServer.Api.Models
         public string NcaaNameSeo { get; internal set; }
         public string theSpreadName { get; internal set; }
         public string icon24FileName { get; internal set; }
+        public string YahooCode { get; internal set; }
     }
 }
