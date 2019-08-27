@@ -90,8 +90,10 @@ In appsettings.Developement.json modify PostgresConnection/ConnectionString to w
 
 |Action|Example|Notes
 | ------ | ------ |------ |
-|set_league_game|`./pickem.py set_league_game -w 14 -lcs TESTConfChamps -gid 3251144 -gwp 4`|Adds a single game to one or more leagues. NOTE: this action can set the win points -gwp|
+|extract_games|`./pickem.py extract_games -psc 19 -w 1`|Reads all games (may not be in any pickem league) for the season and week and outputs them 
+|set_league_game|`./pickem.py set_league_game -w 14 -lcs TESTConfChamps -gid 3251144 -gwp 4`|Adds a single game to one or more leagues. NOTE: this action can take one of three keys, -gid (game id), -ptc (pickem team code) or -ytc (yahoo team code)|
 |set_league_games|`./pickem.py set_league_games -lcs BUS BurlMafia NeOnYa -w 12 -gids 2953176 3251144`|Adds a one or more games to one or more leagues. This allows bulk game adds, but it cannot set win points so will default to 1 win point|
+|set_league_games_from_yahoo|`./pickem.py set_league_games_from_yahoo -lcs League-A League-B League-C -w 1`|Reads games from Yahoo and adds all to each league. This allows bulk game adds, but it cannot set win points so will default to 1 win point|
 |set_league_week|`./pickem.py set_league_week -lcs League1 League2 -w 13`|Updates the current week for one or more leagues. The GUIs will default to the week.|
 |synch_games|`./pickem.py synch_games -a u -psc 19 -esc 2019 -w 1 -les 180`|Synchronizes game data from external source. The -a option may be `u` for update or `i` for insert.|
 |update_teams|`./pickem.py update_teams -rs cfp -psc 18 -w 12`|Updates win/loss team records and rankings. Can get rankings from AP or CFP|
