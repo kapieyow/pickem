@@ -149,6 +149,10 @@ class PickemSynchGamesHandler:
                 espnGameData.gameState = None
             elif ( espnGameStateCode == "STATUS_IN_PROGRESS" ):
                 espnGameData.gameState = "InGame"
+            elif ( espnGameStateCode == "STATUS_HALFTIME" ):
+                espnGameData.gameState = "InGame"
+            elif ( espnGameStateCode == "STATUS_END_PERIOD" ):
+                espnGameData.gameState = "InGame"
             elif ( espnGameStateCode == "STATUS_CANCELED" ):
                 espnGameData.gameState = "Cancelled"
             elif ( espnGameStateCode == "STATUS_FINAL" ):
