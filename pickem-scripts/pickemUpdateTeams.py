@@ -2,6 +2,7 @@
  
 import datetime
 import json
+import re
 import requests
 from bs4 import BeautifulSoup
 
@@ -128,6 +129,10 @@ class PickemUpdateSpreadsHandler:
 
             rankTd = tableRow.find_next("td")
             rank = rankTd.text
+
+            # occassionally there will be ties shown as like "T-12"
+            # just use the numeric piece
+            rank = re.sub("[^0-9]", "", rank)
 
             teamTd = rankTd.find_next("td")
             teamName = teamTd.text
