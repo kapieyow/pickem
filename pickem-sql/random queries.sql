@@ -1,4 +1,4 @@
-/* 	THIS WILL DROP ALL DATA !!!!!!!!!!!!!!
+﻿/* 	THIS WILL DROP ALL DATA !!!!!!!!!!!!!!
 
 -- to reset a database WILL DROP ALL TABLES / FUNCS etc in public schema
 DROP SCHEMA public CASCADE;
@@ -577,3 +577,8 @@ ORDER BY
 
 SELECT data->>'LongName', * FROM mt_doc_teamdata WHERE data->>'LongName' LIKE '%Tenn%'
 
+--UPDATE public.mt_doc_teamdata SET data = jsonb_set(data, '{theSpreadName}', '"Charlotte U"') WHERE id = 'charlotte';
+--UPDATE public.mt_doc_teamdata SET data = jsonb_set(data, '{theSpreadName}', '"UL Monroe"') WHERE id = 'la-monroe';
+--UPDATE public.mt_doc_teamdata SET data = jsonb_set(data, '{theSpreadName}', '"Western Michigan"') WHERE id = 'western-mich';
+
+SELECT * FROM public.mt_doc_teamdata;
