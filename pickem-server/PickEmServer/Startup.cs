@@ -14,11 +14,13 @@ using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PickEmServer.App;
 using PickEmServer.App.Models;
+using PickEmServer.Config;
+using PickEmServer.Data;
 using PickEmServer.Heart;
-using PickEmServer.Jwt.Models;
 using PickEmServer.Middleware;
 using PickEmServer.WebSockets;
 using Swashbuckle.AspNetCore.Swagger;
@@ -41,23 +43,25 @@ namespace PickEmServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
             services.AddScoped<GameService>();
             services.AddScoped<LeagueService>();
             services.AddScoped<LogService>();
+            services.AddScoped<MartenLogger>();
             services.AddScoped<PickemDatabaseLoggerProvider>();
             services.AddScoped<TeamService>();
             services.AddSingleton<SuperWebSocketPoolManager>();
             services.AddSingleton<PickemEventer>();
 
-            // Get JWT options from app settings
-            var jwtAppSettingOptions = Configuration.GetSection(nameof(JwtIssuerOptions));
+            // custom config section loads
+            services.AddOptions();
+            // Postgres - config
+            services.Configure<PostgresConfig>(Configuration.GetSection(nameof(PostgresConfig)));
+            var postgresConfig = Configuration.GetSection(nameof(PostgresConfig)).Get<PostgresConfig>();
 
-            // Configure JwtIssuerOptions
-            services.Configure<JwtIssuerOptions>(options =>
-            {
-                options.Issuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)];
-                options.Audience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)];
-            });
+            // JWT - config
+            services.Configure<JwtConfig>(Configuration.GetSection(nameof(JwtConfig)));
+            var jwtConfig = Configuration.GetSection(nameof(JwtConfig)).Get<JwtConfig>();
 
             // Jawt auth
             services
@@ -71,12 +75,12 @@ namespace PickEmServer
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
 
-                        ValidIssuer = jwtAppSettingOptions[nameof(JwtIssuerOptions.Issuer)],
-                        ValidAudience = jwtAppSettingOptions[nameof(JwtIssuerOptions.Audience)],
+                        ValidIssuer = jwtConfig.Issuer,
+                        ValidAudience = jwtConfig.Audience,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Consts.SECRET_KEY))
                     };
                 });
-
+            
             // MVC
             services
                 .AddMvc()
@@ -87,9 +91,6 @@ namespace PickEmServer
 
             // Swagga
             services.AddSwaggerGen(c => c.SwaggerDoc("v1", new Info { Title = "PickEm API", Version = "v1" }));
-
-            // postgres conn
-            string postgresConnectionString = Configuration.GetSection("PostgresConnection:ConnectionString").Value;
 
             // Wire in ASP.NET identity using Marten->postgress
             var identBuilder = services
@@ -103,15 +104,18 @@ namespace PickEmServer
                 });
 
             identBuilder = new IdentityBuilder(identBuilder.UserType, typeof(IdentityRole), identBuilder.Services);
-            identBuilder.AddMartenStores<PickEmUser, IdentityRole>(postgresConnectionString);
+            identBuilder.AddMartenStores<PickEmUser, IdentityRole>(postgresConfig.ConnectionString);
+
+            var serviceProvider = services.BuildServiceProvider();
 
             // Marten document store -> postgres
             services.AddScoped<IDocumentStore>(provider => DocumentStore.For(_ =>
             {
-                _.Connection(postgresConnectionString);
+                _.Connection(postgresConfig.ConnectionString);
                 // TODO: by putting this AFTER the identity code above it will put all tables including the asp ones in the "public" schema
                 // could separate
                 _.DatabaseSchemaName = "public";
+                _.Logger(serviceProvider.GetRequiredService<MartenLogger>());
             }));
 
             // Authorization setup. Used for "god role"

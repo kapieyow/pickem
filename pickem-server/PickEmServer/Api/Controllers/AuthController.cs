@@ -12,8 +12,8 @@ using Microsoft.IdentityModel.Tokens;
 using PickEmServer.Api.Models;
 using PickEmServer.App;
 using PickEmServer.App.Models;
+using PickEmServer.Config;
 using PickEmServer.Heart;
-using PickEmServer.Jwt.Models;
 
 namespace PickEmServer.Api.Controllers
 {
@@ -22,11 +22,11 @@ namespace PickEmServer.Api.Controllers
     public class AuthController : Controller
     {
         private readonly ILogger<AuthController> _logger;
-        private readonly JwtIssuerOptions _jwtOptions;
+        private readonly JwtConfig _jwtOptions;
         private readonly LeagueService _leagueService;
         private readonly UserManager<PickEmUser> _userManager;
 
-        public AuthController(UserManager<PickEmUser> userManager, LeagueService leagueService, IOptions<JwtIssuerOptions> jwtOptions, ILogger<AuthController> logger)
+        public AuthController(UserManager<PickEmUser> userManager, LeagueService leagueService, IOptions<JwtConfig> jwtOptions, ILogger<AuthController> logger)
         {
             _userManager = userManager;
             _leagueService = leagueService;
