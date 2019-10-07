@@ -1,9 +1,12 @@
 ﻿using Marten;
+using Marten.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PickEmServer.Api.Models;
 using PickEmServer.App;
 using PickEmServer.App.Models;
+using PickEmServer.Config;
 using PickEmServer.Data.Models;
 using System;
 using System.Collections.Generic;
@@ -12,6 +15,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace PickEmServer.Heart
 {
@@ -22,6 +26,7 @@ namespace PickEmServer.Heart
         private readonly ILogger<LeagueService> _logger;
         private readonly GameService _gameSevice;
         private readonly PickemEventer _pickemEventer;
+        private readonly PostgresConfig _postgresConnection;
         private readonly UserManager<PickEmUser> _userManager;
 
         private class LeagueGameComparer : IEqualityComparer<LeagueGameData>
@@ -44,16 +49,19 @@ namespace PickEmServer.Heart
             public Dictionary<string, TeamData> referencedAwayTeamData { get; set; }
             public Dictionary<string, TeamData> referencedHomeTeamData { get; set; }
         }
+
         public LeagueService(
             IDocumentStore documentStore, 
             ILogger<LeagueService> logger, 
-            PickemEventer pickemEventer, 
+            PickemEventer pickemEventer,
+            IOptions<PostgresConfig> postgresConnection,
             GameService gameSevice, 
             UserManager<PickEmUser> userManager)
         {
             _documentStore = documentStore;
             _gameSevice = gameSevice;
             _logger = logger;
+            _postgresConnection = postgresConnection.Value;
             _pickemEventer = pickemEventer;
             _userManager = userManager;
         }
@@ -875,75 +883,106 @@ namespace PickEmServer.Heart
                 throw new ArgumentException("No newPlayerPick parameter input for SetPlayerPick (is null)");
             }
 
-            using (var dbSession = _documentStore.LightweightSession(IsolationLevel.Serializable))
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            // TODO : FIX Conn string
+            using (var dbConnection = new Npgsql.NpgsqlConnection(_postgresConnection.ConnectionString))
             {
-                var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
-                var exactLeagueCode = leagueData.LeagueCode;
+                // TODO: PR into Marten or something to include "FOR UPDATE" handling, ideally through LINQ
+                // Doing manual transaction handling with postgres to allow for a SELECT lock on the league w/o a Serializable transaction
+                dbConnection.Open();
+                var dbTransaction = dbConnection.BeginTransaction();
 
-                var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
-                if (weekData == null)
-                {
-                    throw new ArgumentException($"League: {exactLeagueCode} does not contain a week: {weekNumber}");
+                using (var dbSession = _documentStore.OpenSession(new SessionOptions { Transaction = dbTransaction }))
+                { 
+                    //var leagueData = await this.GetLeagueData(dbSession, uncheckedLeagueCode);
+                    var directSql =
+                        $@"SELECT 
+                        l.data
+                    FROM
+                        public.mt_doc_leaguedata l
+                    WHERE
+                        lower(l.data->>'LeagueCode') = lower('{uncheckedLeagueCode}')
+                    FOR UPDATE"
+                        ;
+
+                    var leagueData = dbSession.Query<LeagueData>(directSql).SingleOrDefault();
+                    if ( leagueData == null )
+                    {
+                        throw new ArgumentException($"No league exists with league code: {uncheckedLeagueCode}");
+                    }
+
+                    var exactLeagueCode = leagueData.LeagueCode;
+
+                    var weekData = leagueData.Weeks.SingleOrDefault(w => w.WeekNumberRef == weekNumber);
+                    if (weekData == null)
+                    {
+                        throw new ArgumentException($"League: {exactLeagueCode} does not contain a week: {weekNumber}");
+                    }
+
+                    var pickemGameData = weekData.Games.SingleOrDefault(g => g.GameIdRef == gameId);
+                    if (pickemGameData == null)
+                    {
+                        throw new ArgumentException($"League: {exactLeagueCode} for week: {weekNumber} does not have a game with gameid: {gameId}");
+                    }
+
+                    var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef.Equals(uncheckedPlayerTag, StringComparison.OrdinalIgnoreCase));
+                    if (playerPickData == null)
+                    {
+                        throw new ArgumentException($"League: {exactLeagueCode} for week: {weekNumber}, game {gameId}, has no player pick for {uncheckedPlayerTag}. Is {uncheckedPlayerTag} in this league?");
+                    }
+
+                    // get associated game to make sure the player can update the pick
+                    var gameData = await _gameSevice.ReadGame(gameId);
+
+                    switch (gameData.GameState)
+                    {
+                        case GameStates.Cancelled:
+                        case GameStates.Final:
+                        case GameStates.InGame:
+                            throw new Exception($"Player: {playerPickData.PlayerTagRef} in league: {exactLeagueCode} cannot make a pick for game: {gameId} because the game is in the following game state: {gameData.GameState}");
+                    }
+
+                    int gamesPicked;
+                    int gamesPending = this.CalculateGamesPending(weekData, playerPickData.PlayerTagRef);
+
+                    // did the pick change?
+                    if (playerPickData.Pick != newPlayerPick.Pick)
+                    {
+                        playerPickData.Pick = newPlayerPick.Pick;
+
+                        // update pick count in week subtotals
+                        var weekScoreSubtotal = weekData.PlayerWeekScores.Single(pwss => pwss.PlayerTagRef == playerPickData.PlayerTagRef);
+                        gamesPicked = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerPickData.PlayerTagRef && pp.Pick != PickTypes.None)).Count();
+                        weekScoreSubtotal.GamesPicked = gamesPicked;
+                        gamesPending = this.CalculateGamesPending(weekData, playerPickData.PlayerTagRef);
+                        weekScoreSubtotal.GamesPending = gamesPending;
+
+                        dbSession.Store(leagueData);
+                        dbSession.SaveChanges();
+
+                        stopwatch.Stop();
+                        _logger.LogDebug($"Set Player Pick to ({playerPickData.Pick}) DB trans took ({stopwatch.ElapsedMilliseconds}ms)");
+
+                        var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerPickChanged, null, exactLeagueCode, weekNumber, gameId);
+                        pickemEvent.DynamicKeys.playerTag = playerPickData.PlayerTagRef;
+                        pickemEvent.LeagueCodesAffected.Add(exactLeagueCode);
+                        _pickemEventer.Emit(pickemEvent);
+                    }
+                    else
+                    {
+                        gamesPicked = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerPickData.PlayerTagRef && pp.Pick != PickTypes.None)).Count();
+                        gamesPending = this.CalculateGamesPending(weekData, playerPickData.PlayerTagRef);
+                    }
+
+                    return new PlayerPick
+                    {
+                        GamesPending = gamesPending,
+                        GamesPicked = gamesPicked,
+                        Pick = playerPickData.Pick
+                    };
                 }
-
-                var pickemGameData = weekData.Games.SingleOrDefault(g => g.GameIdRef == gameId);
-                if (pickemGameData == null)
-                {
-                    throw new ArgumentException($"League: {exactLeagueCode} for week: {weekNumber} does not have a game with gameid: {gameId}");
-                }
-
-                var playerPickData = pickemGameData.PlayerPicks.SingleOrDefault(pp => pp.PlayerTagRef.Equals(uncheckedPlayerTag, StringComparison.OrdinalIgnoreCase));
-                if (playerPickData == null)
-                {
-                    throw new ArgumentException($"League: {exactLeagueCode} for week: {weekNumber}, game {gameId}, has no player pick for {uncheckedPlayerTag}. Is {uncheckedPlayerTag} in this league?");
-                }
-
-                // get associated game to make sure the player can update the pick
-                var gameData = await _gameSevice.ReadGame(gameId);
-
-                switch (gameData.GameState)
-                {
-                    case GameStates.Cancelled:
-                    case GameStates.Final:
-                    case GameStates.InGame:
-                        throw new Exception($"Player: {playerPickData.PlayerTagRef} in league: {exactLeagueCode} cannot make a pick for game: {gameId} because the game is in the following game state: {gameData.GameState}");
-                }
-
-                int gamesPicked;
-                int gamesPending = this.CalculateGamesPending(weekData, playerPickData.PlayerTagRef);
-
-                // did the pick change?
-                if (playerPickData.Pick != newPlayerPick.Pick)
-                {
-                    playerPickData.Pick = newPlayerPick.Pick;
-
-                    // update pick count in week subtotals
-                    var weekScoreSubtotal = weekData.PlayerWeekScores.Single(pwss => pwss.PlayerTagRef == playerPickData.PlayerTagRef);
-                    gamesPicked = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerPickData.PlayerTagRef && pp.Pick != PickTypes.None)).Count();
-                    weekScoreSubtotal.GamesPicked = gamesPicked;
-                    gamesPending = this.CalculateGamesPending(weekData, playerPickData.PlayerTagRef);
-                    weekScoreSubtotal.GamesPending = gamesPending;
-
-                    dbSession.Store(leagueData);
-                    dbSession.SaveChanges();
-
-                    var pickemEvent = new PickemSystemEvent(PickemSystemEventTypes.LeaguePlayerPickChanged, null, exactLeagueCode, weekNumber, gameId);
-                    pickemEvent.DynamicKeys.playerTag = playerPickData.PlayerTagRef;
-                    pickemEvent.LeagueCodesAffected.Add(exactLeagueCode);
-                    _pickemEventer.Emit(pickemEvent);
-                }
-                else
-                {
-                    gamesPicked = weekData.Games.SelectMany(g => g.PlayerPicks.Where(pp => pp.PlayerTagRef == playerPickData.PlayerTagRef && pp.Pick != PickTypes.None)).Count();
-                    gamesPending = this.CalculateGamesPending(weekData, playerPickData.PlayerTagRef);
-                }
-
-                return new PlayerPick
-                {
-                    GamesPending = gamesPending,
-                    GamesPicked = gamesPicked,
-                    Pick = playerPickData.Pick
-                };
             }
         }
 
