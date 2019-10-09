@@ -33,6 +33,9 @@ class PickemApiClient:
 
         self.jwt = responseJson['token']
 
+        # return userLoggedInModel
+        return responseJson
+
     def lockSpread(self, gameId):
         spreadLockPutUrl = self.pickemServerBaseUrl + "/games/" + str(gameId) + "/spread/lock"
         self.putToApi(spreadLockPutUrl, "", self.jwt)
@@ -104,12 +107,24 @@ class PickemApiClient:
 
     def readPickemTeams(self):
         return self.getApi(self.pickemServerBaseUrl + "/teams", self.jwt)
+
+    def readPlayer(self, leagueCode, userName):
+        return self.getPickemApi("/" + leagueCode + "/players/" + userName)
+
+    def readPlayerWeekScoreboard(self, leagueCode, weekNumber, playerTag):
+        return self.getPickemApi("/" + leagueCode + "/" + str(weekNumber) + "/" + playerTag + "/scoreboard")
         
     def setLeagueGame(self, leagueCode, weekNumber, gameId, winPoints):
         leagueGameUrl = self.pickemServerBaseUrl + "/" + leagueCode + "/" + str(weekNumber) + "/pickemgames"
         self.postToApi(leagueGameUrl, "{ 'gameId': " + str(gameId) + ", 'winPoints': " + str(winPoints) + " }", self.jwt)
         self.logger.info("Added game (%s) to league (%s) on week (%s) with win points (%s)" % (str(gameId), leagueCode, str(weekNumber), str(winPoints)))
         
+    def setPlayerGamePick(self, leagueCode, weekNumber, playerTag, gameId, pick):
+        self.putToPickemApi(
+            "/" + leagueCode + "/" + str(weekNumber) + "/" + playerTag + "/scoreboard/" + str(gameId) + "/pick", 
+            "{ 'pick': '" + pick + "'}"
+            )
+
     def updateGame(
         self, 
         gameId,

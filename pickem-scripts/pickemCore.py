@@ -8,6 +8,7 @@
 import configparser
 import pickemLogger
 import pickemApiClient
+import random
 
 # "configs"
 PICKEM_INI = "pickem-settings.ini"
@@ -24,8 +25,9 @@ class Core:
 
     apiClient = None
     logger = None
+    userLoggedIn = None
 
-    def __init__(self, subComponentName):
+    def __init__(self, subComponentName, overrideUser = None, overridePassword = None):
         settings = Settings()
         
         self.__loadIniConfig(PICKEM_INI, settings)
@@ -33,8 +35,17 @@ class Core:
         self.logger = pickemLogger.Logger(settings.PickemServerBaseUrl, settings.MinLogLevelToApi, settings.MinLogLevelToConsole, subComponentName)
         self.apiClient = pickemApiClient.PickemApiClient(settings.PickemServerBaseUrl, self.logger)
 
+        # default to admin user/pwd from config
+        apiUser = settings.PickemAdminUsername
+        apiPassword = settings.PickemAdminPassword
+
+        # if an override user was passed in use that instead
+        if ( overrideUser != None ):
+            apiUser = overrideUser
+            apiPassword = overridePassword
+
         # login
-        self.apiClient.authenticate(settings.PickemAdminUsername, settings.PickemAdminPassword)
+        self.userLoggedIn = self.apiClient.authenticate(apiUser, apiPassword)
 
     def __loadIniConfig(self, iniFile, settingsContainer):
         configParser = configparser.ConfigParser()
@@ -66,6 +77,46 @@ class Core:
         pickemGames = self.apiClient.readPickemGames(pickemSeasonCode, weekNumber)
         for pickemGame in pickemGames:
             self.logger.info("(%d) : (%s) ptc (%s) yc (%s) @ (%s) ptc (%s) yc (%s)" % (pickemGame['gameId'], pickemGame['awayTeam']['team']['longName'], pickemGame['awayTeam']['team']['teamCode'], pickemGame['awayTeam']['team']['yahooCode'], pickemGame['homeTeam']['team']['longName'], pickemGame['homeTeam']['team']['teamCode'], pickemGame['homeTeam']['team']['yahooCode']))
+
+    def pickRandomGamesForCurrentUser(self):
+
+        pickedGameCount = 0
+        currentUserName = self.userLoggedIn['userName']
+
+        for league in self.userLoggedIn['leagues']:
+            leagueCode = league['leagueCode']
+            leagueTitle = league['leagueTitle']
+            leagueCurrentWeekRef = league['currentWeekRef']
+
+            self.logger.info("League: %s  Week: %s ----" % ( leagueTitle, leagueCurrentWeekRef ))
+
+            leaguePlayer = self.apiClient.readPlayer(leagueCode, currentUserName)
+            playerTagForLeague = leaguePlayer['playerTag']
+
+            playerScoreboardForLeague = self.apiClient.readPlayerWeekScoreboard(leagueCode, leagueCurrentWeekRef, playerTagForLeague)
+
+            for gamePickScoreboard in playerScoreboardForLeague['gamePickScoreboards']:
+                gameDescription = "%s @ %s" % ( gamePickScoreboard['awayTeamLongName'], gamePickScoreboard['homeTeamLongName'] )
+                gameState = gamePickScoreboard['gameState']
+                gameId = gamePickScoreboard['gameId']
+                
+                if ( gameState == 'SpreadNotSet' or gameState == 'SpreadLocked' ):
+                    pickedTeam = None
+                    gamePick = random.choice(["Away", "Home"])
+                    
+                    if ( gamePick == "Away" ):
+                        pickedTeam = gamePickScoreboard['awayTeamLongName']
+                    else:
+                        pickedTeam = gamePickScoreboard['homeTeamLongName']
+
+                    self.apiClient.setPlayerGamePick(leagueCode, leagueCurrentWeekRef, playerTagForLeague, gameId, gamePick)
+                    pickedGameCount = pickedGameCount + 1
+                    self.logger.info("Picked  %s (%s)  for  %s  game" % ( pickedTeam, gamePick, gameDescription ))
+
+                else:
+                    self.logger.info("The  %s  game can not be picked because it is in a %s state" % ( gameDescription, gameState ))
+
+        self.logger.info("Randomly picked (%d) games" % pickedGameCount)
 
     def setLeagueGame(self, leagueCodes, weekNumber, gameId, pickemTeamCode, yahooTeamCode, gameWinPoints):
         # it's expected that only one of these params (gameId, pickemTeamCode, yahooTeamCode) have a value

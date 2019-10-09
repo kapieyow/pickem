@@ -14,7 +14,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "2.2.39"
+VERSION = "2.3.40"
 
 #=====================================
 # sub command methods
@@ -22,6 +22,9 @@ VERSION = "2.2.39"
 
 def extractGames(args):
     core.extractPickemGames(args.pickem_season_code, args.week)
+
+def pickRandom(args):
+    core.pickRandomGamesForCurrentUser()
 
 def setLeagueGame(args):
     core.setLeagueGame(args.league_codes, args.week, args.game_id, args.pickem_team_code, args.yahoo_team_code, args.game_win_points)
@@ -78,13 +81,17 @@ def setupArgumentParsers():
     argParser = argparse.ArgumentParser()
     subArgParsers = argParser.add_subparsers()
 
-   
-
     # -- extract_games sub-command
     subParser = subArgParsers.add_parser('extract_games')
     subParser.add_argument('-psc', '--pickem_season_code', type=str, required=True, help='Pickem Season Code')
     subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
     subParser.set_defaults(func=extractGames)
+
+    # -- pick_random sub-command
+    subParser = subArgParsers.add_parser('pick_random')
+    subParser.add_argument('-ou', '--override_user', type=str, required=True, help='Override user name')
+    subParser.add_argument('-op', '--override_password', type=str, required=True, help='Override password')
+    subParser.set_defaults(func=pickRandom)
 
     # -- set_league_game sub-command (SINGLE Game)
     subParser = subArgParsers.add_parser('set_league_game')
@@ -163,7 +170,10 @@ argParser = setupArgumentParsers()
 args = argParser.parse_args()
 if ( hasattr(args, 'func') ):
 
-    core = pickemCore.Core(args.func.__name__)
+    if ( args.override_user != None ):
+        core = pickemCore.Core(args.func.__name__, args.override_user, args.override_password)
+    else:
+        core = pickemCore.Core(args.func.__name__)
 
     # this runs the function in parser's set_defaults()
     args.func(args)
