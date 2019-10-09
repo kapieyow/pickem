@@ -170,7 +170,7 @@ argParser = setupArgumentParsers()
 args = argParser.parse_args()
 if ( hasattr(args, 'func') ):
 
-    if ( args.override_user != None ):
+    if ( hasattr(args, 'override_user') ):
         core = pickemCore.Core(args.func.__name__, args.override_user, args.override_password)
     else:
         core = pickemCore.Core(args.func.__name__)
