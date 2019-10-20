@@ -12,8 +12,14 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/ExampleCSharpBot.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "stopAtEntry": false,
-            "console": "internalConsole"
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
         }
     ]
 }

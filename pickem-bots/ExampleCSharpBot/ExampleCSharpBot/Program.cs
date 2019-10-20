@@ -14,7 +14,7 @@ namespace ExampleCSharpBot
         const string PickemUserName = "gumanchew";
         const string PickemPassword = "password1";
         const string PickemBotLeagueCode = "BOTS-NCAAF-19";
-        const string PickemBaseUrl = "https://streamhead.duckdns.org/p-api/tst/api";
+        const string PickemBaseUrl = "https://streamhead.duckdns.org/p-api/api";
 
         static async Task Main(string[] args)
         {
@@ -55,12 +55,13 @@ namespace ExampleCSharpBot
                     wins++;
                 else
                     losses++;
-                // try {
-                //     var playerPickResult = await PutToApi<PlayerPick>(
-                //         $"{PickemBaseUrl}/{PickemBotLeagueCode}/{botLeague.CurrentWeekRef}/{player.PlayerTag}/scoreboard/{gamePickScoreboard.GameId}/pick", 
-                //         pickUpdate,
-                //         jwt);
-                // } catch {}
+                    
+                try {
+                    var playerPickResult = await PutToApi<PlayerPick>(
+                        $"{PickemBaseUrl}/{PickemBotLeagueCode}/{botLeague.CurrentWeekRef}/{player.PlayerTag}/scoreboard/{gamePickScoreboard.GameId}/pick", 
+                        pickUpdate,
+                        jwt);
+                } catch {}
                 
             }
 
