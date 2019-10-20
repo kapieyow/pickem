@@ -15,9 +15,9 @@ namespace ExampleCSharpBot
         const string PickemBotLeagueCode = "SET_LEAGUE_CODE";
         const string PickemBaseUrl = "SET_BASE_PICKEM_URL";
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            RunBotAsync().GetAwaiter().GetResult();
+            await RunBotAsync();
         }
 
         static async Task RunBotAsync()
