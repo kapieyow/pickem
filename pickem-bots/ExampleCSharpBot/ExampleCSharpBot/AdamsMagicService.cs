@@ -33,10 +33,14 @@ namespace ExampleCSharpBot
             ApplyRule(data, (toRate, other) => toRate.TeamRank > 0 ? 1 : 0);
             ApplyRule(data, (toRate, other) => toRate.TeamRank > 0 && toRate.TeamRank < 5 ? 2 : 0);
             ApplyRule(data, (toRate, other) => toRate.TeamRank > 0 && toRate.TeamRank < other.TeamRank ? 1 : 0);
-            ApplyRule(data, (toRate, other) => toRate.Spread > 0 ? -1 : 0);
+            ApplyRule(data, (toRate, other) => toRate.TeamRank > 0 && toRate.TeamRank < (other.TeamRank - 10) ? 1 : 0);
+            ApplyRule(data, (toRate, other) => toRate.Spread == 0 ? 1 : 0);
             ApplyRule(data, (toRate, other) => toRate.TeamType == GameLeaderTypes.Home ? 1 : 0);
-            ApplyRule(data, (toRate, other) => toRate.TeamWins > toRate.TeamLosses ? 1 : -1);
+            ApplyRule(data, (toRate, other) => toRate.TeamWins > toRate.TeamLosses ? 1 : 0);
             ApplyRule(data, (toRate, other) => toRate.TeamWins > other.TeamWins ? 1 : 0);
+            ApplyRule(data, (toRate, other) => toRate.TeamSpread() > 20 ? 4 : 0);
+
+            Console.WriteLine($"Home {data.Home.Rate} Away {data.Away.Rate} {data.Away.TeamSpread()}");
 
             return data.Home.Rate >= data.Away.Rate 
                 ? PickTypes.Home

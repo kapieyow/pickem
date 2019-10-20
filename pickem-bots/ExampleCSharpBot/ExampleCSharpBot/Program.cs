@@ -39,6 +39,9 @@ namespace ExampleCSharpBot
 
             var myMagic = new AdamsMagicService();
 
+            var wins = 0;
+            var losses = 0;
+
             foreach ( var gamePickScoreboard in playerScoreboard.GamePickScoreboards/*.Where(s => AdamsMagicService.BeforeGameStates.Contains(s.GameState)) */)
             {
                 var pick = myMagic.ScoreIt(gamePickScoreboard);
@@ -46,17 +49,22 @@ namespace ExampleCSharpBot
                 // pick your pick
                 var pickUpdate = new PlayerPickUpdate { Pick = pick };
 
-                Console.WriteLine($"{pick.ToString()} {gamePickScoreboard.HomeTeamLongName} {gamePickScoreboard.HomeTeamWins} {gamePickScoreboard.HomeTeamLosses} {gamePickScoreboard.HomeTeamRank} {gamePickScoreboard.AwayTeamLongName} {gamePickScoreboard.AwayTeamWins} {gamePickScoreboard.AwayTeamLosses} {gamePickScoreboard.AwayTeamRank} {gamePickScoreboard.LeaderAfterSpread}");
+                Console.WriteLine($"{pick.ToString()} {gamePickScoreboard.LeaderAfterSpread} {gamePickScoreboard.LeaderAfterSpread.ToString() == pick.ToString()} {gamePickScoreboard.HomeTeamLongName} {gamePickScoreboard.HomeTeamWins} {gamePickScoreboard.HomeTeamLosses} {gamePickScoreboard.HomeTeamRank} {gamePickScoreboard.AwayTeamLongName} {gamePickScoreboard.AwayTeamWins} {gamePickScoreboard.AwayTeamLosses} {gamePickScoreboard.AwayTeamRank} {gamePickScoreboard.LeaderAfterSpread} {gamePickScoreboard.Spread} {gamePickScoreboard.SpreadDirection}");
 
-                try {
-                    var playerPickResult = await PutToApi<PlayerPick>(
-                        $"{PickemBaseUrl}/{PickemBotLeagueCode}/{botLeague.CurrentWeekRef}/{player.PlayerTag}/scoreboard/{gamePickScoreboard.GameId}/pick", 
-                        pickUpdate,
-                        jwt);
-                } catch {}
+                if (gamePickScoreboard.LeaderAfterSpread.ToString() == pick.ToString())
+                    wins++;
+                else
+                    losses++;
+                // try {
+                //     var playerPickResult = await PutToApi<PlayerPick>(
+                //         $"{PickemBaseUrl}/{PickemBotLeagueCode}/{botLeague.CurrentWeekRef}/{player.PlayerTag}/scoreboard/{gamePickScoreboard.GameId}/pick", 
+                //         pickUpdate,
+                //         jwt);
+                // } catch {}
                 
             }
 
+            Console.WriteLine($"Wins {wins} Losses {losses}");
         }
 
 
