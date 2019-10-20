@@ -13,7 +13,6 @@ namespace ExampleCSharpBot.PickemModels
         Cancelled
     }
 
-
     [JsonConverter(typeof(StringEnumConverter))]
     public enum GameLeaderTypes
     {
