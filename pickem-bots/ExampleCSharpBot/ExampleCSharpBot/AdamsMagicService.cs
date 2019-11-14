@@ -18,7 +18,8 @@ namespace ExampleCSharpBot
                     SpreadDirection = gameScoreboard.SpreadDirection,
                     TeamLosses = gameScoreboard.HomeTeamLosses,
                     TeamWins = gameScoreboard.HomeTeamWins,
-                    TeamRank = gameScoreboard.HomeTeamRank
+                    TeamRank = gameScoreboard.HomeTeamRank,
+                    Name = gameScoreboard.HomeTeamLongName
                 },
                 Away = new TeamData {
                     TeamType = GameLeaderTypes.Away,
@@ -26,7 +27,8 @@ namespace ExampleCSharpBot
                     SpreadDirection = gameScoreboard.SpreadDirection,
                     TeamLosses = gameScoreboard.AwayTeamLosses,
                     TeamWins = gameScoreboard.AwayTeamWins,
-                    TeamRank = gameScoreboard.AwayTeamRank
+                    TeamRank = gameScoreboard.AwayTeamRank,
+                    Name = gameScoreboard.AwayTeamLongName
                 }
             };
 
@@ -40,11 +42,23 @@ namespace ExampleCSharpBot
             ApplyRule(data, (toRate, other) => toRate.TeamWins > other.TeamWins ? 1 : 0);
             ApplyRule(data, (toRate, other) => toRate.TeamSpread() > 20 ? 4 : 0);
 
-            Console.WriteLine($"Home {data.Home.Rate} Away {data.Away.Rate} {data.Away.TeamSpread()}");
+            var rnd = new Random(data.Home.Name.Length * data.Away.Name.Length / (data.Home.Name.Length + data.Away.Name.Length));
+            var unknownFactor = rnd.Next(100);
 
-            return data.Home.Rate >= data.Away.Rate 
-                ? PickTypes.Home
-                : PickTypes.Away;   
+            Console.WriteLine($"Home {data.Home.Rate} Away {data.Away.Rate} Spread {data.Away.TeamSpread()} Unknown Factor {unknownFactor}");
+            
+            if (unknownFactor < 70)
+            {
+                return data.Home.Rate >= data.Away.Rate 
+                    ? PickTypes.Home
+                    : PickTypes.Away;   
+            }
+            else
+            {
+                return data.Home.Rate <= data.Away.Rate 
+                    ? PickTypes.Home
+                    : PickTypes.Away;   
+            }
         }
 
         private void ApplyRule(EngineData data, Func<TeamData, TeamData, int> rule)
@@ -70,7 +84,8 @@ namespace ExampleCSharpBot
         public int TeamLosses { get; set; }
         public decimal Spread { get; set; }
         public SpreadDirections SpreadDirection { get; set; }
-        
+        public string Name {get;set;}
+
         public int TeamSpread() 
         {
             if (TeamType == GameLeaderTypes.Away
