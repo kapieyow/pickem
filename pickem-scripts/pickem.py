@@ -14,7 +14,7 @@ import pickemUpdateSpreads
 import pickemUpdateTeams
 
 # "configs"
-VERSION = "2.3.40"
+VERSION = "2.4.41"
 
 #=====================================
 # sub command methods
