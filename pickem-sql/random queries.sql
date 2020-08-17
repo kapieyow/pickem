@@ -144,24 +144,7 @@ SELECT
 	g.data->>'LeaderAfterSpread' AS LeaderAfterSpread,
 	'{ ''gameId'': '::text || CAST(g.data->>'GameId' AS text) || ' }'::text AS PostPayload,
 	g.*
-FROM 
-	public.mt_doc_leaguedata l,
-	SELECT 
-	g.data->>'GameId' AS GameId,
-	weeks->>'WeekNumberRef' AS Week,
-	g.data->>'GameState' AS GameState,
-	g.data->>'GameStart' AS GameStart,
-	g.data->'HomeTeam'->>'TeamCodeRef' AS HomeTeam,
-	g.data->'HomeTeam'->>'Score' AS HomeScore,
-	g.data->'AwayTeam'->>'TeamCodeRef' AS AwayTeam,
-	g.data->'AwayTeam'->>'Score' AS AwayScore,
-	g.data->'Spread'->>'PointSpread' AS Spread,
-	g.data->'Spread'->>'SpreadDirection' AS SpreadDirection,
-	g.data->>'Leader' AS Leader,
-	g.data->>'LeaderAfterSpread' AS LeaderAfterSpread,
-	'{ ''gameId'': '::text || CAST(g.data->>'GameId' AS text) || ' }'::text AS PostPayload,
-	g.*
-FROM 
+FROM
 	public.mt_doc_leaguedata l,
 	jsonb_array_elements(data->'Weeks') weeks,
 	jsonb_array_elements(weeks->'Games') gameRefs
