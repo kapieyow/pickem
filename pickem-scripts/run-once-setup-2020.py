@@ -43,6 +43,6 @@ gameSyncher = pickemSynchGames.PickemSynchGamesHandler(core.apiClient, core.logg
 # week 1 *inserts*
 gameSyncher.Run("insert", 2020, 20, currentLeagueWeek, False)
 
-# add known week 1 games
-core.setLeagueGames([currentLeagueCode], currentLeagueWeek, [401207101, 401207098, 401235700, 401212484, 401234576])
+## add known week 1 games
+#core.setLeagueGames([currentLeagueCode], currentLeagueWeek, [401207101, 401207098, 401235700, 401212484, 401234576])
 
