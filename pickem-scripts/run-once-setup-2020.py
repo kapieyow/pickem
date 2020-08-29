@@ -40,9 +40,17 @@ core.apiClient.addPlayerToLeague(currentLeagueCode, currentUserName, currentPlay
 
 gameSyncher = pickemSynchGames.PickemSynchGamesHandler(core.apiClient, core.logger)
 
-# week 1 *inserts*
+# week 1 game *inserts*
 gameSyncher.Run("insert", 2020, 20, currentLeagueWeek, False)
 
-## add known week 1 games
-#core.setLeagueGames([currentLeagueCode], currentLeagueWeek, [401207101, 401207098, 401235700, 401212484, 401234576])
+# add week 1 pickem games
+core.setLeagueGame([currentLeagueCode], currentLeagueWeek, None, "army", None, 1)
+core.setLeagueGame([currentLeagueCode], currentLeagueWeek, None, "marshall", None, 1)
+core.setLeagueGame([currentLeagueCode], currentLeagueWeek, None, "memphis", None, 1)
+core.setLeagueGame([currentLeagueCode], currentLeagueWeek, None, "navy", None, 1)
+core.setLeagueGame([currentLeagueCode], currentLeagueWeek, None, "north-texas", None, 1)
+core.setLeagueGame([currentLeagueCode], currentLeagueWeek, None, "southern-miss", None, 1)
+core.setLeagueGame([currentLeagueCode], currentLeagueWeek, None, "texas-st", None, 1)
+core.setLeagueGame([currentLeagueCode], currentLeagueWeek, None, "uab", None, 1)
+core.setLeagueGame([currentLeagueCode], currentLeagueWeek, None, "utep", None, 1)
 
