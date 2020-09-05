@@ -4,3 +4,4 @@ espn-example-single-game.json
 /pickem-bots/ExampleCSharpBot/ExampleCSharpBot/bin/Debug/netcoreapp2.2
 /pickem-bots/ExampleCSharpBot/ExampleCSharpBot/obj
 pickem-sql/setup-new-pickem-db-server.sql
+/backends/pickem-logger/node_modules/*
