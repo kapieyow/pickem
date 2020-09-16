@@ -10,7 +10,7 @@ import time
 import pickemAddYahooGames
 import pickemCore
 import pickemSynchGames
-import pickemUpdateSpreads
+import pickemUpdateSpreadsEspn
 import pickemUpdateTeams
 
 # "configs"
@@ -65,7 +65,7 @@ def updateGame(args):
     core.apiClient.updateGame(args.game_id, gameData['gameStart'], gameData['lastUpdated'], gameData['gameState'], gameData['currentPeriod'], gameData['timeClock'], gameData['awayTeam']['score'], gameData['homeTeam']['score'], args.game_title)
 
 def updateSpreads(args):
-    synchGamesHandler = pickemUpdateSpreads.PickemUpdateSpreadsHandler(core.apiClient, core.logger)
+    synchGamesHandler = pickemUpdateSpreadsEspn.PickemUpdateSpreadsHandler(core.apiClient, core.logger)
     synchGamesHandler.Run(args.action, args.pickem_season_code, args.week)
 
 def updateTeams(args):
