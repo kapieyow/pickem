@@ -96,7 +96,7 @@ In appsettings.Developement.json modify PostgresConnection/ConnectionString to w
 |set_league_games_from_yahoo|`./pickem.py set_league_games_from_yahoo -lcs League-A League-B League-C -w 1`|Reads games from Yahoo and adds all to each league. This allows bulk game adds, but it cannot set win points so will default to 1 win point|
 |set_league_week|`./pickem.py set_league_week -lcs League1 League2 -w 13`|Updates the current week for one or more leagues. The GUIs will default to the week.|
 |synch_games|`./pickem.py synch_games -a u -psc 19 -esc 2019 -w 1 -les 180`|Synchronizes game data from external source. The -a option may be `u` for update or `i` for insert.|
-|update_teams|`./pickem.py update_teams -rs cfp -psc 18 -w 12`|Updates win/loss team records and rankings. Can get rankings from AP or CFP|
+|update_teams|`./pickem.py update_teams -psc 18 -w 12`|Updates win/loss team records and rankings|
 |update_spreads|`./pickem.py update_spreads -a u -psc 18 -w 12`|Can update spreads `-a u` from external source. Will lock spreads using `-a l`|
 
 **Script Tips**
