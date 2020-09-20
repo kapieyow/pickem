@@ -111,7 +111,7 @@ class PickemUpdateSpreadsHandler:
                 nextGameSpread.SpreadToVisitor = "+" + homeSpreadOrOverUnderText[1:]
 
             else:
-                self.logger.wtf("Where is the spread? visitorSpreadOrOverUnderText (%s) homeSpreadOrOverUnderText(%s)" % visitorSpreadOrOverUnderText, homeSpreadOrOverUnderText)
+                self.logger.wtf("Where is the spread? visitorSpreadOrOverUnderText (%s) homeSpreadOrOverUnderText(%s)" % (visitorSpreadOrOverUnderText, homeSpreadOrOverUnderText) )
                 continue
 
             spreadJson = nextGameSpread.toJSON()

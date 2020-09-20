@@ -11,10 +11,10 @@ import pickemAddYahooGames
 import pickemCore
 import pickemSynchGames
 import pickemUpdateSpreadsEspn
-import pickemUpdateTeams
+import pickemUpdateTeamsEspn
 
 # "configs"
-VERSION = "2.4.41"
+VERSION = "2.5.42"
 
 #=====================================
 # sub command methods
@@ -69,8 +69,8 @@ def updateSpreads(args):
     synchGamesHandler.Run(args.action, args.pickem_season_code, args.week)
 
 def updateTeams(args):
-    updateTeamsHandler = pickemUpdateTeams.PickemUpdateSpreadsHandler(core.apiClient, core.logger)
-    updateTeamsHandler.Run(args.pickem_season_code, args.week, args.rankings_source)
+    updateTeamsHandler = pickemUpdateTeamsEspn.PickemUpdateSpreadsHandler(core.apiClient, core.logger)
+    updateTeamsHandler.Run(args.pickem_season_code, args.week)
 
 
 #=====================================
@@ -152,7 +152,6 @@ def setupArgumentParsers():
     subParser = subArgParsers.add_parser('update_teams')
     subParser.add_argument('-psc', '--pickem_season_code', type=str, required=True, help='Pickem Season Code')
     subParser.add_argument('-w', '--week', type=int, required=True, help='Week number')
-    subParser.add_argument('-rs', '--rankings_source', nargs='?', const='ap', default='ap', choices=['ap', 'cfp'])
     subParser.set_defaults(func=updateTeams)
 
     return argParser

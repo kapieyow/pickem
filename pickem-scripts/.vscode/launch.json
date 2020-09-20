@@ -3,6 +3,20 @@
     "configurations": [
 
         {
+            "name": "update_teams",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/pickem.py",
+            "args": [
+                "update_teams",
+                "-psc",
+                "20",
+                "-rs",
+                "ap", 
+                "-w",
+                "3"
+            ]
+        },{
             "name": "synch_games insert case",
             "type": "python",
             "request": "launch",
@@ -121,7 +135,7 @@
             "name": "Python: All debug Options",
             "type": "python",
             "request": "launch",
-            "pythonPath": "${config:python.pythonPath}",
+            "pythonPath": "${command:python.interpreterPath}",
             "program": "${file}",
             "module": "module.name",
             "env": {
