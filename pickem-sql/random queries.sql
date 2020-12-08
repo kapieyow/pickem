@@ -565,3 +565,16 @@ SELECT data->>'LongName', * FROM mt_doc_teamdata WHERE data->>'LongName' LIKE '%
 --UPDATE public.mt_doc_teamdata SET data = jsonb_set(data, '{theSpreadName}', '"Western Michigan"') WHERE id = 'western-mich';
 
 SELECT * FROM public.mt_doc_teamdata;
+
+
+-- unlock spreads in a week after an accidental lock
+BEGIN; -- COMMIT ROLLBACK
+
+UPDATE public.mt_doc_gamedata SET data = jsonb_set(data, '{GameState}', '"SpreadNotSet"')
+WHERE
+	data->>'SeasonCodeRef' = '20'
+	AND
+	data->>'WeekNumberRef' = '10'
+	AND
+	data->>'GameState' = 'SpreadLocked'
+;
